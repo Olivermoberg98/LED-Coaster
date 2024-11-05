@@ -8977,7 +8977,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "Input voltage"
+		(property "Value" "Conn_01x02_Pin"
 			(at 341.63 131.4449 90)
 			(effects
 				(font
@@ -10818,7 +10818,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Button_Switch_SMD:SW_SPST_SKQG_WithStem"
+		(property "Footprint" "Button_Switch_SMD:SW_Push_1P1T_NO_Vertical_Wuerth_434133025816"
 			(at 114.3 175.26 0)
 			(effects
 				(font
