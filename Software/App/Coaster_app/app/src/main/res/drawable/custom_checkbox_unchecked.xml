@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Inner filling color for unchecked state -->
+    <item android:drawable="@drawable/custom_checkbox_inner_unchecked"/>
+    <!-- Outer edge color -->
+    <item android:drawable="@drawable/custom_checkbox_outer"/>
+</layer-list>

@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">LED Coaster</string>
+    <string name="checkbox_outer">Outer</string>
+    <string name="checkbox_inner">Inner</string>
+    <string name="light_configuration">LIGHT CONFIGURATION</string>
+    <string name="effects">EFFECTS</string>
+    <string name="bluetooth">BLUETOOTH</string>
+</resources>

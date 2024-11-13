@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/CheckboxContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_below="@id/layout_bluetooth"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@color/square_color"
+    android:layout_margin="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Title "LIGHT CONFIGURATION" -->
+        <TextView
+            android:id="@+id/text_light_configuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:text="@string/light_configuration"
+            android:layout_gravity="start"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Checkboxes -->
+        <LinearLayout
+            android:id="@+id/CheckboxLLContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="10dp"
+            android:paddingStart="0dp"
+            android:paddingEnd="100dp"
+            android:gravity="center_vertical">
+
+            <CheckBox
+                android:id="@+id/text_outer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:buttonTint="@color/white"
+                android:text="@string/checkbox_outer"
+                android:textSize="18sp"
+                android:textColor="@color/checkbox_text_color"/>
+
+            <CheckBox
+                android:id="@+id/text_inner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/checkbox_inner"
+                android:textSize="18sp"
+                android:textColor="@color/checkbox_text_color"
+                android:layout_marginStart="8dp"
+                android:buttonTint="@color/white"/>
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

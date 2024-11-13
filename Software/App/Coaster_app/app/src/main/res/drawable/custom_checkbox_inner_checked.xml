@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- Inner filling color for checked state -->
+    <solid android:color="@color/checkbox_inner_checked_color"/>
+</shape>

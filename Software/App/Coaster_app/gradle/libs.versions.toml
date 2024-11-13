@@ -1,0 +1,40 @@
+[versions]
+agp = "8.4.0"
+androidColorpickerpreference = "1.0"
+androidxJunit = "your_version_here"
+appcompatVersion = "your_version_here"
+colorpicker = "0.0.15"
+coreKtxVersion = "your_version_here"
+espressoCoreVersion = "your_version_here"
+junitJunit = "your_version_here"
+kotlin = "1.9.0"
+coreKtx = "1.13.1"
+junit = "4.13.2"
+junitVersion = "1.1.5"
+espressoCore = "3.5.1"
+appcompat = "1.6.1"
+material = "1.12.0"
+materialVersion = "your_version_here"
+cardview = "1.0.0"
+
+[libraries]
+android-colorpickerpreference = { module = "com.github.attenzione:android-ColorPickerPreference", version.ref = "androidColorpickerpreference" }
+androidx-appcompat-vyourversionhere = { module = "androidx.appcompat:appcompat", version.ref = "appcompatVersion" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-ktx-vyourversionhere = { module = "androidx.core:core-ktx", version.ref = "coreKtxVersion" }
+androidx-espresso-core-vyourversionhere = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCoreVersion" }
+androidx-junit-vyourversionhere = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }
+colorpicker = { module = "com.github.QuadFlask:colorpicker", version.ref = "colorpicker" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+junit-vyourversionhere = { module = "junit:junit", version.ref = "junitJunit" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+material-vyourversionhere = { module = "com.google.android.material:material", version.ref = "materialVersion" }
+androidx-cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+
