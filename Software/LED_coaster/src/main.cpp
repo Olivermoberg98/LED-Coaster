@@ -1,49 +1,57 @@
 #include <Arduino.h>
 #include <FastLED.h>
 #include <patterns.h>
+#include <BLEHandler.h>
 
-#define LED_PIN     0
-#define NUM_LEDS    10
+#define LED_PIN_INNER     0
+#define LED_PIN_OUTER     1
+#define NUM_LEDS_INNER    10
+#define NUM_LEDS_OUTER    20
 
-CRGB colors[NUM_LEDS];
-CRGB leds[NUM_LEDS]; // change to better name later specify that these are the values that are to be shown
+CRGB colors_inner[NUM_LEDS_INNER];
+CRGB colors_outer[NUM_LEDS_OUTER];
+CRGB led_output_inner[NUM_LEDS_INNER]; 
+CRGB led_output_outer[NUM_LEDS_OUTER]; 
+
+PatternType inner_pattern = PATTERN_CHASER;
+PatternType outer_pattern = PATTERN_CHASER;
+
+BLEHandler blehandler;
 
 void setup() {
-
-  FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
-  for (int i = 0; i < NUM_LEDS; i++) {
-    colors[i] = CRGB(0, 0, 255);
+  // Setup for the inner LEDs
+  FastLED.addLeds<WS2812, LED_PIN_INNER, GRB>(led_output_inner, NUM_LEDS_INNER);
+  for (int i = 0; i < NUM_LEDS_INNER; i++) {
+    colors_inner[i] = CRGB(0, 0, 255);
   }
+  // Setup for the outer LEDs
+  FastLED.addLeds<WS2812, LED_PIN_INNER, GRB>(led_output_inner, NUM_LEDS_OUTER);
+  for (int i = 0; i < NUM_LEDS_OUTER; i++) {
+    colors_inner[i] = CRGB(0, 255, 0);
+  }
+
   FastLED.show();
+
+  // Setup Bluetooth
+  blehandler.begin();
 }
 
 void loop() {
-  
-  //pulse(colors, leds, NUM_LEDS, 0.1f, 255, 25);
-  chaser(colors, leds, NUM_LEDS, 1, 1, 255, 50);
+  if (blehandler.innerChecked) {
+    runPattern(inner_pattern,colors_inner,led_output_inner,NUM_LEDS_INNER);
+  } else {
+    clearRing(led_output_inner, NUM_LEDS_INNER); 
+  }
+
+  if (blehandler.outerChecked) {
+    runPattern(outer_pattern,colors_inner,led_output_inner,NUM_LEDS_INNER);
+  } else {
+    clearRing(led_output_outer, NUM_LEDS_OUTER);
+  }
+
+  // Reset the package received flag
+  blehandler.package1Received = false;
 
   FastLED.show();
   delay(10);
-
-  // # Chaser
-  // This function should be independent of the colors used preferably
-  // input should be pointer to some color array
-  // Inputs should contain speed, time?, maxBrigthness, minBrightness, ...
-  // Bool for static or revolving colors?
-  // input:  CRGB*, float speed, float currentTime, int maxBrigthness, int minBrightness
-  // output: void
-
-
-  // # SpinColor
-  // Function that can spin the color array by fractional indecies thorugh linear interpolation
-  // input: CRGB*, float indexStep
-  // output: void
-  
-  //for   (int i = 0; i < NUM_LEDS; i++) {
-  //  leds[i] = CRGB(foo(), 0, 0);
-  //}
-  //FastLED.show();
-  //delay(50);
-
-
 }

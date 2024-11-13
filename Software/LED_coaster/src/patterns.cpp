@@ -24,6 +24,33 @@
 /// @param pulseFrequency The frequency of the pulse in [Hz].
 /// @param maxBrigthness The maximum brightness of the pulse [0-255].
 /// @param minBrigthness The minimum brightness of the pulse [0-255].
+
+void runPattern(PatternType pattern, CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds) {
+    switch (pattern) {
+        case PATTERN_FIXED:
+            fixed(ledsIn, ledsOut, numberOfLeds);
+            break;
+        case PATTERN_CHASER:
+            chaser(ledsIn, ledsOut, numberOfLeds, 1, 1, 255, 50); 
+            break;
+        case PATTERN_PULSE:
+            pulse(ledsIn, ledsOut, numberOfLeds, 0.1f, 255, 25); 
+            break;
+        default:
+            fixed(ledsIn, ledsOut, numberOfLeds);
+            break;
+    }
+}
+
+void fixed(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds) {
+    for (int i = 0; i < numberOfLeds; i++) {
+        // Scale the original colors to the new brightness
+        ledsOut[i].r = constrain(ledsIn[i].r, 0, 255);
+        ledsOut[i].g = constrain(ledsIn[i].g, 0, 255);
+        ledsOut[i].b = constrain(ledsIn[i].b, 0, 255);
+    }
+}
+
 void pulse(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, float pulseFrequency, float maxBrigthness, float minBrigthness) {
     // Calculate the pulse value (between 0 and 1)
     float pulse = (sin((2 * PI * millis() * pulseFrequency) / 1000.0f) + 1.0) / 2.0;
@@ -40,7 +67,6 @@ void pulse(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, float pulseFrequency, 
         ledsOut[i].b = constrain(ledsIn[i].b * scaledBrightness, 0, 255);
     }
 }
-
 
 void chaser(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, int brightSpots,float roationalFrequency, float maxBrigthness, float minBrigthness) {
     int numBrightSpots = brightSpots;
@@ -70,5 +96,11 @@ void chaser(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, int brightSpots,float
         ledsOut[i].r = constrain(ledsIn[i].r * brightness / 255.0f, 0, 255);
         ledsOut[i].g = constrain(ledsIn[i].g * brightness / 255.0f, 0, 255);
         ledsOut[i].b = constrain(ledsIn[i].b * brightness / 255.0f, 0, 255);
+    }
+}
+
+void clearRing(CRGB* leds, int numLeds) {
+    for (int i = 0; i < numLeds; i++) {
+        leds[i] = CRGB::Black;
     }
 }
