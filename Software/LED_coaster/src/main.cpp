@@ -3,34 +3,23 @@
 #include <patterns.h>
 #include <BLEHandler.h>
 
-#define LED_PIN_INNER     0
-#define LED_PIN_OUTER     1
-#define NUM_LEDS_INNER    10
-#define NUM_LEDS_OUTER    20
-
-CRGB colors_inner[NUM_LEDS_INNER];
-CRGB colors_outer[NUM_LEDS_OUTER];
 CRGB led_output_inner[NUM_LEDS_INNER]; 
 CRGB led_output_outer[NUM_LEDS_OUTER]; 
 
-PatternType inner_pattern = PATTERN_CHASER;
-PatternType outer_pattern = PATTERN_CHASER;
+PatternType inner_pattern = CHASER;
+PatternType outer_pattern = CHASER;
 
-BLEHandler blehandler;
+std::string coasterID = "001";
+BLEHandler blehandler(coasterID);
 
 void setup() {
-  // Setup for the inner LEDs
+  // Setup for the LEDs
   FastLED.addLeds<WS2812, LED_PIN_INNER, GRB>(led_output_inner, NUM_LEDS_INNER);
-  for (int i = 0; i < NUM_LEDS_INNER; i++) {
-    colors_inner[i] = CRGB(0, 0, 255);
-  }
-  // Setup for the outer LEDs
-  FastLED.addLeds<WS2812, LED_PIN_INNER, GRB>(led_output_inner, NUM_LEDS_OUTER);
-  for (int i = 0; i < NUM_LEDS_OUTER; i++) {
-    colors_inner[i] = CRGB(0, 255, 0);
-  }
+  FastLED.addLeds<WS2812, LED_PIN_OUTER, GRB>(led_output_outer, NUM_LEDS_OUTER);
 
-  FastLED.show();
+ // Setup for the LED colors
+  updateLEDColors(0, NUM_LEDS_INNER);
+  updateLEDColors(1, NUM_LEDS_OUTER);
 
   // Setup Bluetooth
   blehandler.begin();
@@ -44,13 +33,21 @@ void loop() {
   }
 
   if (blehandler.outerChecked) {
-    runPattern(outer_pattern,colors_inner,led_output_inner,NUM_LEDS_INNER);
+    runPattern(outer_pattern,colors_outer,led_output_outer,NUM_LEDS_OUTER);
   } else {
     clearRing(led_output_outer, NUM_LEDS_OUTER);
   }
 
-  // Reset the package received flag
-  blehandler.package1Received = false;
+  if (blehandler.package2Received) {
+    inner_pattern = stringToPatternType(blehandler.received_pattern);
+    outer_pattern = stringToPatternType(blehandler.received_pattern);
+
+    updateLEDColors(0,NUM_LEDS_INNER,blehandler.received_colors);
+    updateLEDColors(1,NUM_LEDS_INNER,blehandler.received_colors);
+    
+    // Reset the package flag
+    blehandler.package2Received = false;
+  }
 
   FastLED.show();
   delay(10);

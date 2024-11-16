@@ -53,6 +53,7 @@ void BLEHandler::ServerCallbacks::onDisconnect(NimBLEServer* pServer) {
 void BLEHandler::CharacteristicCallbacks::onWrite(NimBLECharacteristic* pCharacteristic) {
     std::string data = pCharacteristic->getValue();
     handler->handlePackage1(data);
+    handler->handlePackage2(data);
 }
 
 void BLEHandler::handlePackage1(const std::string& data) {
@@ -106,24 +107,6 @@ void BLEHandler::handlePackage2(const std::string& data) {
         return;
     }
 
-    // Extract the mode and colors from the received string.
-    size_t modeEndIndex = data.find(','); // Look for the first comma to separate mode
-    std::string mode = data.substr(1, modeEndIndex - 1); // Extract mode from data (after command byte)
-
-    // Extract color data (skip past the mode and comma)
-    std::string colorString = data.substr(modeEndIndex + 1); // This will be the color string part
-    std::vector<int> colors;
-    size_t start = 0;
-    size_t end = colorString.find(',');
-
-    // Parse the color values (expecting a "R,G,B" format)
-    while (end != std::string::npos) {
-        colors.push_back(std::stoi(colorString.substr(start, end - start)));
-        start = end + 1;
-        end = colorString.find(',', start);
-    }
-    colors.push_back(std::stoi(colorString.substr(start))); // Add the last color value (Blue)
-
     // Calculate the checksum and verify it.
     byte receivedChecksum = static_cast<byte>(data.back()); // The last byte is the checksum
     byte checksumCalculated = 0;
@@ -134,8 +117,22 @@ void BLEHandler::handlePackage2(const std::string& data) {
 
     if (checksumCalculated % 256 != receivedChecksum) {
         Serial.println("Checksum mismatch.");
-        return; // Data is corrupted
+        return; 
     }
 
-    // Handle the pattern.
+    // Extract the mode and colors from the received string.
+    size_t patternEndIndex = data.find(','); // Look for the first comma to separate mode
+    std::string received_pattern = data.substr(1, patternEndIndex - 1); // Extract mode from data (after command byte)
+
+    // Extract color data (skip past the mode and comma)
+    std::string colorString = data.substr(patternEndIndex + 1); // This will be the color string part
+    size_t start = 0;
+    size_t end = colorString.find(',');
+
+    // Parse the color values (expecting a "R,G,B" format)
+    for (int i = 0; i < 3; ++i) {
+        size_t end = colorString.find(',', start);
+        received_colors[i] = std::stoi(colorString.substr(start, end - start));
+        start = (end == std::string::npos) ? end : end + 1; // Move to next part or break loop
+    }
 }

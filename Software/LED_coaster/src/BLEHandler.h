@@ -15,6 +15,8 @@ public:
     bool package2Received = false;
     bool outerChecked = false;
     bool innerChecked = false;
+    std::string received_pattern;
+    int received_colors[3];
 
     // Callbacks for data receiving events
     void handlePackage1(const std::string& data);
@@ -36,8 +38,6 @@ private:
         BLEHandler* handler;  // Pointer to BLEHandler instance
     };
     friend class ServerCallbacks;
-
-    
 
     // Callback for handling received data
     class CharacteristicCallbacks : public NimBLECharacteristicCallbacks {

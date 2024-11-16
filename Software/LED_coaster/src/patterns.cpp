@@ -25,15 +25,49 @@
 /// @param maxBrigthness The maximum brightness of the pulse [0-255].
 /// @param minBrigthness The minimum brightness of the pulse [0-255].
 
+// Define the color arrays
+CRGB colors_inner[NUM_LEDS_INNER];
+CRGB colors_outer[NUM_LEDS_OUTER];
+
+PatternType stringToPatternType(const std::string& pattern) {
+    if (pattern == "FIXED") {
+        return FIXED;
+    } else if (pattern == "CHASER") {
+        return CHASER;
+    } else if (pattern == "PULSE") {
+        return PULSE;
+    } else {
+        return FIXED;  // Default to FIXED if the pattern is unrecognized
+    }
+}
+
+void updateLEDColors(int ring, int NUM_LEDS, const int colors[3]) {
+    if (ring == 0) {
+        for (int i = 0; i < NUM_LEDS; i++) {
+            colors_inner[i] = CRGB(colors[0], colors[1], colors[2]);
+        }
+    } else if (ring == 1) {
+        for (int i = 0; i < NUM_LEDS; i++) {
+            colors_outer[i] = CRGB(colors[0], colors[1], colors[2]);
+        }
+    }
+    FastLED.show();
+}
+
+void updateLEDColors(int ring, int NUM_LEDS) {
+    const int defaultColors[3] = {0, 0, 255}; // Default color: Blue
+    updateLEDColors(ring, NUM_LEDS, defaultColors);
+}
+
 void runPattern(PatternType pattern, CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds) {
     switch (pattern) {
-        case PATTERN_FIXED:
+        case FIXED:
             fixed(ledsIn, ledsOut, numberOfLeds);
             break;
-        case PATTERN_CHASER:
+        case CHASER:
             chaser(ledsIn, ledsOut, numberOfLeds, 1, 1, 255, 50); 
             break;
-        case PATTERN_PULSE:
+        case PULSE:
             pulse(ledsIn, ledsOut, numberOfLeds, 0.1f, 255, 25); 
             break;
         default:
