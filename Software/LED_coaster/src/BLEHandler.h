@@ -19,8 +19,8 @@ public:
     int received_colors[3];
 
     // Callbacks for data receiving events
-    void handlePackage1(const std::string& data);
-    void handlePackage2(const std::string& data);
+    void handlePackage1(const std::vector<byte>& data);
+    void handlePackage2(const std::vector<byte>& data);
 
 private:
     std::string coasterID;

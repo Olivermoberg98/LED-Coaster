@@ -321,11 +321,9 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
 
             // Calculate checksum by summing all bytes modulo 256
             val checksum: Byte = (dataBytes.sumOf { it.toInt() } % 256).toByte()
-            val unsignedChecksum = checksum.toInt() and 0xFF
 
             // Append the checksum to the data array
-            val finalDataBytes = dataBytes + unsignedChecksum.toByte()
-            val hej =1
+            val finalDataBytes = dataBytes + checksum.toByte()
 
             bluetoothSocket?.outputStream?.write(finalDataBytes)
             bluetoothSocket?.outputStream?.flush()

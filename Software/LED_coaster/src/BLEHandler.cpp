@@ -38,7 +38,6 @@ bool BLEHandler::isConnected() {
     return deviceConnected;
 }
 
-// ServerCallbacks implementation
 void BLEHandler::ServerCallbacks::onConnect(NimBLEServer* pServer) {
     handler->deviceConnected = true;  
     Serial.println("Device connected");
@@ -52,22 +51,17 @@ void BLEHandler::ServerCallbacks::onDisconnect(NimBLEServer* pServer) {
 
 void BLEHandler::CharacteristicCallbacks::onWrite(NimBLECharacteristic* pCharacteristic) {
     std::string data = pCharacteristic->getValue();
-    handler->handlePackage1(data);
-    handler->handlePackage2(data);
+    std::vector<byte> byteData(data.begin(), data.end());
+    handler->handlePackage1(byteData);
+    handler->handlePackage2(byteData);
 }
 
-void BLEHandler::handlePackage1(const std::string& data) {
-    // Check minimum length for Package 1 (4 bytes: command, outer, inner, checksum)
-    if (data.size() != 4) {
-        Serial.println("Invalid data length for Package 1");
-        return;
-    }
-
+void BLEHandler::handlePackage1(const std::vector<byte>& data) {
     // Parse data bytes
-    uint8_t command = data[0];
-    uint8_t isOuterChecked = data[1];
-    uint8_t isInnerChecked = data[2];
-    uint8_t receivedChecksum = data[3];
+    byte command = data[0];
+    byte isOuterChecked = data[1];
+    byte isInnerChecked = data[2];
+    byte receivedChecksum = data.back();
 
     // Validate the command byte
     if (command != 0x01) {
@@ -75,8 +69,8 @@ void BLEHandler::handlePackage1(const std::string& data) {
         return;
     }
 
-    // Calculate checksum
-    uint8_t calculatedChecksum = (command + isOuterChecked + isInnerChecked) % 256;
+    // Calculate checksum and verify it
+    byte calculatedChecksum = (command + isOuterChecked + isInnerChecked) % 256;
     if (calculatedChecksum != receivedChecksum) {
         Serial.println("Checksum mismatch");
         return;
@@ -86,53 +80,43 @@ void BLEHandler::handlePackage1(const std::string& data) {
     outerChecked = (isOuterChecked == 0x01);
     innerChecked = (isInnerChecked == 0x01);
     package1Received = true;
-
-    // Print the data
-    Serial.print("Package 1 received: ");
-    Serial.print("OuterChecked = ");
-    Serial.print(outerChecked);
-    Serial.print(", InnerChecked = ");
-    Serial.println(innerChecked);
 }
 
-void BLEHandler::handlePackage2(const std::string& data) {
-    // Assuming the data is in the format: [command byte] [mode string] [color string] [checksum]
-
-    // Extract the command byte (0x02)
-    byte commandByte = static_cast<byte>(data[0]);
-
-    // Check if the command byte matches the expected one
+void BLEHandler::handlePackage2(const std::vector<byte>& data) {
+    // Validate the command byte
+    byte commandByte = data[0];
     if (commandByte != 0x02) {
-        Serial.println("Invalid command byte.");
+        Serial.println("Invalid command byte for Package 1");
         return;
     }
 
-    // Calculate the checksum and verify it.
-    byte receivedChecksum = static_cast<byte>(data.back()); // The last byte is the checksum
+    // Calculate checksum and verify it
+    byte receivedChecksum = data.back();
     byte checksumCalculated = 0;
-
-    for (size_t i = 0; i < data.length() - 1; ++i) {
+    for (size_t i = 0; i < data.size() - 1; ++i) {
         checksumCalculated += data[i]; // Sum up all bytes except the checksum
     }
-
     if (checksumCalculated % 256 != receivedChecksum) {
         Serial.println("Checksum mismatch.");
-        return; 
+        return;
     }
 
-    // Extract the mode and colors from the received string.
-    size_t patternEndIndex = data.find(','); // Look for the first comma to separate mode
-    std::string received_pattern = data.substr(1, patternEndIndex - 1); // Extract mode from data (after command byte)
+    // Extract the mode and colors from the data (excluding command byte and checksum)
+    std::string modeAndColorString(data.begin() + 1, data.end() - 1); 
+    size_t patternEndIndex = modeAndColorString.find(','); 
+    std::string mode = modeAndColorString.substr(0, patternEndIndex); 
 
-    // Extract color data (skip past the mode and comma)
-    std::string colorString = data.substr(patternEndIndex + 1); // This will be the color string part
+    // Extract color string
+    std::string colorString = modeAndColorString.substr(patternEndIndex + 1);
     size_t start = 0;
     size_t end = colorString.find(',');
 
-    // Parse the color values (expecting a "R,G,B" format)
+    // Parse the color values assuming "R,G,B" format
     for (int i = 0; i < 3; ++i) {
-        size_t end = colorString.find(',', start);
+        end = colorString.find(',', start);
         received_colors[i] = std::stoi(colorString.substr(start, end - start));
-        start = (end == std::string::npos) ? end : end + 1; // Move to next part or break loop
+        start = (end == std::string::npos) ? end : end + 1; // Move to next part
     }
+
+    package2Received = true;
 }
