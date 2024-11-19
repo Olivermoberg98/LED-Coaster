@@ -2,25 +2,42 @@
 #include <FastLED.h>
 #include <patterns.h>
 
-#define LED_PIN     0
-#define NUM_LEDS    10
+#define LED_PIN_TOP       0
+#define NUM_LEDS_TOP      10
 
-CRGB colors[NUM_LEDS];
-CRGB leds[NUM_LEDS]; // change to better name later specify that these are the values that are to be shown
+#define LED_PIN_BOTTOM    1
+#define NUM_LEDS_BOTTOM   20
+
+CRGB colors_top[NUM_LEDS_TOP];    // The colors that are to be shown
+CRGB leds_top[NUM_LEDS_TOP];      // The values that are sent to the LEDS after any potetnial brightness scaling is done
+
+CRGB colors_bottom[NUM_LEDS_BOTTOM]; // The colors that are to be shown
+CRGB leds_bottom[NUM_LEDS_BOTTOM];   // The values that are sent to the LEDS after any potetnial brightness scaling is done
 
 void setup() {
+  Serial.begin(9600);
+  FastLED.addLeds<WS2812, LED_PIN_TOP, GRB>(leds_top, NUM_LEDS_TOP);
+  FastLED.addLeds<WS2812, LED_PIN_BOTTOM, GRB>(leds_bottom, NUM_LEDS_BOTTOM);
 
-  FastLED.addLeds<WS2812, LED_PIN, GRB>(leds, NUM_LEDS);
-  for (int i = 0; i < NUM_LEDS; i++) {
-    colors[i] = CRGB(0, 0, 255);
+  for (int i = 0; i < NUM_LEDS_TOP; i++) {
+    colors_top[i] = CRGB(0, 0, 255);
+    leds_top[i] = CRGB(0,0,10);
   }
+  for (int i = 0; i < NUM_LEDS_BOTTOM; i++) {
+    colors_bottom[i] = CRGB(100, 0, 100);
+    leds_bottom[i] = CRGB(125,0,0);
+  }
+  Serial.println("The serial port works");
   FastLED.show();
 }
 
 void loop() {
   
-  //pulse(colors, leds, NUM_LEDS, 0.1f, 255, 25);
-  chaser(colors, leds, NUM_LEDS, 1, 1, 255, 50);
+  //pulse(colors, leds, NUM_LEDS_TOP, 0.1f, 255, 25);
+  
+
+  chaser(colors_bottom, leds_bottom, NUM_LEDS_BOTTOM, 1, 1, 255, 50);
+  //pulse(colors_bottom, leds_bottom, NUM_LEDS_BOTTOM, 1, 255, 50);
 
   FastLED.show();
   delay(10);
