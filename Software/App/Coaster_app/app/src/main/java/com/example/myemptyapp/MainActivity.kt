@@ -186,15 +186,15 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
             ) {
                 val selectedOption = parent.getItemAtPosition(position).toString()
                 when (selectedOption) {
-                    "Static" -> {
+                    "FIXED" -> {
                         showColorPickerButton(1)
                     }
 
-                    "Breathing" -> {
+                    "PULSE" -> {
                         showColorPickerButton(2)
                     }
 
-                    "Chaser" -> {
+                    "CHASER" -> {
                         showColorPickerButton(1)
                     }
 

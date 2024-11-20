@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="dropdown_items">
-        <item>Static</item>
-        <item>Breathing</item>
-        <item>Chaser</item>
-        <item>Rainbow</item>
+        <item>FIXED</item>
+        <item>PULSE</item>
+        <item>CHASER</item>
+        <item>RAINBOW</item>
     </string-array>
 </resources>
