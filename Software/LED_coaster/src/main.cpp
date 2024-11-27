@@ -36,8 +36,8 @@ void loop() {
   //pulse(colors, leds, NUM_LEDS_TOP, 0.1f, 255, 25);
   
 
-  chaser(colors_bottom, leds_bottom, NUM_LEDS_BOTTOM, 1, 1, 255, 50);
-  //pulse(colors_bottom, leds_bottom, NUM_LEDS_BOTTOM, 1, 255, 50);
+  //chaser(colors_bottom, leds_bottom, NUM_LEDS_BOTTOM, 1, 5, 255, 0, 1);
+  pulse(colors_bottom, leds_bottom, NUM_LEDS_BOTTOM, 0.3f, 255, 0);
 
   FastLED.show();
   delay(10);

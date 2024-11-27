@@ -42,11 +42,11 @@ void pulse(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, float pulseFrequency, 
 /// @param roationalFrequency The rotational frequency of the chaser effect [Hz].
 /// @param maxBrigthness The maximum brightness of the bright spots [0-255].
 /// @param minBrigthness The minimum brightness for areas outside the bright spots [0-255].
-void chaser(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, int brightSpots,float roationalFrequency, float maxBrigthness, float minBrigthness) {
+void chaser(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, int brightSpots,float roationalFrequency, float maxBrigthness, float minBrigthness, int spotWidth) {
     int numBrightSpots = brightSpots;
     float rotation = (numberOfLeds * millis() * roationalFrequency) / 1000.0f;
     float brightness = 100;
-    int width = 5;
+    int width = spotWidth;
     float brightIndex = ((int)(rotation) % numberOfLeds) + rotation - (int)rotation;
 
 
