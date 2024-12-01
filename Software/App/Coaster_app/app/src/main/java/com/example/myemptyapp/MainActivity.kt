@@ -55,13 +55,14 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
     private val REQUEST_ENABLE_BT = 2
     private lateinit var selectedDevice: BluetoothDevice
     private lateinit var receiver: BroadcastReceiver
-    //private val MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FC")
+    private val MY_UUID = UUID.fromString("00001800-0000-1000-8000-00805F9B34FB")
     private var bluetoothSocket: BluetoothSocket? = null // Member variable to hold Bluetooth socket
     private lateinit var spinner: Spinner
 
     // RecyclerView and Adapter
     private lateinit var recyclerView: RecyclerView
     private lateinit var deviceAdapter: BluetoothDeviceAdapter
+    private lateinit var previousDeviceAdapter: BluetoothDeviceAdapter
 
     // Define a boolean flag to track the discovery state
     private var isDiscoveryInProgress = false
@@ -106,9 +107,9 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
         // Load previously connected devices
         val previouslyConnectedDevices = loadPreviouslyConnectedDevices().toMutableList()
         // Initialize the adapter with previously connected devices
-        //deviceAdapter = BluetoothDeviceAdapter(applicationContext, previouslyConnectedDevices, this) {
-        //    requestBluetoothPermissions()
-        //}
+        previousDeviceAdapter = BluetoothDeviceAdapter(applicationContext, previouslyConnectedDevices, this) {
+            requestBluetoothPermissions()
+        }
 
         // Spinner for bluetooth
         spinner = findViewById(R.id.spinnerPreviouslyConnectedDevices)
@@ -131,7 +132,6 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                     isFirstSelection = false
                     return  // Ignore the initial selection
                 }
-
                 // Check if the permission is granted
                 if (ContextCompat.checkSelfPermission(
                         applicationContext,
@@ -142,7 +142,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                     val selectedDeviceName = parent.getItemAtPosition(position).toString()
                     // Find the BluetoothDevice object by its name
                     val selectedDevice =
-                        deviceAdapter.deviceList.firstOrNull { it.name == selectedDeviceName }
+                        previousDeviceAdapter.deviceList.firstOrNull { it.name == selectedDeviceName }
                     selectedDevice?.let {
                         connectToDevice(it)
                     }
@@ -210,7 +210,6 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onDeviceClicked(device: BluetoothDevice) {
-        // Call connectToDevice() with the selected device
         connectToDevice(device)
     }
 
@@ -427,58 +426,57 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
             requestBluetoothPermissions()
-        } else {
-            // Permissions are already granted, proceed with Bluetooth operations
-            var attempts = 0
-            val maxAttempts = 3 // Maximum number of connection attempts
+            return
+        }
+        // Permissions are already granted, proceed with Bluetooth operations
+        var attempts = 0
+        val maxAttempts = 3 // Maximum number of connection attempts
 
-            while (attempts < maxAttempts) {
-                try {
-                    // Initiate pairing process if not already paired
-                    if (device.bondState != BluetoothDevice.BOND_BONDED) {
-                        device.createBond()
-                    }
+        while (attempts < maxAttempts) {
+            try {
+                // Initiate pairing process if not already paired
+                if (device.bondState != BluetoothDevice.BOND_BONDED) {
+                    device.createBond()
+                }
 
-                    // Create a Bluetooth socket and connect to the selected device
-                    //bluetoothSocket = device.createRfcommSocketToServiceRecord(MY_UUID)
-                    bluetoothSocket?.connect()
+                // Create a Bluetooth socket and connect to the selected device
+                bluetoothSocket = device.createRfcommSocketToServiceRecord(MY_UUID)
+                bluetoothSocket?.connect()
 
-                    // Connection successful, enable UI elements for sending data
-                    enableSendDataUI()
+                // Connection successful, enable UI elements for sending data
+                enableSendDataUI()
 
-                    // Check if the device is new or previously connected
-                    if (!isPreviouslyConnected(device)) {
-                        // Save the bluetooth module name if it's a new device
-                        val sharedPreferences =
-                            getSharedPreferences("BluetoothDevices", Context.MODE_PRIVATE)
-                        val editor = sharedPreferences.edit()
-                        editor.putString(device.address, device.name)
-                        editor.apply()
+                // Check if the device is new or previously connected
+                if (!isPreviouslyConnected(device)) {
+                    // Save the bluetooth module name if it's a new device
+                    val sharedPreferences =
+                        getSharedPreferences("BluetoothDevices", Context.MODE_PRIVATE)
+                    val editor = sharedPreferences.edit()
+                    editor.putString(device.address, device.name)
+                    editor.apply()
 
-                        // Update the Spinner with the newly connected device name
-                        runOnUiThread {
-                            (spinner.adapter as? ArrayAdapter<String>)?.apply {
-                                add(device.name)
-                                notifyDataSetChanged()
-                            }
+                    // Update the Spinner with the newly connected device name
+                    runOnUiThread {
+                        (spinner.adapter as? ArrayAdapter<String>)?.apply {
+                            add(device.name)
+                            notifyDataSetChanged()
                         }
                     }
-                    //showToast("Successfully connected to ${device.name}")
-
-                    // Now you can send information through the socket
-                    val outputStream: OutputStream? = bluetoothSocket?.outputStream
-                    break
-                } catch (e: IOException) {
-                    attempts++
-                    Log.e(TAG, "Error occurred during Bluetooth communication: ${e.message}", e)
-                    showToast("Error: Failed to connect to Bluetooth device. Attempt $attempts/$maxAttempts")
                 }
+
+                // Now you can send information through the socket
+                val outputStream: OutputStream? = bluetoothSocket?.outputStream
+                break
+            } catch (e: IOException) {
+                attempts++
+                Log.e(TAG, "Error occurred during Bluetooth communication: ${e.message}", e)
+                showToast("Error: Failed to connect to Bluetooth device. Attempt $attempts/$maxAttempts")
             }
-            // All attempts failed
-            if (attempts >= maxAttempts) {
-                showToast("Error: Failed to connect to Bluetooth device after $maxAttempts attempts.")
-                // Optionally disable UI elements related to sending data here
-            }
+        }
+        // All attempts failed
+        if (attempts >= maxAttempts) {
+            showToast("Error: Failed to connect to Bluetooth device after $maxAttempts attempts.")
+            // Optionally disable UI elements related to sending data here
         }
     }
 
