@@ -5,7 +5,11 @@ import BluetoothDeviceAdapter
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
+import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothProfile
 import android.bluetooth.BluetoothSocket
 import android.content.BroadcastReceiver
 import android.content.ContentValues.TAG
@@ -22,6 +26,7 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -55,7 +60,8 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
     private val REQUEST_ENABLE_BT = 2
     private lateinit var selectedDevice: BluetoothDevice
     private lateinit var receiver: BroadcastReceiver
-    private val MY_UUID = UUID.fromString("00001800-0000-1000-8000-00805F9B34FB")
+    private val MY_UUID = UUID.fromString("00001801-0000-1000-8000-008051234567")
+    private var MY_CHAR_UUID = UUID.fromString("00001234-0000-1000-8000-001122334455")
     private var bluetoothSocket: BluetoothSocket? = null // Member variable to hold Bluetooth socket
     private lateinit var spinner: Spinner
 
@@ -71,6 +77,30 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
     // Define buttons and spinners for sending data
     private lateinit var outerCheckbox: CheckBox
     private lateinit var innerCheckbox: CheckBox
+
+    private var bluetoothGatt: BluetoothGatt? = null
+    private var targetCharacteristic: BluetoothGattCharacteristic? = null
+    private val gattCallback = object : BluetoothGattCallback() {
+        override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                // GATT connected, now you can interact with the GATT server
+                Log.d(TAG, "GATT connected, discovering services...")
+                gatt?.discoverServices()
+            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                Log.d(TAG, "GATT disconnected")
+            }
+        }
+
+        override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                // Find the service and characteristic you need to interact with
+                val service = gatt?.getService(MY_UUID)
+                targetCharacteristic = service?.getCharacteristic(MY_CHAR_UUID)
+                val hej = 1
+                // You can now read/write data using the characteristic
+            }
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -113,12 +143,12 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
 
         // Spinner for bluetooth
         spinner = findViewById(R.id.spinnerPreviouslyConnectedDevices)
-        val connectedDevices: List<String> = getPreviouslyConnectedDevices()
+        val connectedDevices: MutableList<String> = mutableListOf("Select a device")
+        connectedDevices.addAll(getPreviouslyConnectedDevices())
         val bluetoothadapter: ArrayAdapter<String> =
             ArrayAdapter<String>(this, R.layout.color_spinner_layout, connectedDevices)
         bluetoothadapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
         spinner.adapter = bluetoothadapter
-
 
         // Set the onItemSelectedListener
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -132,14 +162,16 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                     isFirstSelection = false
                     return  // Ignore the initial selection
                 }
+
+                val selectedDeviceName = parent.getItemAtPosition(position).toString()
+                if (selectedDeviceName == "Select a device") return
+
                 // Check if the permission is granted
                 if (ContextCompat.checkSelfPermission(
                         applicationContext,
                         Manifest.permission.BLUETOOTH_CONNECT
                     ) == PackageManager.PERMISSION_GRANTED
                 ) {
-                    // Retrieve the selected device name
-                    val selectedDeviceName = parent.getItemAtPosition(position).toString()
                     // Find the BluetoothDevice object by its name
                     val selectedDevice =
                         previousDeviceAdapter.deviceList.firstOrNull { it.name == selectedDeviceName }
@@ -154,6 +186,14 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
             override fun onNothingSelected(parent: AdapterView<*>?) {
                 // Handle the case where nothing is selected (optional)
             }
+        }
+
+        spinner.setOnTouchListener { view, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                view.performClick() // Ensure accessibility compliance
+                spinner.setSelection(-1, false) // Reset the selection without notifying the listener
+            }
+            false // Allow other touch events to proceed
         }
 
         // Find the checkboxes by their IDs
@@ -234,6 +274,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
     }
 
     // Show color picker buttons based on selected option
+    @RequiresApi(Build.VERSION_CODES.S)
     private fun showColorPickerButton(numButtonsToShow: Int) {
         val layout = findViewById<LinearLayout>(R.id.colorPickerButtonsLayout)
         layout.removeAllViews()
@@ -250,6 +291,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
     }
 
     // Handle button click to choose color
+    @RequiresApi(Build.VERSION_CODES.S)
     private fun onChooseColorButtonClick(view: View) {
         ColorPickerDialogBuilder
             .with(this)
@@ -285,8 +327,14 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
             .show()
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     // Package 1: Send two Boolean values
     private fun sendPackage1(isOuterChecked: Boolean, isInnerChecked: Boolean) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+            requestBluetoothPermissions()
+            return
+        }
         try {
             val commandByte: Byte = PACKAGE_1_COMMAND
             val dataBytes = byteArrayOf(
@@ -301,8 +349,19 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
             // Append the checksum to the data array
             val finalDataBytes = dataBytes + checksum
 
-            bluetoothSocket?.outputStream?.write(finalDataBytes)
-            bluetoothSocket?.outputStream?.flush()
+            //bluetoothSocket?.outputStream?.write(finalDataBytes)
+            //bluetoothSocket?.outputStream?.flush()
+            // Get the characteristic (make sure you already discovered services)
+
+            targetCharacteristic?.let { characteristic ->
+                characteristic.value = finalDataBytes
+                val success = bluetoothGatt?.writeCharacteristic(characteristic) ?: false
+                if (success) {
+                    Log.d(TAG, "Data written to characteristic successfully")
+                } else {
+                    Log.e(TAG, "Failed to write data to characteristic")
+                }
+            } ?: Log.e(TAG, "Characteristic not initialized")
         } catch (e: IOException) {
             Log.e(TAG, "Error occurred during Bluetooth communication: ${e.message}", e)
             showToast("Error: Failed to communicate with Bluetooth device")
@@ -311,7 +370,13 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
 
 
     // Package 2: Send mode and list of colors
+    @RequiresApi(Build.VERSION_CODES.S)
     private fun sendPackage2(mode: String, colors: String) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+            requestBluetoothPermissions()
+            return
+        }
         try {
             val commandByte: Byte = PACKAGE_2_COMMAND
             val modeBytes = mode.toByteArray()
@@ -324,8 +389,15 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
             // Append the checksum to the data array
             val finalDataBytes = dataBytes + checksum.toByte()
 
-            bluetoothSocket?.outputStream?.write(finalDataBytes)
-            bluetoothSocket?.outputStream?.flush()
+            targetCharacteristic?.let { characteristic ->
+                characteristic.value = finalDataBytes
+                val success = bluetoothGatt?.writeCharacteristic(characteristic) ?: false
+                if (success) {
+                    Log.d(TAG, "Data written to characteristic successfully")
+                } else {
+                    Log.e(TAG, "Failed to write data to characteristic")
+                }
+            } ?: Log.e(TAG, "Characteristic not initialized")
         } catch (e: IOException) {
             Log.e(TAG, "Error occurred during Bluetooth communication: ${e.message}", e)
             showToast("Error: Failed to communicate with Bluetooth device")
@@ -439,9 +511,11 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                     device.createBond()
                 }
 
+                bluetoothGatt = device.connectGatt(this, false, gattCallback)
+
                 // Create a Bluetooth socket and connect to the selected device
-                bluetoothSocket = device.createRfcommSocketToServiceRecord(MY_UUID)
-                bluetoothSocket?.connect()
+                //bluetoothSocket = device.createRfcommSocketToServiceRecord(MY_UUID)
+                //bluetoothSocket?.connect()
 
                 // Connection successful, enable UI elements for sending data
                 enableSendDataUI()
@@ -465,7 +539,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                 }
 
                 // Now you can send information through the socket
-                val outputStream: OutputStream? = bluetoothSocket?.outputStream
+                //val outputStream: OutputStream? = bluetoothSocket?.outputStream
                 break
             } catch (e: IOException) {
                 attempts++

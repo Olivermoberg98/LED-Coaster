@@ -25,5 +25,7 @@ void clearRing(CRGB* leds, int numLeds);
 void runPattern(PatternType pattern, CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds);
 void updateLEDColors(int ring, int NUM_LEDS, const int colors[3]);
 void updateLEDColors(int ring, int NUM_LEDS);
+void onDisconnectPattern(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds);
+void onConnectPattern(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds);
 
 #endif

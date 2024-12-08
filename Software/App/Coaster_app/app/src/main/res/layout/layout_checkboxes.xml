@@ -48,7 +48,8 @@
                 android:buttonTint="@color/white"
                 android:text="@string/checkbox_outer"
                 android:textSize="18sp"
-                android:textColor="@color/checkbox_text_color"/>
+                android:textColor="@color/checkbox_text_color"
+                android:checked="true"/>
 
             <CheckBox
                 android:id="@+id/text_inner"
@@ -59,7 +60,8 @@
                 android:textSize="18sp"
                 android:textColor="@color/checkbox_text_color"
                 android:layout_marginStart="8dp"
-                android:buttonTint="@color/white"/>
+                android:buttonTint="@color/white"
+                android:checked="true"/>
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

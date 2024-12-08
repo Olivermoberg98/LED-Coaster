@@ -2,6 +2,10 @@
 #define BLE_HANDLER_H
 
 #include <NimBLEDevice.h>
+#include <FastLED.h>
+
+extern CRGB led_output_inner[];
+extern CRGB led_output_outer[];
 
 class BLEHandler {
 public:

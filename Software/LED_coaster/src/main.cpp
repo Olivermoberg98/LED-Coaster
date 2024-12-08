@@ -6,8 +6,8 @@
 CRGB led_output_inner[NUM_LEDS_INNER]; 
 CRGB led_output_outer[NUM_LEDS_OUTER]; 
 
-PatternType inner_pattern = CHASER;
-PatternType outer_pattern = CHASER;
+PatternType inner_pattern = FIXED;
+PatternType outer_pattern = FIXED;
 
 std::string coasterID = "001";
 BLEHandler blehandler(coasterID);
@@ -17,9 +17,11 @@ void setup() {
   FastLED.addLeds<WS2812, LED_PIN_INNER, GRB>(led_output_inner, NUM_LEDS_INNER);
   FastLED.addLeds<WS2812, LED_PIN_OUTER, GRB>(led_output_outer, NUM_LEDS_OUTER);
 
- // Setup for the LED colors
+  // Setup for the LED colors
   updateLEDColors(0, NUM_LEDS_INNER);
   updateLEDColors(1, NUM_LEDS_OUTER);
+
+  Serial.begin(9600);
 
   // Setup Bluetooth
   blehandler.begin();
@@ -43,10 +45,11 @@ void loop() {
     outer_pattern = stringToPatternType(blehandler.received_pattern);
 
     updateLEDColors(0,NUM_LEDS_INNER,blehandler.received_colors);
-    updateLEDColors(1,NUM_LEDS_INNER,blehandler.received_colors);
+    updateLEDColors(1,NUM_LEDS_OUTER,blehandler.received_colors);
     
     // Reset the package flag
     blehandler.package2Received = false;
+    Serial.println(inner_pattern);
   }
 
   FastLED.show();

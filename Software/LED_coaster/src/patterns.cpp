@@ -83,6 +83,7 @@ void fixed(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds) {
         ledsOut[i].g = constrain(ledsIn[i].g, 0, 255);
         ledsOut[i].b = constrain(ledsIn[i].b, 0, 255);
     }
+    Serial.println("FIXED");
 }
 
 void pulse(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, float pulseFrequency, float maxBrigthness, float minBrigthness) {
@@ -136,5 +137,39 @@ void chaser(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, int brightSpots,float
 void clearRing(CRGB* leds, int numLeds) {
     for (int i = 0; i < numLeds; i++) {
         leds[i] = CRGB::Black;
+    }
+}
+
+void onDisconnectPattern(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds) {
+    for (int i = 0; i < numberOfLeds; i++) {
+        ledsIn[i] = CRGB::Red; // Set all inner LEDs to red
+        ledsOut[i] = CRGB::Red; // Set all outer LEDs to red
+    }
+    FastLED.show();
+
+    // Gradual fade-out effect
+    for (int brightness = 255; brightness >= 0; brightness -= 5) {
+        for (int i = 0; i < numberOfLeds; i++) {
+            ledsIn[i].fadeToBlackBy(5);
+            ledsOut[i].fadeToBlackBy(5);
+        }
+        FastLED.show();
+        delay(30); // Adjust for fade-out speed
+    }
+}
+
+void onConnectPattern(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds) {
+    for (int ripple = 0; ripple < numberOfLeds; ripple++) {
+        for (int i = 0; i < numberOfLeds; i++) {
+            if (i == ripple) {
+                ledsIn[i] = CRGB::Green;  // Set the current LED to green
+                ledsOut[i] = CRGB::Green; // Set the current LED to green
+            } else {
+                ledsIn[i].fadeToBlackBy(50);  // Gradually fade the others
+                ledsOut[i].fadeToBlackBy(50); // Gradually fade the others
+            }
+        }
+        FastLED.show();
+        delay(50); // Adjust for ripple speed
     }
 }
