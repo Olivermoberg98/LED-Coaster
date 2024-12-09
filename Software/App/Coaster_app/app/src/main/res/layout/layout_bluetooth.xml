@@ -46,6 +46,17 @@
             android:layout_marginTop="10dp"
             android:text="New device" />
 
+        <!-- Disconnect Button -->
+        <Button
+            android:id="@+id/btnDisconnectDevice"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/btnConnectNewDevice"
+            android:layout_alignStart="@id/btnConnectNewDevice"
+            android:layout_alignEnd="@id/btnConnectNewDevice"
+            android:layout_marginTop="10dp"
+            android:text="Disconnect" />
+
         <!-- RecyclerView -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewBluetoothDevices"

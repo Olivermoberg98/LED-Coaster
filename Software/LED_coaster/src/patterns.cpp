@@ -36,6 +36,8 @@ PatternType stringToPatternType(const std::string& pattern) {
         return CHASER;
     } else if (pattern == "PULSE") {
         return PULSE;
+    } else if (pattern == "RAINBOW") {
+        return RAINBOW;
     } else {
         return FIXED;  // Default to FIXED if the pattern is unrecognized
     }
@@ -70,6 +72,8 @@ void runPattern(PatternType pattern, CRGB* ledsIn, CRGB* ledsOut, int numberOfLe
         case PULSE:
             pulse(ledsIn, ledsOut, numberOfLeds, 0.1f, 255, 25); 
             break;
+        case RAINBOW:
+            rainbow(ledsOut, numberOfLeds);
         default:
             fixed(ledsIn, ledsOut, numberOfLeds);
             break;
@@ -83,7 +87,6 @@ void fixed(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds) {
         ledsOut[i].g = constrain(ledsIn[i].g, 0, 255);
         ledsOut[i].b = constrain(ledsIn[i].b, 0, 255);
     }
-    Serial.println("FIXED");
 }
 
 void pulse(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, float pulseFrequency, float maxBrigthness, float minBrigthness) {
@@ -132,6 +135,17 @@ void chaser(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, int brightSpots,float
         ledsOut[i].g = constrain(ledsIn[i].g * brightness / 255.0f, 0, 255);
         ledsOut[i].b = constrain(ledsIn[i].b * brightness / 255.0f, 0, 255);
     }
+}
+
+void rainbow(CRGB* ledsOut, int numberOfLeds) {
+    static uint8_t hue = 0; // Starting hue
+
+    for (int i = 0; i < numberOfLeds; i++) {
+        // Generate a rainbow effect by distributing hues across LEDs
+        ledsOut[i] = CHSV(hue + (i * 256 / numberOfLeds), 255, 255);
+    }
+    FastLED.show();
+    hue++; 
 }
 
 void clearRing(CRGB* leds, int numLeds) {

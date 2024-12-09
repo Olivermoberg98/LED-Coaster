@@ -44,6 +44,7 @@ bool BLEHandler::isConnected() {
 void BLEHandler::ServerCallbacks::onConnect(NimBLEServer* pServer) {
     handler->deviceConnected = true;  
     Serial.println("Device connected");
+    onConnectPattern(colors_inner, led_output_inner, NUM_LEDS_INNER);
     onConnectPattern(colors_outer, led_output_outer, NUM_LEDS_OUTER);
 }
 
@@ -51,6 +52,7 @@ void BLEHandler::ServerCallbacks::onDisconnect(NimBLEServer* pServer) {
     handler->deviceConnected = false;  
     Serial.println("Device disconnected");
     pServer->startAdvertising(); 
+    onDisconnectPattern(colors_inner, led_output_inner, NUM_LEDS_INNER);
     onDisconnectPattern(colors_outer, led_output_outer, NUM_LEDS_OUTER);
 }
 

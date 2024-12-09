@@ -44,8 +44,11 @@ void loop() {
     inner_pattern = stringToPatternType(blehandler.received_pattern);
     outer_pattern = stringToPatternType(blehandler.received_pattern);
 
-    updateLEDColors(0,NUM_LEDS_INNER,blehandler.received_colors);
-    updateLEDColors(1,NUM_LEDS_OUTER,blehandler.received_colors);
+    if (inner_pattern!=3 || outer_pattern != 3) {
+      updateLEDColors(0,NUM_LEDS_INNER,blehandler.received_colors);
+      updateLEDColors(1,NUM_LEDS_OUTER,blehandler.received_colors);
+      Serial.println("Comes in here");
+    }
     
     // Reset the package flag
     blehandler.package2Received = false;

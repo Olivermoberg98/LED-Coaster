@@ -93,11 +93,9 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
 
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-                // Find the service and characteristic you need to interact with
+                // Find the service and characteristic
                 val service = gatt?.getService(MY_UUID)
                 targetCharacteristic = service?.getCharacteristic(MY_CHAR_UUID)
-                val hej = 1
-                // You can now read/write data using the characteristic
             }
         }
     }
@@ -238,6 +236,12 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                         showColorPickerButton(1)
                     }
 
+                    "RAINBOW" -> {
+                        val selectedMode = (findViewById<Spinner>(R.id.dropdown_menu)).selectedItem.toString()
+                        showColorPickerButton(0)
+                        sendPackage2(selectedMode, "0,255,0")
+                    }
+
                     else -> {
                         showColorPickerButton(0)
                     }
@@ -245,6 +249,11 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
+        }
+
+        val btnDisconnectDevice: Button = findViewById(R.id.btnDisconnectDevice)
+        btnDisconnectDevice.setOnClickListener {
+            disconnectFromDevice()
         }
     }
 
@@ -591,5 +600,20 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
             deviceList.add(device)
         }
         return deviceList
+    }
+
+    // Function to disconnect the current device
+    private fun disconnectFromDevice() {
+        if (bluetoothSocket != null && bluetoothSocket!!.isConnected) {
+            try {
+                bluetoothSocket!!.close()
+                bluetoothSocket = null
+                Toast.makeText(this, "Disconnected from device", Toast.LENGTH_SHORT).show()
+            } catch (e: IOException) {
+                Toast.makeText(this, "Failed to disconnect: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        } else {
+            Toast.makeText(this, "No device is currently connected", Toast.LENGTH_SHORT).show()
+        }
     }
 }
