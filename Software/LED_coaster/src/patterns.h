@@ -10,6 +10,9 @@
 extern CRGB colors_inner[NUM_LEDS_INNER];
 extern CRGB colors_outer[NUM_LEDS_OUTER];
 
+static uint8_t sharedHue = 0;     
+static uint16_t sharedCounter = 0; 
+
 enum PatternType {
     FIXED,
     CHASER,

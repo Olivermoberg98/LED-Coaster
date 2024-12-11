@@ -229,7 +229,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                     }
 
                     "PULSE" -> {
-                        showColorPickerButton(2)
+                        showColorPickerButton(1)
                     }
 
                     "CHASER" -> {
@@ -604,12 +604,14 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
 
     // Function to disconnect the current device
     private fun disconnectFromDevice() {
-        if (bluetoothSocket != null && bluetoothSocket!!.isConnected) {
+        if (bluetoothGatt != null) {
             try {
-                bluetoothSocket!!.close()
-                bluetoothSocket = null
+                // Disconnect from the GATT server
+                bluetoothGatt!!.disconnect()
+                bluetoothGatt!!.close()
+                bluetoothGatt = null
                 Toast.makeText(this, "Disconnected from device", Toast.LENGTH_SHORT).show()
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 Toast.makeText(this, "Failed to disconnect: ${e.message}", Toast.LENGTH_LONG).show()
             }
         } else {

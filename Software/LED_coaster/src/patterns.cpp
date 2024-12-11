@@ -67,13 +67,14 @@ void runPattern(PatternType pattern, CRGB* ledsIn, CRGB* ledsOut, int numberOfLe
             fixed(ledsIn, ledsOut, numberOfLeds);
             break;
         case CHASER:
-            chaser(ledsIn, ledsOut, numberOfLeds, 1, 1, 255, 50); 
+            chaser(ledsIn, ledsOut, numberOfLeds, 5, 0.8f, 255, 0); 
             break;
         case PULSE:
             pulse(ledsIn, ledsOut, numberOfLeds, 0.1f, 255, 25); 
             break;
         case RAINBOW:
             rainbow(ledsOut, numberOfLeds);
+            break;
         default:
             fixed(ledsIn, ledsOut, numberOfLeds);
             break;
@@ -87,6 +88,7 @@ void fixed(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds) {
         ledsOut[i].g = constrain(ledsIn[i].g, 0, 255);
         ledsOut[i].b = constrain(ledsIn[i].b, 0, 255);
     }
+    FastLED.show();
 }
 
 void pulse(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, float pulseFrequency, float maxBrigthness, float minBrigthness) {
@@ -104,54 +106,56 @@ void pulse(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, float pulseFrequency, 
         ledsOut[i].g = constrain(ledsIn[i].g * scaledBrightness, 0, 255);
         ledsOut[i].b = constrain(ledsIn[i].b * scaledBrightness, 0, 255);
     }
+    FastLED.show();
 }
 
-void chaser(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, int brightSpots,float roationalFrequency, float maxBrigthness, float minBrigthness) {
-    int numBrightSpots = brightSpots;
-    float rotation = (2 * PI * millis() * roationalFrequency) / 1000.0f;
-    float brightSpotWidth = 1.0f / numBrightSpots;
+void chaser(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, int brightSpots, float rotationalFrequency, float maxBrightness, float minBrightness) {
+    static float rotation = 0; // Persistent rotation position
+
+    // Increment rotation based on frequency
+    rotation += (rotationalFrequency * 360.0f * 0.01f); // Assuming ~10ms loop delay
+    if (rotation >= 360.0f) rotation -= 360.0f; // Wrap around to avoid overflow
+
+    int spotWidth = numberOfLeds / brightSpots; // Number of LEDs per bright spot
 
     for (int i = 0; i < numberOfLeds; i++) {
-        // Calculate the index of the current LED in the cycle
-        float index = (i + rotation) / numberOfLeds;
+        // Calculate LED's position in the rotation
+        int position = (i + (int)(rotation * numberOfLeds / 360.0f)) % numberOfLeds;
 
-        // Check if the current LED is in one of the bright spots
-        bool inBrightSpot = false;
-        for (int j = 0; j < numBrightSpots; j++) {
-            float brightSpotStart = j * brightSpotWidth;
-            float brightSpotEnd = (j + 1) * brightSpotWidth;
-            if (index >= brightSpotStart && index <= brightSpotEnd) {
-                inBrightSpot = true;
-                break;
-            }
-        }
+        // Determine if this LED is within a bright spot
+        bool isBrightSpot = position < spotWidth;
 
-        // If the current LED is in a bright spot, set its brightness to max
-        // Otherwise, set its brightness to min
-        float brightness = inBrightSpot ? maxBrigthness : minBrigthness;
+        // Set brightness based on position
+        uint8_t brightness = isBrightSpot ? maxBrightness : minBrightness;
 
-        // Scale the original colors to the new brightness
-        ledsOut[i].r = constrain(ledsIn[i].r * brightness / 255.0f, 0, 255);
-        ledsOut[i].g = constrain(ledsIn[i].g * brightness / 255.0f, 0, 255);
-        ledsOut[i].b = constrain(ledsIn[i].b * brightness / 255.0f, 0, 255);
+        // Scale input colors by brightness and set output
+        ledsOut[i].r = (ledsIn[i].r * brightness) / 255;
+        ledsOut[i].g = (ledsIn[i].g * brightness) / 255;
+        ledsOut[i].b = (ledsIn[i].b * brightness) / 255;
     }
+    FastLED.show();
 }
 
 void rainbow(CRGB* ledsOut, int numberOfLeds) {
-    static uint8_t hue = 0; // Starting hue
-
+    // Set all LEDs to the same color
+    CRGB color = CHSV(sharedHue, 255, 200);
     for (int i = 0; i < numberOfLeds; i++) {
-        // Generate a rainbow effect by distributing hues across LEDs
-        ledsOut[i] = CHSV(hue + (i * 256 / numberOfLeds), 255, 255);
+        ledsOut[i] = color;
     }
     FastLED.show();
-    hue++; 
+
+    sharedCounter++;
+    if (sharedCounter % 50 == 0) { 
+        sharedHue++;
+        if (sharedHue == 255) sharedHue = 0; // Wrap around hue
+    }
 }
 
 void clearRing(CRGB* leds, int numLeds) {
     for (int i = 0; i < numLeds; i++) {
         leds[i] = CRGB::Black;
     }
+    FastLED.show();
 }
 
 void onDisconnectPattern(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds) {
@@ -160,7 +164,6 @@ void onDisconnectPattern(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds) {
         ledsOut[i] = CRGB::Red; // Set all outer LEDs to red
     }
     FastLED.show();
-
     // Gradual fade-out effect
     for (int brightness = 255; brightness >= 0; brightness -= 5) {
         for (int i = 0; i < numberOfLeds; i++) {

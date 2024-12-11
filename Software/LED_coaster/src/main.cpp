@@ -28,14 +28,18 @@ void setup() {
 }
 
 void loop() {
-  if (blehandler.innerChecked) {
+  if (blehandler.innerChecked && blehandler.deviceConnected) {
     runPattern(inner_pattern,colors_inner,led_output_inner,NUM_LEDS_INNER);
+  } else if (blehandler.innerChecked) {
+     //FastLED.show();
   } else {
-    clearRing(led_output_inner, NUM_LEDS_INNER); 
+    clearRing(led_output_inner, NUM_LEDS_INNER);
   }
 
-  if (blehandler.outerChecked) {
+  if (blehandler.outerChecked && blehandler.deviceConnected) {
     runPattern(outer_pattern,colors_outer,led_output_outer,NUM_LEDS_OUTER);
+  } else if (blehandler.outerChecked) {
+     //FastLED.show();
   } else {
     clearRing(led_output_outer, NUM_LEDS_OUTER);
   }
@@ -47,7 +51,6 @@ void loop() {
     if (inner_pattern!=3 || outer_pattern != 3) {
       updateLEDColors(0,NUM_LEDS_INNER,blehandler.received_colors);
       updateLEDColors(1,NUM_LEDS_OUTER,blehandler.received_colors);
-      Serial.println("Comes in here");
     }
     
     // Reset the package flag
@@ -55,6 +58,5 @@ void loop() {
     Serial.println(inner_pattern);
   }
 
-  FastLED.show();
   delay(10);
 }

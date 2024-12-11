@@ -25,12 +25,12 @@ public:
     // Callbacks for data receiving events
     void handlePackage1(const std::vector<byte>& data);
     void handlePackage2(const std::vector<byte>& data);
+    bool deviceConnected;
 
 private:
     std::string coasterID;
     NimBLEServer* pServer;
     NimBLECharacteristic* pCharacteristic;
-    bool deviceConnected;
 
     // Callbacks for connection and disconnection events
     class ServerCallbacks : public NimBLEServerCallbacks {
