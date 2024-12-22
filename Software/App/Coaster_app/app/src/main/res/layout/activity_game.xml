@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_color"> <!-- Full-screen background -->
+
+    <!-- CardView for content -->
+    <androidx.cardview.widget.CardView
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/square_color"
+        android:layout_margin="16dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Bluetooth Header -->
+        <TextView
+            android:id="@+id/text_bluetooth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:text="Games"
+            android:layout_gravity="start"
+            android:layout_marginBottom="8dp" />
+
+        <Spinner
+            android:id="@+id/spinnerCircleCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:layout_centerHorizontal="true"/>
+
+        <!-- RecyclerView for the previously connected devices -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewDevices"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/text_bluetooth"
+            android:layout_marginTop="16dp"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+        <!-- Circle containers for device drag-and-drop -->
+        <LinearLayout
+            android:id="@+id/circleContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_below="@id/recyclerViewDevices"
+            android:layout_marginTop="16dp">
+
+            <!-- Circle 1 -->
+            <RelativeLayout
+                android:id="@+id/circle1"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/circle_background"
+                android:layout_margin="16dp">
+
+                <TextView
+                    android:id="@+id/circleText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    android:layout_centerInParent="true" />
+            </RelativeLayout>
+
+            <!-- Circle 2 -->
+            <RelativeLayout
+                android:id="@+id/circle2"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/circle_background"
+                android:layout_margin="16dp">
+
+                <TextView
+                    android:id="@+id/circleText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    android:layout_centerInParent="true" />
+            </RelativeLayout>
+
+            <!-- Circle 3 -->
+            <RelativeLayout
+                android:id="@+id/circle3"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/circle_background"
+                android:layout_margin="16dp">
+
+                <TextView
+                    android:id="@+id/circleText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    android:layout_centerInParent="true" />
+            </RelativeLayout>
+        </LinearLayout>
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>
+
+    </RelativeLayout>

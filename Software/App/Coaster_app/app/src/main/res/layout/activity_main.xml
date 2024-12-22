@@ -24,12 +24,12 @@
                 layout="@layout/layout_bluetooth" />
 
             <LinearLayout
+                android:id="@+id/unlockAfterBluetooth"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/unlockAfterBluetooth"
-                android:orientation="vertical"
                 android:clickable="false"
-                android:focusable="false">
+                android:focusable="false"
+                android:orientation="vertical">
 
                 <!-- Include layout_checkboxes -->
                 <include
@@ -89,6 +89,28 @@
                             android:layout_marginTop="16dp"
                             android:orientation="horizontal" />
                     </RelativeLayout>
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="300dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="14dp"
+                    android:clipChildren="true"
+                    android:clipToPadding="true"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp"
+                    app:cardBackgroundColor="@color/square_color">
+
+                    <Button
+                        android:id="@+id/gamesButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@android:color/transparent"
+                        android:text="Go to Games"
+                        android:textColor="@color/white"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:padding="16dp" />
                 </androidx.cardview.widget.CardView>
             </LinearLayout>
         </LinearLayout>

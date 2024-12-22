@@ -105,10 +105,6 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Find the LinearLayout by its ID and initialize it
-        //val layoutforCheckboxes = findViewById<LinearLayout>(R.id.unlockAfterBluetooth)
-        //setViewAndChildrenEnabled(layoutforCheckboxes, false)
-
         // Initialize RecyclerView and its adapter
         recyclerView = findViewById(R.id.recyclerViewBluetoothDevices)
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -128,9 +124,6 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
 
         // Register BroadcastReceiver
         registerBluetoothReceiver()
-
-        // Delete saved items if you need
-        //clearPreviouslyConnectedDevices()
 
         // Load previously connected devices
         val previouslyConnectedDevices = loadPreviouslyConnectedDevices().toMutableList()
@@ -184,6 +177,18 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
             override fun onNothingSelected(parent: AdapterView<*>?) {
                 // Handle the case where nothing is selected (optional)
             }
+        }
+
+        val gamesButton: Button = findViewById(R.id.gamesButton)
+        gamesButton.setOnClickListener {
+            navigateToGameActivity()
+        }
+
+        // Get the device address from the Intent
+        val deviceAddress = intent.getStringExtra("device_address")
+        if (!deviceAddress.isNullOrEmpty()) {
+            val device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress)
+            connectToDevice(device)
         }
 
         spinner.setOnTouchListener { view, event ->
@@ -257,7 +262,6 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     override fun onDeviceClicked(device: BluetoothDevice) {
         connectToDevice(device)
     }
@@ -283,7 +287,6 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
     }
 
     // Show color picker buttons based on selected option
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun showColorPickerButton(numButtonsToShow: Int) {
         val layout = findViewById<LinearLayout>(R.id.colorPickerButtonsLayout)
         layout.removeAllViews()
@@ -300,7 +303,6 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
     }
 
     // Handle button click to choose color
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun onChooseColorButtonClick(view: View) {
         ColorPickerDialogBuilder
             .with(this)
@@ -336,7 +338,6 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
             .show()
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     // Package 1: Send two Boolean values
     private fun sendPackage1(isOuterChecked: Boolean, isInnerChecked: Boolean) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
@@ -412,7 +413,6 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
             showToast("Error: Failed to communicate with Bluetooth device")
         }
     }
-
 
     @RequiresApi(Build.VERSION_CODES.S)
     private fun requestBluetoothPermissions() {
@@ -512,6 +512,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
         // Permissions are already granted, proceed with Bluetooth operations
         var attempts = 0
         val maxAttempts = 3 // Maximum number of connection attempts
+        val deviceConnections = mutableMapOf<BluetoothDevice, BluetoothGatt>()
 
         while (attempts < maxAttempts) {
             try {
@@ -520,11 +521,9 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                     device.createBond()
                 }
 
-                bluetoothGatt = device.connectGatt(this, false, gattCallback)
-
-                // Create a Bluetooth socket and connect to the selected device
-                //bluetoothSocket = device.createRfcommSocketToServiceRecord(MY_UUID)
-                //bluetoothSocket?.connect()
+                // Connect to the device using BluetoothGatt
+                val bluetoothGatt = device.connectGatt(this, false, gattCallback)
+                deviceConnections[device] = bluetoothGatt
 
                 // Connection successful, enable UI elements for sending data
                 enableSendDataUI()
@@ -602,8 +601,12 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
         return deviceList
     }
 
-    // Function to disconnect the current device
     private fun disconnectFromDevice() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+            requestBluetoothPermissions()
+            return
+        }
         if (bluetoothGatt != null) {
             try {
                 // Disconnect from the GATT server
@@ -617,5 +620,19 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
         } else {
             Toast.makeText(this, "No device is currently connected", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun navigateToGameActivity() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+            requestBluetoothPermissions()
+            return
+        }
+        val previouslyConnectedDevices = loadPreviouslyConnectedDevices()
+        val deviceData = previouslyConnectedDevices.map { "${it.name}|${it.address}" }
+
+        val intent = Intent(this, GameActivity::class.java)
+        intent.putStringArrayListExtra("connectedDevices", ArrayList(deviceData))
+        startActivity(intent)
     }
 }
