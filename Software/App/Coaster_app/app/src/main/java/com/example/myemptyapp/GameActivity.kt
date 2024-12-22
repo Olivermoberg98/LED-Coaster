@@ -16,6 +16,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.DragEvent
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -37,9 +38,6 @@ import java.util.UUID
 class GameActivity : AppCompatActivity() {
 
     private lateinit var recyclerViewDevices: RecyclerView
-    private lateinit var circle1: View
-    private lateinit var circle2: View
-    private lateinit var circle3: View
 
     private val ringDeviceMap = mutableMapOf<Int, CoasterDevice?>()
     private val assignedDevices = mutableSetOf<CoasterDevice>()
@@ -48,7 +46,7 @@ class GameActivity : AppCompatActivity() {
 
     private lateinit var spinner: Spinner
     private lateinit var linearLayout: LinearLayout
-    private var selectedCircleCount = 3  // Default value
+    private var selectedCircleCount = 2  // Default value
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,20 +63,23 @@ class GameActivity : AppCompatActivity() {
 
         // Listener for when the user selects an option
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parentView: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            override fun onItemSelected(
+                parentView: AdapterView<*>?,
+                view: View?,
+                position: Int,
+                id: Long
+            ) {
+                resetAllCircles()
                 selectedCircleCount = circleCounts[position]
                 updateCircleLayout()
             }
+
             override fun onNothingSelected(parentView: AdapterView<*>?) {}
         }
-        updateCircleLayout()
+        //updateCircleLayout()
 
+        // Set up RecyclerView
         recyclerViewDevices = findViewById(R.id.recyclerViewDevices)
-        circle1 = findViewById(R.id.circle1)
-        circle2 = findViewById(R.id.circle2)
-        circle3 = findViewById(R.id.circle3)
-
-        // Get the device data from the Intent
         val deviceData = intent.getStringArrayListExtra("connectedDevices") ?: emptyList<String>()
         val coasterDevices = deviceData.mapNotNull { data ->
             val parts = data.split("|")
@@ -90,53 +91,9 @@ class GameActivity : AppCompatActivity() {
             } else null
         }
 
-        // Set up RecyclerView
         recyclerViewDevices.layoutManager = LinearLayoutManager(this)
         recyclerViewDevices.adapter = DevicesAdapter(coasterDevices) { coasterDevice ->
             startDrag(coasterDevice)
-        }
-
-        // Set drag listeners on circles
-        val dragListener = createDragListener()
-        circle1.setOnDragListener(dragListener)
-        circle2.setOnDragListener(dragListener)
-        circle3.setOnDragListener(dragListener)
-
-        circle1.setOnLongClickListener {
-            val device = ringDeviceMap[circle1.id]
-            if (device != null) {
-                assignedDevices.remove(device)
-                ringDeviceMap[circle1.id] = null
-                circle1.setBackgroundResource(R.drawable.circle_background)
-                circle1.findViewById<TextView>(R.id.circleText).visibility = View.GONE
-                Toast.makeText(this, "${device.getDeviceName()} removed from circle1", Toast.LENGTH_SHORT).show()
-            }
-            device?.disconnect()
-            true
-        }
-        circle2.setOnLongClickListener {
-            val device = ringDeviceMap[circle2.id]
-            if (device != null) {
-                assignedDevices.remove(device)
-                ringDeviceMap[circle2.id] = null
-                circle2.setBackgroundResource(R.drawable.circle_background)
-                circle2.findViewById<TextView>(R.id.circleText).visibility = View.GONE
-                Toast.makeText(this, "${device.getDeviceName()} removed from circle2", Toast.LENGTH_SHORT).show()
-            }
-            device?.disconnect()
-            true
-        }
-        circle3.setOnLongClickListener {
-            val device = ringDeviceMap[circle3.id]
-            if (device != null) {
-                assignedDevices.remove(device)
-                ringDeviceMap[circle3.id] = null
-                circle3.setBackgroundResource(R.drawable.circle_background)
-                circle3.findViewById<TextView>(R.id.circleText).visibility = View.GONE
-                Toast.makeText(this, "${device.getDeviceName()} removed from circle3", Toast.LENGTH_SHORT).show()
-            }
-            device?.disconnect()
-            true
         }
     }
 
@@ -151,7 +108,10 @@ class GameActivity : AppCompatActivity() {
                 recyclerViewDevices.startDragAndDrop(null, shadow, coasterDevice, 0)
                 Log.d("GameActivity", "Drag started for ${coasterDevice.getDevice().address}")
             } else {
-                Log.e("GameActivity", "View has invalid dimensions for drag: width = ${view.width}, height = ${view.height}")
+                Log.e(
+                    "GameActivity",
+                    "View has invalid dimensions for drag: width = ${view.width}, height = ${view.height}"
+                )
             }
         } catch (e: Exception) {
             Log.e("GameActivity", "Error starting drag", e)
@@ -167,7 +127,11 @@ class GameActivity : AppCompatActivity() {
                     if (coasterDevice != null) {
                         // Check if the device is already assigned to a circle
                         if (assignedDevices.contains(coasterDevice)) {
-                            Toast.makeText(this, "${coasterDevice.getDeviceName()} is already placed in another circle!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this,
+                                "${coasterDevice.getDeviceName()} is already placed in another circle!",
+                                Toast.LENGTH_SHORT
+                            ).show()
                             return@OnDragListener true
                         }
 
@@ -187,50 +151,136 @@ class GameActivity : AppCompatActivity() {
                         // Connect to the device
                         coasterDevice.connect()
 
-                        Toast.makeText(this, "${coasterDevice.getDeviceName()} assigned to ${resources.getResourceEntryName(v.id)}", Toast.LENGTH_SHORT).show()
+                        // Use the dynamic ID for resource entry name
+                        //val resourceName = resources.getResourceEntryName(v.id)
+                        //Toast.makeText(this, "${coasterDevice.getDeviceName()} assigned to $resourceName", Toast.LENGTH_SHORT).show()
                     }
                     true
                 }
+
                 DragEvent.ACTION_DRAG_ENDED -> {
                     // Reset the circle background if the drag ended unsuccessfully
                     if (!event.result) v.setBackgroundResource(R.drawable.circle_background)
                     true
                 }
+
                 else -> false
             }
         }
     }
 
-    private fun loadPreviouslyConnectedDevices(): List<BluetoothDevice> {
-        val sharedPreferences = getSharedPreferences("BluetoothDevices", Context.MODE_PRIVATE)
-        val deviceAddresses = sharedPreferences.all.keys
-        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-        val deviceList = mutableListOf<BluetoothDevice>()
-
-        for (address in deviceAddresses) {
-            val device = bluetoothAdapter.getRemoteDevice(address)
-            deviceList.add(device)
-        }
-        return deviceList
-    }
-
     // Dynamically add circles to the layout based on selected count
-    private fun updateCircleLayout() {
-        linearLayout.removeAllViews() // Remove all existing circles
+    fun updateCircleLayout() {
+        // Clear all existing views in the container
+        linearLayout.removeAllViews()
 
-        var rowLayout: LinearLayout? = null
-        for (i in 1..selectedCircleCount) {
-            // Create a new row when needed
-            if (i % 4 == 1) {
-                rowLayout = LinearLayout(this)
-                rowLayout.orientation = LinearLayout.HORIZONTAL
-                linearLayout.addView(rowLayout)
+        // Divide circles into rows
+        val rows = mutableListOf<List<Int>>()
+        var remainingCircles = selectedCircleCount
+
+        while (remainingCircles > 0) {
+            when {
+                remainingCircles == 5 -> {
+                    // Special case: 5 = 3 + 2
+                    rows.add(List(3) { 3 })
+                    rows.add(List(2) { 2 })
+                    remainingCircles = 0
+                }
+
+                remainingCircles == 7 -> {
+                    // Special case: 7 = 4 + 3
+                    rows.add(List(4) { 4 })
+                    rows.add(List(3) { 3 })
+                    remainingCircles = 0
+                }
+
+                remainingCircles % 4 == 0 -> {
+                    // Use rows of 4 when divisible by 4
+                    rows.add(List(4) { 4 })
+                    remainingCircles -= 4
+                }
+
+                remainingCircles % 3 == 0 -> {
+                    // Use rows of 3 when divisible by 3
+                    rows.add(List(3) { 3 })
+                    remainingCircles -= 3
+                }
+
+                remainingCircles > 4 -> {
+                    // If more than 4 but not divisible, prioritize rows of 4
+                    rows.add(List(4) { 4 })
+                    remainingCircles -= 4
+                }
+                else -> {
+                    // Handle remaining circles (should only be 2 or 3 at this point)
+                    rows.add(List(remainingCircles) { remainingCircles })
+                    remainingCircles = 0
+                }
+            }
+        }
+
+        // Create rows dynamically
+        for (row in rows) {
+            // Create a horizontal layout for the row
+            val rowLayout = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 16, 0, 16) // Add spacing between rows
+                }
+                gravity = Gravity.CENTER // Center circles in the row
             }
 
-            // Add circle to the row
-            val circle = LayoutInflater.from(this).inflate(R.layout.circle_layout, null) // circle_layout is the circle item layout
-            rowLayout?.addView(circle)
+            // Add circles to the row
+            for (i in 1..row[0]) {
+                val circle = layoutInflater.inflate(R.layout.circle_layout, rowLayout, false)
+                circle.id = View.generateViewId()
+                rowLayout.addView(circle)
+
+                // Set up drag listener for the circle
+                circle.setOnDragListener(createDragListener())
+
+                // Set up long click listener for the circle
+                circle.setOnLongClickListener {
+                    val device = ringDeviceMap[circle.id]
+                    if (device != null) {
+                        assignedDevices.remove(device)
+                        ringDeviceMap[circle.id] = null
+                        circle.setBackgroundResource(R.drawable.circle_background)
+                        circle.findViewById<TextView>(R.id.circleText).visibility = View.GONE
+                        Toast.makeText(
+                            this,
+                            "${device.getDeviceName()} removed",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    device?.disconnect()
+                    true
+                }
+            }
+
+            // Add the row layout to the parent linear layout
+            linearLayout.addView(rowLayout)
         }
+    }
+    private fun resetAllCircles() {
+        // Iterate over all children of the linearLayout
+        for (i in 0 until linearLayout.childCount) {
+            val circle = linearLayout.getChildAt(i)
+            val device = ringDeviceMap[circle.id]
+            if (device != null) {
+                // Disconnect the device and remove it from mappings
+                device.disconnect()
+                assignedDevices.remove(device)
+                ringDeviceMap[circle.id] = null
+            }
+            // Reset the UI for the circle
+            circle.setBackgroundResource(R.drawable.circle_background)
+            circle.findViewById<TextView>(R.id.circleText).visibility = View.GONE
+        }
+        assignedDevices.clear()
     }
 }
 
