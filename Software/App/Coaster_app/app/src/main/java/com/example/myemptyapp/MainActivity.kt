@@ -493,12 +493,21 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
     // Unregister the BroadcastReceiver when the activity stops or destroys
     override fun onStop() {
         super.onStop()
-        unregisterReceiver(receiver)
+        try {
+            unregisterReceiver(receiver)
+        } catch (e: IllegalArgumentException) {
+            // Log the exception or handle it if the receiver was not registered
+            Log.w("MainActivity", "Receiver not registered: ${e.message}")
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(receiver)
+        try {
+            unregisterReceiver(receiver)
+        } catch (e: IllegalArgumentException) {
+            Log.w("MainActivity", "Receiver not registered: ${e.message}")
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
