@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothProfile
 import android.content.ClipData
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -24,8 +25,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -35,7 +38,11 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import java.io.IOException
 import java.util.UUID
+
+private const val PACKAGE_1_COMMAND: Byte = 0x01
+private const val PACKAGE_2_COMMAND: Byte = 0x02
 
 class GameActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper()) // For managing delayed tasks or callbacks
@@ -48,7 +55,10 @@ class GameActivity : AppCompatActivity() {
 
     private lateinit var spinner: Spinner
     private lateinit var linearLayout: LinearLayout
-    private var selectedCircleCount = 2  // Default value
+    private var selectedCircleCount = 0  // Default value
+
+    private lateinit var spinnerGameMode: Spinner
+    private lateinit var buttonStartGame: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,9 +69,9 @@ class GameActivity : AppCompatActivity() {
             linearLayout = findViewById(R.id.circleContainer)
 
             // Set up spinner options
-            val circleCounts = arrayOf(2, 3, 4, 5, 6, 7, 8, 9, 10)
-            val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, circleCounts)
-            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            val circleCounts = arrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+            val spinnerAdapter = ArrayAdapter(this, R.layout.color_spinner_layout, circleCounts)
+            spinnerAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
             spinner.adapter = spinnerAdapter
 
             // Listener for when the user selects an option
@@ -107,6 +117,34 @@ class GameActivity : AppCompatActivity() {
                 startDrag(coasterDevice)
             }
 
+            // Game spinner
+            spinnerGameMode = findViewById(R.id.spinnerGameMode)
+            buttonStartGame = findViewById(R.id.buttonStartGame)
+
+            val gameModes = resources.getStringArray(R.array.game_modes)
+            val adapter = ArrayAdapter(this, R.layout.color_spinner_layout, gameModes)
+            adapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
+            spinnerGameMode.adapter = adapter
+
+            // Handle button click
+            buttonStartGame.setOnClickListener {
+                val selectedMode = spinnerGameMode.selectedItem.toString()
+
+                // Check if all circles are connected
+                if (!areAllCirclesConnected()) {
+                    Toast.makeText(this, "Please connect devices to all circles before starting!", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                // Handle game mode
+                when (selectedMode) {
+                    gameModes[0] -> nattDuellen(assignedDevices)
+                    gameModes[1] -> drinkGame(assignedDevices)
+                    else -> {
+                        Toast.makeText(this, "Invalid game mode selected!", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
         } catch (e: Exception) {
             Log.e("GameActivity", "Error during onCreate initialization", e)
         }
@@ -299,6 +337,86 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
+    private fun areAllCirclesConnected(): Boolean {
+        return assignedDevices.size == selectedCircleCount
+    }
+
+    private fun nattDuellen(coasterDevices: MutableSet<CoasterDevice>) {
+        Toast.makeText(this, "Starting Mode 1!", Toast.LENGTH_SHORT).show()
+        val gameStatusText = findViewById<TextView>(R.id.gameStatusText)
+        val gameProgressBar = findViewById<ProgressBar>(R.id.gameProgressBar)
+        buttonStartGame.visibility = View.GONE
+        gameStatusText.text = "Game Status: Nattduellen Started!"
+        gameProgressBar.visibility = View.VISIBLE
+
+        // Light up all connected coasters
+        val whiteColor = 0xFFFFFF // White color in hex
+        val red = (whiteColor shr 16) and 0xFF
+        val green = (whiteColor shr 8) and 0xFF
+        val blue = whiteColor and 0xFF
+        val colorString = "$red,$green,$blue"
+        for (coaster in coasterDevices) {
+            coaster.sendPackage2("FIXED", colorString) // White color
+        }
+
+        // After 5-10 seconds, randomly turn off one coaster
+        val randomDelay = (5..10).random() * 1000L // Random delay between 5 and 10 seconds
+        Handler(Looper.getMainLooper()).postDelayed({
+            val randomCoaster = coasterDevices.random() // Choose a random coaster
+            randomCoaster.sendPackage1(isOuterChecked = false, isInnerChecked = false) // Turn off light
+            Log.d("Nattduellen", "Random coaster turned off!")
+            // Reset the UI after the game ends
+            gameStatusText.text = "Game Status: Game Over!"
+            buttonStartGame.visibility = View.VISIBLE
+            gameProgressBar.visibility = View.GONE
+        }, randomDelay)
+    }
+
+    private fun drinkGame(coasterDevices: MutableSet<CoasterDevice>) {
+        val usedCoasters = mutableSetOf<CoasterDevice>()
+        val gameDuration = (10..13).random() * 1000L // Random duration between 10 and 13 seconds
+        val startTime = System.currentTimeMillis()
+        val handler = Handler(Looper.getMainLooper())
+
+        buttonStartGame.visibility = View.GONE
+        val gameStatusText = findViewById<TextView>(R.id.gameStatusText)
+        val gameProgressBar = findViewById<ProgressBar>(R.id.gameProgressBar)
+        gameStatusText.text = "Game Status: Drink Games Started!"
+        gameProgressBar.visibility = View.VISIBLE
+
+        fun lightUpAndTurnOff() {
+            if (System.currentTimeMillis() - startTime > gameDuration) {
+                // Stop the game and light up one random coaster permanently
+                val finalCoaster = coasterDevices.random()
+                val finalColor = generateRandomColor()
+                finalCoaster.sendPackage2("FIXED", finalColor)
+                Toast.makeText(this, "Game Over! Final coaster lit up.", Toast.LENGTH_SHORT).show()
+                // Reset the UI after the game ends
+                gameStatusText.text = "Game Status: Game Over!"
+                buttonStartGame.visibility = View.VISIBLE
+                gameProgressBar.visibility = View.GONE
+                return
+            }
+            val randomCoaster = coasterDevices.random()
+            val randomColor = generateRandomColor()
+            randomCoaster.sendPackage2("FIXED", randomColor)
+
+            // Turn off the coaster after 0.5 seconds and schedule the next action
+            handler.postDelayed({
+                randomCoaster.sendPackage1(isOuterChecked = false, isInnerChecked = false)
+                handler.postDelayed({ lightUpAndTurnOff() }, 0)
+            }, 500)
+        }
+        lightUpAndTurnOff()
+    }
+
+    private fun generateRandomColor(): String {
+        val red = (0..255).random()
+        val green = (0..255).random()
+        val blue = (0..255).random()
+        return "$red,$green,$blue"
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         // Clean up all connected devices
@@ -309,26 +427,6 @@ class GameActivity : AppCompatActivity() {
         assignedDevices.clear()
         handler.removeCallbacksAndMessages(null)
         Log.d("GameActivity", "All resources released")
-    }
-
-    override fun onStart() {
-        super.onStart()
-        Log.d("GameActivity", "onStart: Activity is starting.")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d("GameActivity", "onResume: Activity is resuming.")
-    }
-
-    override fun onPause() {
-        super.onPause()
-        Log.d("GameActivity", "onPause: Activity is pausing.")
-    }
-
-    override fun onStop() {
-        super.onStop()
-        Log.d("GameActivity", "onStop: Activity is stopping.")
     }
 }
 
@@ -341,6 +439,8 @@ class CoasterDevice(
     private var bluetoothGatt: BluetoothGatt? = null
     private var targetCharacteristic: BluetoothGattCharacteristic? = null
     private val REQUEST_BLUETOOTH_PERMISSIONS = 1
+    private val MY_UUID = UUID.fromString("00001801-0000-1000-8000-008051234567")
+    private var MY_CHAR_UUID = UUID.fromString("00001234-0000-1000-8000-001122334455")
 
     fun connect() {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
@@ -366,25 +466,78 @@ class CoasterDevice(
                 super.onServicesDiscovered(gatt, status)
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     // Assume the service and characteristic UUIDs are known
-                    val service = gatt.getService(UUID.fromString("your-service-uuid"))
-                    targetCharacteristic = service?.getCharacteristic(UUID.fromString("your-characteristic-uuid"))
+                    val service = gatt.getService(MY_UUID)
+                    targetCharacteristic = service?.getCharacteristic(MY_CHAR_UUID)
                     Log.d("CoasterDevice", "Service and characteristic discovered for ${device.address}")
                 }
             }
         })
     }
 
-    fun sendData(data: ByteArray) {
+    fun sendPackage1(isOuterChecked: Boolean, isInnerChecked: Boolean) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
             ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
             requestBluetoothPermissions(context)
             return
         }
-        targetCharacteristic?.let {
-            it.value = data
-            bluetoothGatt?.writeCharacteristic(it)
-            Log.d("CoasterDevice", "Data sent to ${device.address}: ${data.joinToString()}")
-        } ?: Log.e("CoasterDevice", "Characteristic not initialized for ${device.address}")
+        try {
+            val commandByte: Byte = PACKAGE_1_COMMAND
+            val dataBytes = byteArrayOf(
+                commandByte,
+                if (isOuterChecked) 0x01 else 0x00,
+                if (isInnerChecked) 0x01 else 0x00
+            )
+
+            // Calculate checksum by summing all bytes modulo 256
+            val checksum: Byte = (dataBytes.sumOf { it.toInt() } % 256).toByte()
+
+            // Append the checksum to the data array
+            val finalDataBytes = dataBytes + checksum
+
+            targetCharacteristic?.let { characteristic ->
+                characteristic.value = finalDataBytes
+                val success = bluetoothGatt?.writeCharacteristic(characteristic) ?: false
+                if (success) {
+                    Log.d(ContentValues.TAG, "Data written to characteristic successfully")
+                } else {
+                    Log.e(ContentValues.TAG, "Failed to write data to characteristic")
+                }
+            } ?: Log.e(ContentValues.TAG, "Characteristic not initialized")
+        } catch (e: IOException) {
+            Log.e(ContentValues.TAG, "Error occurred during Bluetooth communication: ${e.message}", e)
+        }
+    }
+
+    fun sendPackage2(mode: String, colors: String) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+            requestBluetoothPermissions(context)
+            return
+        }
+        try {
+            val commandByte: Byte = PACKAGE_2_COMMAND
+            val modeBytes = mode.toByteArray()
+            val colorBytes = colors.toByteArray()
+            val dataBytes = byteArrayOf(commandByte) + modeBytes + byteArrayOf(0x2C) + colorBytes
+
+            // Calculate checksum by summing all bytes modulo 256
+            val checksum: Byte = (dataBytes.sumOf { it.toInt() } % 256).toByte()
+
+            // Append the checksum to the data array
+            val finalDataBytes = dataBytes + checksum
+
+            targetCharacteristic?.let { characteristic ->
+                characteristic.value = finalDataBytes
+                val success = bluetoothGatt?.writeCharacteristic(characteristic) ?: false
+                if (success) {
+                    Log.d(ContentValues.TAG, "Data written to characteristic successfully")
+                } else {
+                    Log.e(ContentValues.TAG, "Failed to write data to characteristic")
+                }
+            } ?: Log.e(ContentValues.TAG, "Characteristic not initialized")
+        } catch (e: IOException) {
+            Log.e(ContentValues.TAG, "Error occurred during Bluetooth communication: ${e.message}", e)
+        }
     }
 
     fun disconnect() {

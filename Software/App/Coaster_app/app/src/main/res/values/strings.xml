@@ -5,4 +5,8 @@
     <string name="light_configuration">LIGHT CONFIGURATION</string>
     <string name="effects">EFFECTS</string>
     <string name="bluetooth">BLUETOOTH</string>
+    <string-array name="game_modes">
+        <item>NATTDUELLEN</item>
+        <item>RANDOM DRINK</item>
+    </string-array>
 </resources>

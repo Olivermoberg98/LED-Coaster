@@ -359,10 +359,6 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
             // Append the checksum to the data array
             val finalDataBytes = dataBytes + checksum
 
-            //bluetoothSocket?.outputStream?.write(finalDataBytes)
-            //bluetoothSocket?.outputStream?.flush()
-            // Get the characteristic (make sure you already discovered services)
-
             targetCharacteristic?.let { characteristic ->
                 characteristic.value = finalDataBytes
                 val success = bluetoothGatt?.writeCharacteristic(characteristic) ?: false
