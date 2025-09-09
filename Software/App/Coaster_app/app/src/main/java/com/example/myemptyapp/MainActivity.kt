@@ -527,8 +527,8 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                 }
 
                 // Connect to the device using BluetoothGatt
-                val bluetoothGatt = device.connectGatt(this, false, gattCallback)
-                deviceConnections[device] = bluetoothGatt
+                bluetoothGatt = device.connectGatt(this, false, gattCallback)
+                //deviceConnections[device] = bluetoothGatt
 
                 // Connection successful, enable UI elements for sending data
                 enableSendDataUI()
