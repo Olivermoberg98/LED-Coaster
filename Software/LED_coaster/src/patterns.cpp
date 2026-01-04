@@ -2,29 +2,6 @@
 #include "Arduino.h"
 #include <FastLED.h>
 
-/// @brief Pulse a pattern of LEDs.
-/// This function takes a pattern of LEDs, and "pulses" it by scaling the brightness
-/// of each LED up and down over time. The brightness is scaled by a sine wave
-/// with the given frequency, and then further scaled by the minimum and maximum
-/// brightness values.
-/// @param ledsIn CRGB array containing the colors of the LEDs to pulse.
-/// @param ledsOut CRGB array containing the destination array of LEDs which are pulsing.
-/// @param numberOfLeds The number of LEDs in the pattern.
-/// @param pulseFrequency The frequency of the pulse in [Hz].
-/// @param maxBrigthness The maximum brightness of the pulse [0-255].
-/// @param minBrigthness The minimum brightness of the pulse [0-255].
-/// @brief Pulse a pattern of LEDs.
-/// This function takes a pattern of LEDs, and "pulses" it by scaling the brightness
-/// of each LED up and down over time. The brightness is scaled by a sine wave
-/// with the given frequency, and then further scaled by the minimum and maximum
-/// brightness values.
-/// @param ledsIn CRGB array containing the colors of the LEDs to pulse.
-/// @param ledsOut CRGB array containing the destination array of LEDs which are pulsing.
-/// @param numberOfLeds The number of LEDs in the pattern.
-/// @param pulseFrequency The frequency of the pulse in [Hz].
-/// @param maxBrigthness The maximum brightness of the pulse [0-255].
-/// @param minBrigthness The minimum brightness of the pulse [0-255].
-
 // Define the color arrays
 CRGB colors_inner[NUM_LEDS_INNER];
 CRGB colors_outer[NUM_LEDS_OUTER];
@@ -158,34 +135,52 @@ void clearRing(CRGB* leds, int numLeds) {
     FastLED.show();
 }
 
-void onDisconnectPattern(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds) {
-    for (int i = 0; i < numberOfLeds; i++) {
-        ledsIn[i] = CRGB::Red; // Set all inner LEDs to red
-        ledsOut[i] = CRGB::Red; // Set all outer LEDs to red
+void onDisconnectPattern(CRGB* ledsInner, int numLedsInner, CRGB* ledsOuter, int numLedsOuter) {
+    // Set both rings to red first
+    for (int i = 0; i < numLedsInner; i++) {
+        ledsInner[i] = CRGB::Red;
+    }
+    for (int i = 0; i < numLedsOuter; i++) {
+        ledsOuter[i] = CRGB::Red;
     }
     FastLED.show();
-    // Gradual fade-out effect
+    
+    // Gradual fade-out effect for both rings simultaneously
     for (int brightness = 255; brightness >= 0; brightness -= 5) {
-        for (int i = 0; i < numberOfLeds; i++) {
-            ledsIn[i].fadeToBlackBy(5);
-            ledsOut[i].fadeToBlackBy(5);
+        for (int i = 0; i < numLedsInner; i++) {
+            ledsInner[i].fadeToBlackBy(5);
+        }
+        for (int i = 0; i < numLedsOuter; i++) {
+            ledsOuter[i].fadeToBlackBy(5);
         }
         FastLED.show();
         delay(30); // Adjust for fade-out speed
     }
 }
 
-void onConnectPattern(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds) {
-    for (int ripple = 0; ripple < numberOfLeds; ripple++) {
-        for (int i = 0; i < numberOfLeds; i++) {
-            if (i == ripple) {
-                ledsIn[i] = CRGB::Green;  // Set the current LED to green
-                ledsOut[i] = CRGB::Green; // Set the current LED to green
+void onConnectPattern(CRGB* ledsInner, int numLedsInner, CRGB* ledsOuter, int numLedsOuter) {
+    // Use the larger ring size for the ripple effect
+    int maxLeds = max(numLedsInner, numLedsOuter);
+    
+    for (int ripple = 0; ripple < maxLeds; ripple++) {
+        // Update inner ring
+        for (int i = 0; i < numLedsInner; i++) {
+            if (i == ripple % numLedsInner) {
+                ledsInner[i] = CRGB::Green;
             } else {
-                ledsIn[i].fadeToBlackBy(50);  // Gradually fade the others
-                ledsOut[i].fadeToBlackBy(50); // Gradually fade the others
+                ledsInner[i].fadeToBlackBy(50);
             }
         }
+        
+        // Update outer ring
+        for (int i = 0; i < numLedsOuter; i++) {
+            if (i == ripple % numLedsOuter) {
+                ledsOuter[i] = CRGB::Green;
+            } else {
+                ledsOuter[i].fadeToBlackBy(50);
+            }
+        }
+        
         FastLED.show();
         delay(50); // Adjust for ripple speed
     }

@@ -9,8 +9,11 @@ CRGB led_output_outer[NUM_LEDS_OUTER];
 PatternType inner_pattern = FIXED;
 PatternType outer_pattern = FIXED;
 
-std::string coasterID = "001";
+std::string coasterID = "005";
 BLEHandler blehandler(coasterID);
+
+bool isShowingConnectionAnimation = false;
+bool previousConnectionStatus = false;
 
 void setup() {
   // Setup for the LEDs
@@ -28,6 +31,23 @@ void setup() {
 }
 
 void loop() {
+  // Detect when connection changes
+  if (blehandler.deviceConnected != previousConnectionStatus) {
+    previousConnectionStatus = blehandler.deviceConnected;
+    
+    if (blehandler.deviceConnected) {
+      isShowingConnectionAnimation = true;
+    }
+  }
+
+  // Show connection animation (blocking, but only once)
+  if (isShowingConnectionAnimation) {
+    onConnectPattern(led_output_inner, NUM_LEDS_INNER, led_output_outer, NUM_LEDS_OUTER);
+    isShowingConnectionAnimation = false;
+    return;
+  }
+
+  // Pattern handling
   if (blehandler.innerChecked && blehandler.deviceConnected) {
     runPattern(inner_pattern,colors_inner,led_output_inner,NUM_LEDS_INNER);
   } else if (blehandler.innerChecked) {
