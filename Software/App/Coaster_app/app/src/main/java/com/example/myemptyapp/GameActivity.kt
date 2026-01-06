@@ -85,8 +85,38 @@ class GameActivity : AppCompatActivity() {
                     id: Long
                 ) {
                     try {
-                        resetAllCircles()
-                        selectedCircleCount = circleCounts[position]
+                        val newCircleCount = circleCounts[position]
+
+                        // If reducing circle count, disconnect devices in circles beyond the new count
+                        if (newCircleCount < selectedCircleCount) {
+                            val devicesToRemove = mutableListOf<CoasterDevice>()
+
+                            // Find devices in positions >= newCircleCount
+                            for (pos in newCircleCount until selectedCircleCount) {
+                                val device = ringDeviceMap[pos]
+                                if (device != null) {
+                                    devicesToRemove.add(device)
+                                    ringDeviceMap.remove(pos)
+                                }
+                            }
+
+                            // Disconnect and remove them
+                            devicesToRemove.forEach { device ->
+                                assignedDevices.remove(device)
+                                device.disconnect()
+                                Log.d("GameActivity", "Disconnected ${device.getDeviceName()} - circle removed")
+                            }
+
+                            if (devicesToRemove.isNotEmpty()) {
+                                Toast.makeText(
+                                    this@GameActivity,
+                                    "${devicesToRemove.size} device(s) disconnected",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+
+                        selectedCircleCount = newCircleCount
                         updateCircleLayout()
                     } catch (e: Exception) {
                         Log.e("GameActivity", "Error updating circle layout", e)
@@ -106,7 +136,14 @@ class GameActivity : AppCompatActivity() {
                         val name = parts[0]
                         val address = parts[1]
                         val device = bluetoothAdapter.getRemoteDevice(address)
-                        CoasterDevice(this, device) // Create CoasterDevice directly
+
+                        // CHECK IF DEVICE IS ACTUALLY CONNECTED
+                        if (isDeviceConnected(device)) {
+                            CoasterDevice(this, device) // Create CoasterDevice only if connected
+                        } else {
+                            Log.d("GameActivity", "Device $name is not currently connected, skipping")
+                            null
+                        }
                     } else null
                 } catch (e: Exception) {
                     Log.e("GameActivity", "Invalid device data: $data", e)
@@ -173,7 +210,7 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    private fun createDragListener(): View.OnDragListener {
+    private fun createDragListener(circlePosition: Int): View.OnDragListener {
         return View.OnDragListener { v, event ->
             when (event.action) {
                 DragEvent.ACTION_DRAG_STARTED -> true
@@ -195,26 +232,21 @@ class GameActivity : AppCompatActivity() {
 
                         // Find the TextView within the circle and set the device ID (e.g., "00X")
                         val ringTextView = (v as ViewGroup).findViewById<TextView>(R.id.circleText)
-                        ringTextView.text = deviceId // Only show the "00X" part
+                        ringTextView.text = deviceId
                         ringTextView.visibility = View.VISIBLE
 
-                        // Update UI and mappings
+                        // Update UI and mappings using position instead of view ID
                         v.setBackgroundResource(R.drawable.circle_active_background)
-                        ringDeviceMap[v.id] = coasterDevice
+                        ringDeviceMap[circlePosition] = coasterDevice
                         assignedDevices.add(coasterDevice)
 
                         // Connect to the device
                         coasterDevice.connect()
-
-                        // Use the dynamic ID for resource entry name
-                        //val resourceName = resources.getResourceEntryName(v.id)
-                        //Toast.makeText(this, "${coasterDevice.getDeviceName()} assigned to $resourceName", Toast.LENGTH_SHORT).show()
                     }
                     true
                 }
 
                 DragEvent.ACTION_DRAG_ENDED -> {
-                    // Reset the circle background if the drag ended unsuccessfully
                     if (!event.result) v.setBackgroundResource(R.drawable.circle_background)
                     true
                 }
@@ -238,89 +270,91 @@ class GameActivity : AppCompatActivity() {
                 while (remainingCircles > 0) {
                     when {
                         remainingCircles == 5 -> {
-                            // Special case: 5 = 3 + 2
                             rows.add(List(3) { 3 })
                             rows.add(List(2) { 2 })
                             remainingCircles = 0
                         }
-
                         remainingCircles == 7 -> {
-                            // Special case: 7 = 4 + 3
                             rows.add(List(4) { 4 })
                             rows.add(List(3) { 3 })
                             remainingCircles = 0
                         }
-
                         remainingCircles % 4 == 0 -> {
-                            // Use rows of 4 when divisible by 4
                             rows.add(List(4) { 4 })
                             remainingCircles -= 4
                         }
-
                         remainingCircles % 3 == 0 -> {
-                            // Use rows of 3 when divisible by 3
                             rows.add(List(3) { 3 })
                             remainingCircles -= 3
                         }
-
                         remainingCircles > 4 -> {
-                            // If more than 4 but not divisible, prioritize rows of 4
                             rows.add(List(4) { 4 })
                             remainingCircles -= 4
                         }
-
                         else -> {
-                            // Handle remaining circles (should only be 2 or 3 at this point)
                             rows.add(List(remainingCircles) { remainingCircles })
                             remainingCircles = 0
                         }
                     }
                 }
 
+                // Track current circle position
+                var circlePosition = 0
+
                 // Create rows dynamically
                 for (row in rows) {
-                    // Create a horizontal layout for the row
                     val rowLayout = LinearLayout(this).apply {
                         orientation = LinearLayout.HORIZONTAL
                         layoutParams = LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT
                         ).apply {
-                            setMargins(0, 16, 0, 16) // Add spacing between rows
+                            setMargins(0, 16, 0, 16)
                         }
-                        gravity = Gravity.CENTER // Center circles in the row
+                        gravity = Gravity.CENTER
                     }
 
                     // Add circles to the row
                     for (i in 1..row[0]) {
-                        val circle =
-                            layoutInflater.inflate(R.layout.circle_layout, rowLayout, false)
+                        val currentPosition = circlePosition
+                        val circle = layoutInflater.inflate(R.layout.circle_layout, rowLayout, false)
                         circle.id = View.generateViewId()
                         rowLayout.addView(circle)
 
-                        // Set up drag listener for the circle
-                        circle.setOnDragListener(createDragListener())
+                        // Check if this position had a device assigned
+                        val assignedDevice = ringDeviceMap[currentPosition]
+                        if (assignedDevice != null) {
+                            // Restore the device to this circle
+                            val deviceId = assignedDevice.getDeviceName().substringAfterLast('-')
+                            val ringTextView = circle.findViewById<TextView>(R.id.circleText)
+                            ringTextView.text = deviceId
+                            ringTextView.visibility = View.VISIBLE
+                            circle.setBackgroundResource(R.drawable.circle_active_background)
+                        }
+
+                        // Set up drag listener for the circle with position
+                        circle.setOnDragListener(createDragListener(currentPosition))
 
                         // Set up long click listener for the circle
                         circle.setOnLongClickListener {
-                            val device = ringDeviceMap[circle.id]
+                            val device = ringDeviceMap[currentPosition]
                             if (device != null) {
                                 assignedDevices.remove(device)
-                                ringDeviceMap[circle.id] = null
+                                ringDeviceMap.remove(currentPosition)
                                 circle.setBackgroundResource(R.drawable.circle_background)
-                                circle.findViewById<TextView>(R.id.circleText).visibility =
-                                    View.GONE
+                                circle.findViewById<TextView>(R.id.circleText).visibility = View.GONE
                                 Toast.makeText(
                                     this,
                                     "${device.getDeviceName()} removed",
                                     Toast.LENGTH_SHORT
                                 ).show()
+                                device.disconnect()
                             }
-                            device?.disconnect()
                             true
                         }
+
+                        circlePosition++
                     }
-                    // Add the row layout to the parent linear layout
                     linearLayout.addView(rowLayout)
                 }
             } catch (e: Exception) {
@@ -450,6 +484,22 @@ class GameActivity : AppCompatActivity() {
         val green = (0..255).random()
         val blue = (0..255).random()
         return "$red,$green,$blue"
+    }
+
+    private fun isDeviceConnected(device: BluetoothDevice): Boolean {
+        return try {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+                != PackageManager.PERMISSION_GRANTED) {
+                return false
+            }
+
+            // Check if device is in the list of connected devices
+            val method = device.javaClass.getMethod("isConnected")
+            method.invoke(device) as Boolean
+        } catch (e: Exception) {
+            Log.e("GameActivity", "Error checking device connection status", e)
+            false
+        }
     }
 
     override fun onDestroy() {
