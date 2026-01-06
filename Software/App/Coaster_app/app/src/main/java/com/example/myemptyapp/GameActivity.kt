@@ -60,6 +60,8 @@ class GameActivity : AppCompatActivity() {
     private lateinit var spinnerGameMode: Spinner
     private lateinit var buttonStartGame: Button
 
+    private var currentGameRunnable: Runnable? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_game)
@@ -342,6 +344,9 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun nattDuellen(coasterDevices: MutableSet<CoasterDevice>) {
+        // Cancel any previous game that might still be running
+        cancelCurrentGame()
+
         Toast.makeText(this, "Starting Mode 1!", Toast.LENGTH_SHORT).show()
         val gameStatusText = findViewById<TextView>(R.id.gameStatusText)
         val gameProgressBar = findViewById<ProgressBar>(R.id.gameProgressBar)
@@ -349,34 +354,46 @@ class GameActivity : AppCompatActivity() {
         gameStatusText.text = "Game Status: Nattduellen Started!"
         gameProgressBar.visibility = View.VISIBLE
 
-        // Light up all connected coasters
-        val whiteColor = 0xFFFFFF // White color in hex
-        val red = (whiteColor shr 16) and 0xFF
-        val green = (whiteColor shr 8) and 0xFF
-        val blue = whiteColor and 0xFF
-        val colorString = "$red,$green,$blue"
+        // Light up all connected coasters with white
+        val whiteColorString = "255,255,255"
+
         for (coaster in coasterDevices) {
-            coaster.sendPackage2("FIXED", colorString) // White color
+            coaster.sendPackage2("FIXED", whiteColorString)
         }
 
-        // After 5-10 seconds, randomly turn off one coaster
-        val randomDelay = (5..10).random() * 1000L // Random delay between 5 and 10 seconds
-        Handler(Looper.getMainLooper()).postDelayed({
-            val randomCoaster = coasterDevices.random() // Choose a random coaster
-            randomCoaster.sendPackage1(isOuterChecked = false, isInnerChecked = false) // Turn off light
-            Log.d("Nattduellen", "Random coaster turned off!")
-            // Reset the UI after the game ends
-            gameStatusText.text = "Game Status: Game Over!"
-            buttonStartGame.visibility = View.VISIBLE
-            gameProgressBar.visibility = View.GONE
-        }, randomDelay)
+        val randomDelay = (5..10).random() * 1000L
+
+        // Store the runnable so we can cancel it if needed
+        currentGameRunnable = Runnable {
+            val randomCoaster = coasterDevices.random()
+            // Turn off by sending black color instead of disabling rings
+            randomCoaster.sendPackage2("FIXED", "0,0,0") // Black = off
+            Log.d("Nattduellen", "Random coaster turned off: ${randomCoaster.getDeviceName()}")
+
+            // Nested delayed task for cleanup
+            handler.postDelayed({
+                // Turn off ALL coasters with black color
+                for (coaster in coasterDevices) {
+                    coaster.sendPackage2("FIXED", "0,0,0")
+                }
+
+                gameStatusText.text = "Game Status: Game Over!"
+                buttonStartGame.visibility = View.VISIBLE
+                gameProgressBar.visibility = View.GONE
+
+                Log.d("Nattduellen", "Game ended, all coasters reset")
+            }, 3000)
+        }
+
+        handler.postDelayed(currentGameRunnable!!, randomDelay)
     }
 
     private fun drinkGame(coasterDevices: MutableSet<CoasterDevice>) {
-        val usedCoasters = mutableSetOf<CoasterDevice>()
+        // Cancel any previous game that might still be running
+        cancelCurrentGame()
+
         val gameDuration = (10..13).random() * 1000L // Random duration between 10 and 13 seconds
         val startTime = System.currentTimeMillis()
-        val handler = Handler(Looper.getMainLooper())
 
         buttonStartGame.visibility = View.GONE
         val gameStatusText = findViewById<TextView>(R.id.gameStatusText)
@@ -391,23 +408,41 @@ class GameActivity : AppCompatActivity() {
                 val finalColor = generateRandomColor()
                 finalCoaster.sendPackage2("FIXED", finalColor)
                 Toast.makeText(this, "Game Over! Final coaster lit up.", Toast.LENGTH_SHORT).show()
+
+                // Turn off all other coasters with black color
+                for (coaster in coasterDevices) {
+                    if (coaster != finalCoaster) {
+                        coaster.sendPackage2("FIXED", "0,0,0")
+                    }
+                }
+
                 // Reset the UI after the game ends
                 gameStatusText.text = "Game Status: Game Over!"
                 buttonStartGame.visibility = View.VISIBLE
                 gameProgressBar.visibility = View.GONE
                 return
             }
+
             val randomCoaster = coasterDevices.random()
             val randomColor = generateRandomColor()
             randomCoaster.sendPackage2("FIXED", randomColor)
 
-            // Turn off the coaster after 0.5 seconds and schedule the next action
+            // Turn off the coaster after 0.5 seconds using black color
             handler.postDelayed({
-                randomCoaster.sendPackage1(isOuterChecked = false, isInnerChecked = false)
+                randomCoaster.sendPackage2("FIXED", "0,0,0")
                 handler.postDelayed({ lightUpAndTurnOff() }, 0)
             }, 500)
         }
+
         lightUpAndTurnOff()
+    }
+
+    private fun cancelCurrentGame() {
+        currentGameRunnable?.let {
+            handler.removeCallbacks(it)
+            Log.d("GameActivity", "Current game cancelled")
+        }
+        currentGameRunnable = null
     }
 
     private fun generateRandomColor(): String {
@@ -419,6 +454,7 @@ class GameActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        cancelCurrentGame()
         // Clean up all connected devices
         ringDeviceMap.values.forEach { coasterDevice ->
             coasterDevice?.disconnect()
