@@ -9,4 +9,7 @@
         <item>NATTDUELLEN</item>
         <item>RANDOM DRINK</item>
     </string-array>
+    <string name="game_status_nattduellen_started">Game Status: Nattduellen Started!</string>
+    <string name="game_status_game_over">Game Status: Game Over!</string>
+    <string name="game_status_drink_started">Game Status: Drink Games Started!</string>
 </resources>

@@ -8,10 +8,8 @@ import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothProfile
-import android.content.ClipData
 import android.content.ContentValues
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -20,19 +18,16 @@ import android.os.Looper
 import android.util.Log
 import android.view.DragEvent
 import android.view.Gravity
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -51,7 +46,10 @@ class GameActivity : AppCompatActivity() {
     private val ringDeviceMap = mutableMapOf<Int, CoasterDevice?>()
     private val assignedDevices = mutableSetOf<CoasterDevice>()
 
-    private val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+    private val bluetoothAdapter: BluetoothAdapter? by lazy {
+        val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as android.bluetooth.BluetoothManager
+        bluetoothManager.adapter
+    }
 
     private lateinit var spinner: Spinner
     private lateinit var linearLayout: LinearLayout
@@ -135,7 +133,7 @@ class GameActivity : AppCompatActivity() {
                     if (parts.size == 2) {
                         val name = parts[0]
                         val address = parts[1]
-                        val device = bluetoothAdapter.getRemoteDevice(address)
+                        val device = bluetoothAdapter?.getRemoteDevice(address) ?: return@mapNotNull null
 
                         // CHECK IF DEVICE IS ACTUALLY CONNECTED
                         if (isDeviceConnected(device)) {
@@ -363,16 +361,6 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    private fun resetAllCircles() {
-        runOnUiThread {
-            try {
-                linearLayout.removeAllViews()
-            } catch (e: Exception) {
-                Log.e("GameActivity", "Error resetting circles", e)
-            }
-        }
-    }
-
     private fun areAllCirclesConnected(): Boolean {
         return assignedDevices.size == selectedCircleCount
     }
@@ -385,7 +373,7 @@ class GameActivity : AppCompatActivity() {
         val gameStatusText = findViewById<TextView>(R.id.gameStatusText)
         val gameProgressBar = findViewById<ProgressBar>(R.id.gameProgressBar)
         buttonStartGame.visibility = View.GONE
-        gameStatusText.text = "Game Status: Nattduellen Started!"
+        gameStatusText.text = getString(R.string.game_status_nattduellen_started)
         gameProgressBar.visibility = View.VISIBLE
 
         // Light up all connected coasters with white
@@ -411,7 +399,7 @@ class GameActivity : AppCompatActivity() {
                     coaster.sendPackage2("FIXED", "0,0,0")
                 }
 
-                gameStatusText.text = "Game Status: Game Over!"
+                gameStatusText.text = getString(R.string.game_status_game_over)
                 buttonStartGame.visibility = View.VISIBLE
                 gameProgressBar.visibility = View.GONE
 
@@ -432,7 +420,7 @@ class GameActivity : AppCompatActivity() {
         buttonStartGame.visibility = View.GONE
         val gameStatusText = findViewById<TextView>(R.id.gameStatusText)
         val gameProgressBar = findViewById<ProgressBar>(R.id.gameProgressBar)
-        gameStatusText.text = "Game Status: Drink Games Started!"
+        gameStatusText.text = getString(R.string.game_status_drink_started)
         gameProgressBar.visibility = View.VISIBLE
 
         fun lightUpAndTurnOff() {
@@ -451,7 +439,7 @@ class GameActivity : AppCompatActivity() {
                 }
 
                 // Reset the UI after the game ends
-                gameStatusText.text = "Game Status: Game Over!"
+                gameStatusText.text = getString(R.string.game_status_game_over)
                 buttonStartGame.visibility = View.VISIBLE
                 gameProgressBar.visibility = View.GONE
                 return
@@ -581,8 +569,15 @@ class CoasterDevice(
             val finalDataBytes = dataBytes + checksum
 
             targetCharacteristic?.let { characteristic ->
-                characteristic.value = finalDataBytes
-                val success = bluetoothGatt?.writeCharacteristic(characteristic) ?: false
+                val success = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    bluetoothGatt?.writeCharacteristic(characteristic, finalDataBytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) ?: BluetoothGatt.GATT_FAILURE
+                    true
+                } else {
+                    @Suppress("DEPRECATION")
+                    characteristic.value = finalDataBytes
+                    @Suppress("DEPRECATION")
+                    bluetoothGatt?.writeCharacteristic(characteristic) ?: false
+                }
                 if (success) {
                     Log.d(ContentValues.TAG, "Data written to characteristic successfully")
                 } else {
@@ -613,8 +608,15 @@ class CoasterDevice(
             val finalDataBytes = dataBytes + checksum
 
             targetCharacteristic?.let { characteristic ->
-                characteristic.value = finalDataBytes
-                val success = bluetoothGatt?.writeCharacteristic(characteristic) ?: false
+                val success = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    bluetoothGatt?.writeCharacteristic(characteristic, finalDataBytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) ?: BluetoothGatt.GATT_FAILURE
+                    true
+                } else {
+                    @Suppress("DEPRECATION")
+                    characteristic.value = finalDataBytes
+                    @Suppress("DEPRECATION")
+                    bluetoothGatt?.writeCharacteristic(characteristic) ?: false
+                }
                 if (success) {
                     Log.d(ContentValues.TAG, "Data written to characteristic successfully")
                 } else {
@@ -651,5 +653,3 @@ class CoasterDevice(
         }
     }
 }
-
-data class Device(val name: String, val bluetoothDevice: BluetoothDevice)
