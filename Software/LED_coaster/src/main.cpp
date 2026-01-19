@@ -9,11 +9,8 @@ CRGB led_output_outer[NUM_LEDS_OUTER];
 PatternType inner_pattern = FIXED;
 PatternType outer_pattern = FIXED;
 
-std::string coasterID = "005";
+std::string coasterID = "05";
 BLEHandler blehandler(coasterID);
-
-bool isShowingConnectionAnimation = false;
-bool previousConnectionStatus = false;
 
 void setup() {
   // Setup for the LEDs
@@ -31,51 +28,39 @@ void setup() {
 }
 
 void loop() {
-  // Detect when connection changes
-  if (blehandler.deviceConnected != previousConnectionStatus) {
-    previousConnectionStatus = blehandler.deviceConnected;
-    
-    if (blehandler.deviceConnected) {
-      isShowingConnectionAnimation = true;
+  // Update connection state machine
+  blehandler.updateConnectionState();
+
+  // Only process patterns when fully connected
+  if (blehandler.shouldProcessPatterns()) {
+    // Inner ring
+    if (blehandler.innerChecked && blehandler.deviceConnected) {
+      runPattern(inner_pattern, colors_inner, led_output_inner, NUM_LEDS_INNER);
+    } else {
+      clearRing(led_output_inner, NUM_LEDS_INNER);
     }
-  }
 
-  // Show connection animation (blocking, but only once)
-  if (isShowingConnectionAnimation) {
-    onConnectPattern(led_output_inner, NUM_LEDS_INNER, led_output_outer, NUM_LEDS_OUTER);
-    isShowingConnectionAnimation = false;
-    return;
-  }
-
-  // Pattern handling
-  if (blehandler.innerChecked && blehandler.deviceConnected) {
-    runPattern(inner_pattern,colors_inner,led_output_inner,NUM_LEDS_INNER);
-  } else if (blehandler.innerChecked) {
-     //FastLED.show();
-  } else {
-    clearRing(led_output_inner, NUM_LEDS_INNER);
-  }
-
-  if (blehandler.outerChecked && blehandler.deviceConnected) {
-    runPattern(outer_pattern,colors_outer,led_output_outer,NUM_LEDS_OUTER);
-  } else if (blehandler.outerChecked) {
-     //FastLED.show();
-  } else {
-    clearRing(led_output_outer, NUM_LEDS_OUTER);
-  }
-
-  if (blehandler.package2Received) {
-    inner_pattern = stringToPatternType(blehandler.received_pattern);
-    outer_pattern = stringToPatternType(blehandler.received_pattern);
-
-    if (inner_pattern!=3 || outer_pattern != 3) {
-      updateLEDColors(0,NUM_LEDS_INNER,blehandler.received_colors);
-      updateLEDColors(1,NUM_LEDS_OUTER,blehandler.received_colors);
+    // Outer ring
+    if (blehandler.outerChecked && blehandler.deviceConnected) {
+      runPattern(outer_pattern, colors_outer, led_output_outer, NUM_LEDS_OUTER);
+    } else {
+      clearRing(led_output_outer, NUM_LEDS_OUTER);
     }
-    
-    // Reset the package flag
-    blehandler.package2Received = false;
-    Serial.println(inner_pattern);
+
+    // Handle incoming pattern and color data
+    if (blehandler.package2Received) {
+      inner_pattern = stringToPatternType(blehandler.received_pattern);
+      outer_pattern = stringToPatternType(blehandler.received_pattern);
+
+      if (inner_pattern != 3 || outer_pattern != 3) {
+        updateLEDColors(0, NUM_LEDS_INNER, blehandler.received_colors);
+        updateLEDColors(1, NUM_LEDS_OUTER, blehandler.received_colors);
+      }
+      
+      // Reset the package flag
+      blehandler.package2Received = false;
+      Serial.println(inner_pattern);
+    }
   }
 
   delay(10);

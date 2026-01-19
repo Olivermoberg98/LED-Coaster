@@ -4,7 +4,7 @@
 
 // Constructor that sets up the unique coaster ID
 BLEHandler::BLEHandler(const std::string& coasterID) 
-    : coasterID(coasterID), deviceConnected(false) {}
+    : coasterID(coasterID), deviceConnected(false), connectionState(DISCONNECTED) {}
 
 void BLEHandler::begin() {
     // Initialize BLE and set the device name to include the coaster ID
@@ -24,7 +24,7 @@ void BLEHandler::begin() {
     pService->start();
     startAdvertising();
 
-    //Maybe initialize true for outer and inner checked
+    // Initialize true for outer and inner checked
     innerChecked = true;
     outerChecked = true;
 }
@@ -41,6 +41,48 @@ bool BLEHandler::isConnected() {
     return deviceConnected;
 }
 
+void BLEHandler::updateConnectionState() {
+    switch (connectionState) {
+        case DISCONNECTED:
+            if (deviceConnected) {
+                Serial.println("State: DISCONNECTED -> CONNECTING");
+                connectionState = CONNECTING;
+            }
+            break;
+            
+        case CONNECTING:
+            Serial.println("State: CONNECTING - Playing connection animation");
+            onConnectPattern(led_output_inner, NUM_LEDS_INNER, led_output_outer, NUM_LEDS_OUTER);
+            connectionState = CONNECTED;
+            Serial.println("State: CONNECTING -> CONNECTED");
+            break;
+            
+        case CONNECTED:
+            if (!deviceConnected) {
+                Serial.println("State: CONNECTED -> DISCONNECTING");
+                connectionState = DISCONNECTING;
+            }
+            break;
+            
+        case DISCONNECTING:
+            // Disconnect animation is handled in BLE callback
+            Serial.println("State: DISCONNECTING -> DISCONNECTED");
+            connectionState = DISCONNECTED;
+            break;
+    }
+}
+
+bool BLEHandler::shouldProcessPatterns() {
+    return connectionState == CONNECTED;
+}
+
+void BLEHandler::resetConnectionState() {
+    // Reset all flags to prepare for a clean reconnection
+    package1Received = false;
+    package2Received = false;
+    Serial.println("Connection state reset");
+}
+
 void BLEHandler::ServerCallbacks::onConnect(NimBLEServer* pServer) {
     handler->deviceConnected = true;  
     Serial.println("Device connected");
@@ -49,8 +91,15 @@ void BLEHandler::ServerCallbacks::onConnect(NimBLEServer* pServer) {
 void BLEHandler::ServerCallbacks::onDisconnect(NimBLEServer* pServer) {
     handler->deviceConnected = false;  
     Serial.println("Device disconnected");
-    pServer->startAdvertising(); 
+    
+    // Reset connection state for clean reconnection
+    handler->resetConnectionState();
+    
+    // Play disconnect animation
     onDisconnectPattern(led_output_inner, NUM_LEDS_INNER, led_output_outer, NUM_LEDS_OUTER);
+    
+    // Restart advertising
+    pServer->startAdvertising(); 
 }
 
 void BLEHandler::CharacteristicCallbacks::onWrite(NimBLECharacteristic* pCharacteristic) {

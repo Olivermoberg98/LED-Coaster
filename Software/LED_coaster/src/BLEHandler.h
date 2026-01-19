@@ -7,12 +7,23 @@
 extern CRGB led_output_inner[];
 extern CRGB led_output_outer[];
 
+// Connection state machine
+enum ConnectionState {
+    DISCONNECTED,
+    CONNECTING,
+    CONNECTED,
+    DISCONNECTING
+};
+
 class BLEHandler {
 public:
     BLEHandler(const std::string& coasterID); // Constructor with a unique ID
     void begin();
     void startAdvertising();
     bool isConnected();
+    void updateConnectionState(); // Update state machine
+    bool shouldProcessPatterns(); // Check if patterns should be processed
+    void resetConnectionState(); // Reset state on disconnect
 
     // Flags for the package status
     bool package1Received = false;
@@ -31,6 +42,7 @@ private:
     std::string coasterID;
     NimBLEServer* pServer;
     NimBLECharacteristic* pCharacteristic;
+    ConnectionState connectionState;
 
     // Callbacks for connection and disconnection events
     class ServerCallbacks : public NimBLEServerCallbacks {
