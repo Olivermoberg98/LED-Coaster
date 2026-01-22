@@ -1,12 +1,20 @@
 #include "BLEHandler.h"
 #include <iostream>
 #include "patterns.h"
+#include <esp_pm.h>
+
+extern bool inner_needs_update;
+extern bool outer_needs_update;
 
 // Constructor that sets up the unique coaster ID
 BLEHandler::BLEHandler(const std::string& coasterID) 
-    : coasterID(coasterID), deviceConnected(false), connectionState(DISCONNECTED) {}
+    : coasterID(coasterID), deviceConnected(false), connectionState(DISCONNECTED),
+      isAdvertising(false), advertisingStartTime(0) {}
 
 void BLEHandler::begin() {
+    // Configure BLE power settings for lower energy consumption
+    NimBLEDevice::setPower(ESP_PWR_LVL_N0);
+    
     // Initialize BLE and set the device name to include the coaster ID
     NimBLEDevice::init("Coaster-" + coasterID);
     pServer = NimBLEDevice::createServer();
@@ -22,6 +30,14 @@ void BLEHandler::begin() {
     // Start the service
     pCharacteristic->setCallbacks(new CharacteristicCallbacks(this));  
     pService->start();
+    
+    // Configure light sleep mode for power saving when idle (ESP32-C3 specific)
+    esp_pm_config_esp32c3_t pm_config;
+    pm_config.max_freq_mhz = 160;  // Use full C3 speed when active
+    pm_config.min_freq_mhz = 10;   // Allow CPU to slow down when idle
+    pm_config.light_sleep_enable = true; // Enable automatic light sleep
+    esp_pm_configure(&pm_config);
+    
     startAdvertising();
 
     // Initialize true for outer and inner checked
@@ -30,11 +46,35 @@ void BLEHandler::begin() {
 }
 
 void BLEHandler::startAdvertising() {
-    NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
-    pAdvertising->addServiceUUID("00001801-0000-1000-8000-008051234567");
-    pAdvertising->setScanResponse(true);
-    pAdvertising->start();
-    Serial.println("Start Advertising");
+    if (!isAdvertising) {
+        NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
+        pAdvertising->addServiceUUID("00001801-0000-1000-8000-008051234567");
+        pAdvertising->setScanResponse(true);
+        pAdvertising->setMinInterval(800);
+        pAdvertising->setMaxInterval(1600);
+        pAdvertising->start();
+        isAdvertising = true;
+        advertisingStartTime = millis();
+        Serial.println("Started Advertising (low power mode)");
+    }
+}
+
+void BLEHandler::stopAdvertising() {
+    if (isAdvertising) {
+        NimBLEDevice::getAdvertising()->stop();
+        isAdvertising = false;
+        Serial.println("Stopped Advertising - entering low power mode");
+    }
+}
+
+void BLEHandler::updateAdvertising() {
+    // If advertising and timeout reached, stop advertising to save power
+    if (isAdvertising && !deviceConnected) {
+        if (millis() - advertisingStartTime > ADVERTISING_TIMEOUT_MS) {
+            stopAdvertising();
+            Serial.println("Advertising timeout - stopped to conserve power");
+        }
+    }
 }
 
 bool BLEHandler::isConnected() {
@@ -55,6 +95,8 @@ void BLEHandler::updateConnectionState() {
             onConnectPattern(led_output_inner, NUM_LEDS_INNER, led_output_outer, NUM_LEDS_OUTER);
             connectionState = CONNECTED;
             Serial.println("State: CONNECTING -> CONNECTED");
+            inner_needs_update = true;
+            outer_needs_update = true;
             break;
             
         case CONNECTED:
@@ -80,12 +122,15 @@ void BLEHandler::resetConnectionState() {
     // Reset all flags to prepare for a clean reconnection
     package1Received = false;
     package2Received = false;
+    inner_needs_update = true;
+    outer_needs_update = true;
     Serial.println("Connection state reset");
 }
 
 void BLEHandler::ServerCallbacks::onConnect(NimBLEServer* pServer) {
-    handler->deviceConnected = true;  
-    Serial.println("Device connected");
+    handler->deviceConnected = true;
+    handler->isAdvertising = false;
+    Serial.println("Device connected - advertising stopped");
 }
 
 void BLEHandler::ServerCallbacks::onDisconnect(NimBLEServer* pServer) {
@@ -98,8 +143,8 @@ void BLEHandler::ServerCallbacks::onDisconnect(NimBLEServer* pServer) {
     // Play disconnect animation
     onDisconnectPattern(led_output_inner, NUM_LEDS_INNER, led_output_outer, NUM_LEDS_OUTER);
     
-    // Restart advertising
-    pServer->startAdvertising(); 
+    // Restart advertising with timeout
+    handler->startAdvertising();
 }
 
 void BLEHandler::CharacteristicCallbacks::onWrite(NimBLECharacteristic* pCharacteristic) {

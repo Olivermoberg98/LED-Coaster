@@ -20,6 +20,8 @@ public:
     BLEHandler(const std::string& coasterID); // Constructor with a unique ID
     void begin();
     void startAdvertising();
+    void stopAdvertising();
+    void updateAdvertising();
     bool isConnected();
     void updateConnectionState(); // Update state machine
     bool shouldProcessPatterns(); // Check if patterns should be processed
@@ -43,6 +45,10 @@ private:
     NimBLEServer* pServer;
     NimBLECharacteristic* pCharacteristic;
     ConnectionState connectionState;
+
+    unsigned long advertisingStartTime;
+    bool isAdvertising;
+    static const unsigned long ADVERTISING_TIMEOUT_MS = 120000; // 2 minutes
 
     // Callbacks for connection and disconnection events
     class ServerCallbacks : public NimBLEServerCallbacks {

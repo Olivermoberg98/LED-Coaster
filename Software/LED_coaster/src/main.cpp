@@ -30,6 +30,7 @@ void setup() {
 void loop() {
   // Update connection state machine
   blehandler.updateConnectionState();
+  blehandler.updateAdvertising();
 
   // Only process patterns when fully connected
   if (blehandler.shouldProcessPatterns()) {
