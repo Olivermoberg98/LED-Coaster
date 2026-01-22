@@ -6,6 +6,9 @@
 CRGB colors_inner[NUM_LEDS_INNER];
 CRGB colors_outer[NUM_LEDS_OUTER];
 
+bool inner_needs_update = true;
+bool outer_needs_update = true;
+
 PatternType stringToPatternType(const std::string& pattern) {
     if (pattern == "FIXED") {
         return FIXED;

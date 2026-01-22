@@ -35,16 +35,28 @@ void loop() {
   if (blehandler.shouldProcessPatterns()) {
     // Inner ring
     if (blehandler.innerChecked && blehandler.deviceConnected) {
-      runPattern(inner_pattern, colors_inner, led_output_inner, NUM_LEDS_INNER);
+      if (inner_pattern == FIXED && !inner_needs_update) {
+        delay(50);
+      } else {
+        runPattern(inner_pattern, colors_inner, led_output_inner, NUM_LEDS_INNER);
+        if (inner_pattern == FIXED) inner_needs_update = false;
+      }
     } else {
       clearRing(led_output_inner, NUM_LEDS_INNER);
+      inner_needs_update = true;
     }
 
     // Outer ring
     if (blehandler.outerChecked && blehandler.deviceConnected) {
-      runPattern(outer_pattern, colors_outer, led_output_outer, NUM_LEDS_OUTER);
+      if (outer_pattern == FIXED && !outer_needs_update) {
+        delay(50);
+      } else {
+        runPattern(outer_pattern, colors_outer, led_output_outer, NUM_LEDS_OUTER);
+        if (outer_pattern == FIXED) outer_needs_update = false;
+      }
     } else {
       clearRing(led_output_outer, NUM_LEDS_OUTER);
+      outer_needs_update = true;
     }
 
     // Handle incoming pattern and color data
@@ -57,7 +69,9 @@ void loop() {
         updateLEDColors(1, NUM_LEDS_OUTER, blehandler.received_colors);
       }
       
-      // Reset the package flag
+      inner_needs_update = true;
+      outer_needs_update = true;
+      
       blehandler.package2Received = false;
       Serial.println(inner_pattern);
     }
