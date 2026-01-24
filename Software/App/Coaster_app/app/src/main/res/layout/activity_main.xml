@@ -38,9 +38,12 @@
 
                 <!-- Gray square with rounded edges -->
                 <androidx.cardview.widget.CardView
-                    android:layout_width="300dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="14dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginTop="14dp"
+                    android:layout_marginBottom="14dp"
                     android:background="#757575"
                     android:clipChildren="true"
                     android:clipToPadding="true"
@@ -92,9 +95,12 @@
                 </androidx.cardview.widget.CardView>
 
                 <androidx.cardview.widget.CardView
-                    android:layout_width="300dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="14dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginTop="14dp"
+                    android:layout_marginBottom="14dp"
                     android:clipChildren="true"
                     android:clipToPadding="true"
                     app:cardCornerRadius="8dp"
