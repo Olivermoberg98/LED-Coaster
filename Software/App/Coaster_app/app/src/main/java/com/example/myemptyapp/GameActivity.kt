@@ -414,8 +414,11 @@ class GameActivity : AppCompatActivity() {
         // Cancel any previous game that might still be running
         cancelCurrentGame()
 
-        val gameDuration = (10..13).random() * 1000L // Random duration between 10 and 13 seconds
+        val gameDuration = (20..25).random() * 1000L
         val startTime = System.currentTimeMillis()
+        val initialBounceInterval = 1600L // Start slow
+        val finalBounceInterval = 200L // End fast
+        var previousCoaster: CoasterDevice? = null // Track the last lit coaster
 
         buttonStartGame.visibility = View.GONE
         val gameStatusText = findViewById<TextView>(R.id.gameStatusText)
@@ -423,40 +426,80 @@ class GameActivity : AppCompatActivity() {
         gameStatusText.text = getString(R.string.game_status_drink_started)
         gameProgressBar.visibility = View.VISIBLE
 
-        fun lightUpAndTurnOff() {
-            if (System.currentTimeMillis() - startTime > gameDuration) {
-                // Stop the game and light up one random coaster permanently
-                val finalCoaster = coasterDevices.random()
-                val finalColor = generateRandomColor()
-                finalCoaster.sendPackage2("FIXED", finalColor)
-                Toast.makeText(this, "Game Over! Final coaster lit up.", Toast.LENGTH_SHORT).show()
+        // Turn off all coasters at the start
+        for (coaster in coasterDevices) {
+            coaster.sendPackage2("FIXED", "0,0,0")
+        }
 
-                // Turn off all other coasters with black color
-                for (coaster in coasterDevices) {
-                    if (coaster != finalCoaster) {
+        fun lightUpAndTurnOff() {
+            val elapsedTime = System.currentTimeMillis() - startTime
+
+            if (elapsedTime > gameDuration) {
+                // Game over - light up final coaster
+                handler.postDelayed({
+                    // Select a final coaster that's different from the previous one
+                    val availableFinalCoasters = if (previousCoaster != null && coasterDevices.size > 1) {
+                        coasterDevices.filter { it != previousCoaster }
+                    } else {
+                        coasterDevices.toList()
+                    }
+
+                    val finalCoaster = availableFinalCoasters.random()
+                    val finalColor = generateRandomColor()
+
+                    // Turn off ALL coasters
+                    for (coaster in coasterDevices) {
                         coaster.sendPackage2("FIXED", "0,0,0")
                     }
-                }
 
-                // Reset the UI after the game ends
-                gameStatusText.text = getString(R.string.game_status_game_over)
-                buttonStartGame.visibility = View.VISIBLE
-                gameProgressBar.visibility = View.GONE
+                    // Then light up the final one
+                    handler.postDelayed({
+                        finalCoaster.sendPackage2("FIXED", finalColor)
+
+                        Toast.makeText(this, "Game Over! ${finalCoaster.getDeviceName()} loses!", Toast.LENGTH_SHORT).show()
+                        gameStatusText.text = getString(R.string.game_status_game_over)
+                        buttonStartGame.visibility = View.VISIBLE
+                        gameProgressBar.visibility = View.GONE
+                    }, 100)
+                }, 100)
                 return
             }
 
-            val randomCoaster = coasterDevices.random()
+            // Calculate current bounce interval based on elapsed time
+            val progress = elapsedTime.toFloat() / gameDuration.toFloat()
+            val currentBounceInterval = (initialBounceInterval - (initialBounceInterval - finalBounceInterval) * progress).toLong()
+
+            // Select a random coaster that's different from the previous one
+            val availableCoasters = if (previousCoaster != null && coasterDevices.size > 1) {
+                coasterDevices.filter { it != previousCoaster }
+            } else {
+                coasterDevices.toList()
+            }
+
+            val randomCoaster = availableCoasters.random()
             val randomColor = generateRandomColor()
-            randomCoaster.sendPackage2("FIXED", randomColor)
 
-            // Turn off the coaster after 0.5 seconds using black color
+            // Turn off ALL coasters first
+            for (coaster in coasterDevices) {
+                if (coaster != randomCoaster) {
+                    coaster.sendPackage2("FIXED", "0,0,0")
+                }
+            }
+
+            // Small delay, then light up the selected coaster
             handler.postDelayed({
-                randomCoaster.sendPackage2("FIXED", "0,0,0")
-                handler.postDelayed({ lightUpAndTurnOff() }, 0)
-            }, 500)
-        }
+                randomCoaster.sendPackage2("FIXED", randomColor)
+                previousCoaster = randomCoaster // Update the previous coaster
 
-        lightUpAndTurnOff()
+                // Schedule next bounce with the calculated interval
+                currentGameRunnable = Runnable { lightUpAndTurnOff() }
+                handler.postDelayed(currentGameRunnable!!, currentBounceInterval)
+            }, 100)
+        }
+        // Wait a bit for the initial "off" commands to process
+        handler.postDelayed({
+            lightUpAndTurnOff()
+        }, 100)
     }
 
     private fun cancelCurrentGame() {
