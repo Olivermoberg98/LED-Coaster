@@ -47,7 +47,7 @@ void runPattern(PatternType pattern, CRGB* ledsIn, CRGB* ledsOut, int numberOfLe
             fixed(ledsIn, ledsOut, numberOfLeds);
             break;
         case CHASER:
-            chaser(ledsIn, ledsOut, numberOfLeds, 5, 0.8f, 255, 0); 
+            chaser(ledsIn, ledsOut, numberOfLeds, 5, 1.0f, 255, 50); 
             break;
         case PULSE:
             pulse(ledsIn, ledsOut, numberOfLeds, 0.1f, 255, 25); 
@@ -90,25 +90,30 @@ void pulse(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, float pulseFrequency, 
 }
 
 void chaser(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, int brightSpots, float rotationalFrequency, float maxBrightness, float minBrightness) {
-    static float rotation = 0; // Persistent rotation position
+    static unsigned long lastUpdateTime = 0;
+    static float rotation = 0;
 
-    // Increment rotation based on frequency
-    rotation += (rotationalFrequency * 360.0f * 0.01f); // Assuming ~10ms loop delay
-    if (rotation >= 360.0f) rotation -= 360.0f; // Wrap around to avoid overflow
+    unsigned long currentTime = millis();
+    unsigned long deltaTime = currentTime - lastUpdateTime;
+    
+    // Only update rotation once per loop cycle (when lastUpdateTime changes)
+    if (deltaTime > 0) {
+        rotation += (rotationalFrequency * 360.0f * deltaTime) / 1000.0f;
+        if (rotation >= 360.0f) rotation -= 360.0f;
+        lastUpdateTime = currentTime;
+    }
 
-    int spotWidth = numberOfLeds / brightSpots; // Number of LEDs per bright spot
+    int spotWidth = numberOfLeds / brightSpots;
 
     for (int i = 0; i < numberOfLeds; i++) {
-        // Calculate LED's position in the rotation
-        int position = (i + (int)(rotation * numberOfLeds / 360.0f)) % numberOfLeds;
+        int rotatedPosition = (i + (int)(rotation * numberOfLeds / 360.0f)) % numberOfLeds;
+        
+        // Original logic: is this position in the first spotWidth positions?
+        bool isBrightSpot = (rotatedPosition < spotWidth);
 
-        // Determine if this LED is within a bright spot
-        bool isBrightSpot = position < spotWidth;
-
-        // Set brightness based on position
+        // Scale brightness
         uint8_t brightness = isBrightSpot ? maxBrightness : minBrightness;
 
-        // Scale input colors by brightness and set output
         ledsOut[i].r = (ledsIn[i].r * brightness) / 255;
         ledsOut[i].g = (ledsIn[i].g * brightness) / 255;
         ledsOut[i].b = (ledsIn[i].b * brightness) / 255;
