@@ -48,6 +48,8 @@ private:
 
     unsigned long advertisingStartTime;
     bool isAdvertising;
+    // Set from the NimBLE host task, consumed by the main loop
+    volatile bool disconnectAnimationPending;
     static const unsigned long ADVERTISING_TIMEOUT_MS = 120000; // 2 minutes
 
     // Callbacks for connection and disconnection events

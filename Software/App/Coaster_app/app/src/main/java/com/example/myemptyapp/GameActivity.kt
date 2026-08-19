@@ -525,8 +525,10 @@ class GameActivity : AppCompatActivity() {
             }
 
             // Check if device is in the list of connected devices
-            val method = device.javaClass.getMethod("isConnected")
-            method.invoke(device) as Boolean
+            val bluetoothManager =
+                getSystemService(Context.BLUETOOTH_SERVICE) as android.bluetooth.BluetoothManager
+            bluetoothManager.getConnectedDevices(BluetoothProfile.GATT)
+                .any { it.address == device.address }
         } catch (e: Exception) {
             Log.e("GameActivity", "Error checking device connection status", e)
             false
@@ -560,11 +562,16 @@ class CoasterDevice(
     private var MY_CHAR_UUID = UUID.fromString("00001234-0000-1000-8000-001122334455")
 
     fun connect() {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             requestBluetoothPermissions(context)
             return
         }
+
+        // Android caps the number of live GATT clients per app
+        bluetoothGatt?.close()
+        bluetoothGatt = null
+        targetCharacteristic = null
+
         bluetoothGatt = device.connectGatt(context, false, object : BluetoothGattCallback() {
             override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
                 super.onConnectionStateChange(gatt, status, newState)
@@ -575,6 +582,7 @@ class CoasterDevice(
                     }
                     BluetoothProfile.STATE_DISCONNECTED -> {
                         Log.d("CoasterDevice", "Disconnected from ${device.address}")
+                        targetCharacteristic = null
                     }
                 }
             }
@@ -592,8 +600,7 @@ class CoasterDevice(
     }
 
     fun sendPackage1(isOuterChecked: Boolean, isInnerChecked: Boolean) {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             requestBluetoothPermissions(context)
             return
         }
@@ -613,8 +620,7 @@ class CoasterDevice(
 
             targetCharacteristic?.let { characteristic ->
                 val success = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    bluetoothGatt?.writeCharacteristic(characteristic, finalDataBytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) ?: BluetoothGatt.GATT_FAILURE
-                    true
+                    bluetoothGatt?.writeCharacteristic(characteristic, finalDataBytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) == BluetoothGatt.GATT_SUCCESS
                 } else {
                     @Suppress("DEPRECATION")
                     characteristic.value = finalDataBytes
@@ -633,8 +639,7 @@ class CoasterDevice(
     }
 
     fun sendPackage2(mode: String, colors: String) {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             requestBluetoothPermissions(context)
             return
         }
@@ -652,8 +657,7 @@ class CoasterDevice(
 
             targetCharacteristic?.let { characteristic ->
                 val success = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    bluetoothGatt?.writeCharacteristic(characteristic, finalDataBytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) ?: BluetoothGatt.GATT_FAILURE
-                    true
+                    bluetoothGatt?.writeCharacteristic(characteristic, finalDataBytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) == BluetoothGatt.GATT_SUCCESS
                 } else {
                     @Suppress("DEPRECATION")
                     characteristic.value = finalDataBytes
@@ -672,14 +676,14 @@ class CoasterDevice(
     }
 
     fun disconnect() {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
-            requestBluetoothPermissions(context)
-            return
-        }
-        bluetoothGatt!!.disconnect()
-        bluetoothGatt!!.close()
+        val gatt = bluetoothGatt ?: return
         bluetoothGatt = null
+        targetCharacteristic = null
+
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+            gatt.disconnect()
+        }
+        gatt.close()
     }
 
     fun requestBluetoothPermissions(context: Context) {

@@ -87,16 +87,28 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                 Log.d(TAG, "GATT connected, discovering services...")
                 gatt?.discoverServices()
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                Log.d(TAG, "GATT disconnected")
+                Log.d(TAG, "GATT disconnected (status=$status)")
+                targetCharacteristic = null
+                runOnUiThread { this@MainActivity.showToast("Disconnected from device") }
             }
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                // Find the service and characteristic
-                val service = gatt?.getService(MY_UUID)
-                targetCharacteristic = service?.getCharacteristic(MY_CHAR_UUID)
+            if (status != BluetoothGatt.GATT_SUCCESS) {
+                Log.e(TAG, "Service discovery failed with status $status")
+                runOnUiThread { this@MainActivity.showToast("Error: could not read services from device") }
+                return
             }
+
+            val characteristic = gatt?.getService(MY_UUID)?.getCharacteristic(MY_CHAR_UUID)
+            if (characteristic == null) {
+                Log.e(TAG, "Coaster characteristic not found on this device")
+                runOnUiThread { this@MainActivity.showToast("Error: this device is not a coaster") }
+                return
+            }
+
+            targetCharacteristic = characteristic
+            runOnUiThread { enableSendDataUI() }
         }
     }
 
@@ -340,8 +352,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
 
     // Package 1: Send two Boolean values
     private fun sendPackage1(isOuterChecked: Boolean, isInnerChecked: Boolean) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             requestBluetoothPermissions()
             return
         }
@@ -378,8 +389,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
     // Package 2: Send mode and list of colors
     @RequiresApi(Build.VERSION_CODES.S)
     private fun sendPackage2(mode: String, colors: String) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             requestBluetoothPermissions()
             return
         }
@@ -504,66 +514,47 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
         } catch (e: IllegalArgumentException) {
             Log.w("MainActivity", "Receiver not registered: ${e.message}")
         }
+        bluetoothGatt?.close()
+        bluetoothGatt = null
+        targetCharacteristic = null
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
     private fun connectToDevice(device: BluetoothDevice) {
-        // Check if Bluetooth permissions are granted
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             requestBluetoothPermissions()
             return
         }
-        // Permissions are already granted, proceed with Bluetooth operations
-        var attempts = 0
-        val maxAttempts = 3 // Maximum number of connection attempts
-        val deviceConnections = mutableMapOf<BluetoothDevice, BluetoothGatt>()
 
-        while (attempts < maxAttempts) {
-            try {
-                // Initiate pairing process if not already paired
-                if (device.bondState != BluetoothDevice.BOND_BONDED) {
-                    device.createBond()
-                }
+        // Android caps the number of live GATT clients per app
+        bluetoothGatt?.close()
+        bluetoothGatt = null
+        targetCharacteristic = null
 
-                // Connect to the device using BluetoothGatt
-                bluetoothGatt = device.connectGatt(this, false, gattCallback)
-                //deviceConnections[device] = bluetoothGatt
-
-                // Connection successful, enable UI elements for sending data
-                enableSendDataUI()
-
-                // Check if the device is new or previously connected
-                if (!isPreviouslyConnected(device)) {
-                    // Save the bluetooth module name if it's a new device
-                    val sharedPreferences =
-                        getSharedPreferences("BluetoothDevices", Context.MODE_PRIVATE)
-                    val editor = sharedPreferences.edit()
-                    editor.putString(device.address, device.name)
-                    editor.apply()
-
-                    // Update the Spinner with the newly connected device name
-                    runOnUiThread {
-                        (spinner.adapter as? ArrayAdapter<String>)?.apply {
-                            add(device.name)
-                            notifyDataSetChanged()
-                        }
-                    }
-                }
-
-                // Now you can send information through the socket
-                //val outputStream: OutputStream? = bluetoothSocket?.outputStream
-                break
-            } catch (e: IOException) {
-                attempts++
-                Log.e(TAG, "Error occurred during Bluetooth communication: ${e.message}", e)
-                showToast("Error: Failed to connect to Bluetooth device. Attempt $attempts/$maxAttempts")
-            }
+        // Initiate pairing process if not already paired
+        if (device.bondState != BluetoothDevice.BOND_BONDED) {
+            device.createBond()
         }
-        // All attempts failed
-        if (attempts >= maxAttempts) {
-            showToast("Error: Failed to connect to Bluetooth device after $maxAttempts attempts.")
-            // Optionally disable UI elements related to sending data here
+
+        // Asynchronous; the result arrives on gattCallback
+        bluetoothGatt = device.connectGatt(this, false, gattCallback)
+
+        // Check if the device is new or previously connected
+        if (!isPreviouslyConnected(device)) {
+            // Save the bluetooth module name if it's a new device
+            val sharedPreferences =
+                getSharedPreferences("BluetoothDevices", Context.MODE_PRIVATE)
+            val editor = sharedPreferences.edit()
+            editor.putString(device.address, device.name)
+            editor.apply()
+
+            // Update the Spinner with the newly connected device name
+            runOnUiThread {
+                (spinner.adapter as? ArrayAdapter<String>)?.apply {
+                    add(device.name)
+                    notifyDataSetChanged()
+                }
+            }
         }
     }
 
@@ -607,8 +598,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
     }
 
     private fun disconnectFromDevice() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             requestBluetoothPermissions()
             return
         }
@@ -618,6 +608,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                 bluetoothGatt!!.disconnect()
                 bluetoothGatt!!.close()
                 bluetoothGatt = null
+                targetCharacteristic = null
                 Toast.makeText(this, "Disconnected from device", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(this, "Failed to disconnect: ${e.message}", Toast.LENGTH_LONG).show()
@@ -628,8 +619,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
     }
 
     private fun navigateToGameActivity() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_ADMIN) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             requestBluetoothPermissions()
             return
         }

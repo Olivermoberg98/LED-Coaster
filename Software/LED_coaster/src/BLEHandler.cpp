@@ -1,5 +1,6 @@
 #include "BLEHandler.h"
 #include <iostream>
+#include <cstdlib>
 #include "patterns.h"
 #include <esp_pm.h>
 
@@ -9,7 +10,7 @@ extern bool outer_needs_update;
 // Constructor that sets up the unique coaster ID
 BLEHandler::BLEHandler(const std::string& coasterID) 
     : coasterID(coasterID), deviceConnected(false), connectionState(DISCONNECTED),
-      isAdvertising(false), advertisingStartTime(0) {}
+      isAdvertising(false), advertisingStartTime(0), disconnectAnimationPending(false) {}
 
 void BLEHandler::begin() {
     // Configure BLE power settings for lower energy consumption
@@ -107,7 +108,11 @@ void BLEHandler::updateConnectionState() {
             break;
             
         case DISCONNECTING:
-            // Disconnect animation is handled in BLE callback
+            if (disconnectAnimationPending) {
+                onDisconnectPattern(led_output_inner, NUM_LEDS_INNER, led_output_outer, NUM_LEDS_OUTER);
+                disconnectAnimationPending = false;
+            }
+            startAdvertising();
             Serial.println("State: DISCONNECTING -> DISCONNECTED");
             connectionState = DISCONNECTED;
             break;
@@ -134,17 +139,14 @@ void BLEHandler::ServerCallbacks::onConnect(NimBLEServer* pServer) {
 }
 
 void BLEHandler::ServerCallbacks::onDisconnect(NimBLEServer* pServer) {
-    handler->deviceConnected = false;  
+    handler->deviceConnected = false;
     Serial.println("Device disconnected");
-    
+
     // Reset connection state for clean reconnection
     handler->resetConnectionState();
-    
-    // Play disconnect animation
-    onDisconnectPattern(led_output_inner, NUM_LEDS_INNER, led_output_outer, NUM_LEDS_OUTER);
-    
-    // Restart advertising with timeout
-    handler->startAdvertising();
+
+    // Animation and re-advertising run from the main loop; this is the NimBLE host task
+    handler->disconnectAnimationPending = true;
 }
 
 void BLEHandler::CharacteristicCallbacks::onWrite(NimBLECharacteristic* pCharacteristic) {
@@ -156,22 +158,20 @@ void BLEHandler::CharacteristicCallbacks::onWrite(NimBLECharacteristic* pCharact
 }
 
 void BLEHandler::handlePackage1(const std::vector<byte>& data) {
-    // Parse data bytes
+    // Layout: command, outer, inner, checksum
+    if (data.size() != 4 || data[0] != 0x01) {
+        return;
+    }
+
     byte command = data[0];
     byte isOuterChecked = data[1];
     byte isInnerChecked = data[2];
-    byte receivedChecksum = data.back();
-
-    // Validate the command byte
-    if (command != 0x01) {
-        Serial.println("Invalid command byte for Package 1");
-        return;
-    }
+    byte receivedChecksum = data[3];
 
     // Calculate checksum and verify it
     byte calculatedChecksum = (command + isOuterChecked + isInnerChecked) % 256;
     if (calculatedChecksum != receivedChecksum) {
-        Serial.println("Checksum mismatch");
+        Serial.println("Package 1: checksum mismatch");
         return;
     }
 
@@ -182,10 +182,8 @@ void BLEHandler::handlePackage1(const std::vector<byte>& data) {
 }
 
 void BLEHandler::handlePackage2(const std::vector<byte>& data) {
-    // Validate the command byte
-    byte commandByte = data[0];
-    if (commandByte != 0x02) {
-        Serial.println("Invalid command byte for Package 2");
+    // Layout: command, pattern, ',', "R,G,B", checksum
+    if (data.size() < 4 || data[0] != 0x02) {
         return;
     }
 
@@ -195,28 +193,49 @@ void BLEHandler::handlePackage2(const std::vector<byte>& data) {
     for (size_t i = 0; i < data.size() - 1; ++i) {
         checksumCalculated += data[i]; // Sum up all bytes except the checksum
     }
-    if (checksumCalculated % 256 != receivedChecksum) {
-        Serial.println("Checksum mismatch.");
+    if (checksumCalculated != receivedChecksum) {
+        Serial.println("Package 2: checksum mismatch");
         return;
     }
 
     // Extract the mode and colors from the data (excluding command byte and checksum)
-    std::string modeAndColorString(data.begin() + 1, data.end() - 1); 
-    size_t patternEndIndex = modeAndColorString.find(','); 
-    received_pattern = modeAndColorString.substr(0, patternEndIndex); 
-    std::cout << "Pattern type: " << received_pattern << std::endl;
-
-    // Extract color string
+    std::string modeAndColorString(data.begin() + 1, data.end() - 1);
+    size_t patternEndIndex = modeAndColorString.find(',');
+    if (patternEndIndex == std::string::npos) {
+        Serial.println("Package 2: missing pattern/color separator");
+        return;
+    }
+    std::string pattern = modeAndColorString.substr(0, patternEndIndex);
     std::string colorString = modeAndColorString.substr(patternEndIndex + 1);
-    size_t start = 0;
-    size_t end = colorString.find(',');
 
-    // Parse the color values assuming "R,G,B" format
+    // Exceptions are disabled in this build, so parsing must not throw
+    int parsedColors[3];
+    size_t start = 0;
     for (int i = 0; i < 3; ++i) {
-        end = colorString.find(',', start);
-        received_colors[i] = std::stoi(colorString.substr(start, end - start));
-        start = (end == std::string::npos) ? end : end + 1; // Move to next part
+        size_t end = colorString.find(',', start);
+        if ((i < 2 && end == std::string::npos) || (i == 2 && end != std::string::npos)) {
+            Serial.println("Package 2: expected exactly 3 color components");
+            return;
+        }
+
+        std::string component = colorString.substr(start, end - start);
+        char* parseEnd = nullptr;
+        long value = strtol(component.c_str(), &parseEnd, 10);
+        if (parseEnd == component.c_str() || *parseEnd != '\0') {
+            Serial.println("Package 2: non-numeric color component");
+            return;
+        }
+
+        parsedColors[i] = constrain(value, 0, 255);
+        start = end + 1;
     }
 
+    // Publish only once the whole packet has validated
+    received_pattern = pattern;
+    received_colors[0] = parsedColors[0];
+    received_colors[1] = parsedColors[1];
+    received_colors[2] = parsedColors[2];
     package2Received = true;
+
+    std::cout << "Pattern type: " << received_pattern << std::endl;
 }
