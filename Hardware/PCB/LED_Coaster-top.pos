@@ -1,0 +1,41 @@
+### Footprint positions - created on 2025-09-10T20:03:36+0200 ###
+### Printed by KiCad version 8.0.2
+## Unit = mm, Angle = deg.
+## Side : top
+# Ref     Val                          Package                                              PosX       PosY       Rot  Side
+Boot1     Boot1                        SW_SPST_SKQG_WithStem                            162.9500   -40.3600  -18.0000  top
+Btn1      Boot1                        SW_SPST_SKQG_WithStem                            182.4400  -103.0800  -126.0000  top
+Btn2      Boot1                        SW_SPST_SKQG_WithStem                            187.5500   -94.6400  -126.0000  top
+C1        10uF                         C_0805_2012Metric_Pad1.18x1.45mm_HandSolder      121.4600   -78.8900  180.0000  top
+C2        0.1uF                        C_0805_2012Metric_Pad1.18x1.45mm_HandSolder      125.5900   -78.9300    0.0000  top
+C4        2.2uF                        C_0805_2012Metric_Pad1.18x1.45mm_HandSolder      121.5000   -74.1500    0.0000  top
+C5        2.2uF                        C_0805_2012Metric_Pad1.18x1.45mm_HandSolder      125.8000   -74.1100    0.0000  top
+C6        4.7uF                        C_0201_0603Metric_Pad0.64x0.40mm_HandSolder      125.1200   -53.8400  -54.0000  top
+C7        4.7uF                        C_0201_0603Metric_Pad0.64x0.40mm_HandSolder      126.8100   -56.1900  -54.0000  top
+D21       WS2812B                      LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm               166.9000   -80.0000   90.0000  top
+D22       WS2812B                      LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm               163.6780   -70.0521  126.0000  top
+D23       WS2812B                      LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm               155.2243   -63.9287  162.0000  top
+D24       WS2812B                      LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm               144.7710   -63.9312  -162.0000  top
+D25       WS2812B                      LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm               136.3491   -70.0822  -126.0000  top
+D26       WS2812B                      LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm               133.1109   -79.9732  -90.0000  top
+D27       WS2812B                      LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm               136.3209   -89.9422  -54.0000  top
+D28       WS2812B                      LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm               144.7756   -96.0608  -18.0000  top
+D29       WS2812B                      LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm               155.2325   -96.0842   18.0000  top
+D30       WS2812B                      LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm               163.6733   -89.9181   54.0000  top
+D33       LED                          LED_0805_2012Metric_Pad1.15x1.40mm_HandSolder    150.2600   -79.8200    0.0000  top
+Enable1   Enable1                      SW_SPST_SKQG_WithStem                            174.2100   -45.9200  -36.0000  top
+F1        Polyfuse_Small               Fuse_0805_2012Metric_Pad1.15x1.40mm_HandSolder   146.4100   -47.9400    0.0000  top
+J2        Boot_Option                  PinHeader_1x02_P2.54mm_Vertical                  111.1400   -90.6450    0.0000  top
+J3        USB_C_Receptacle_USB2.0_16P  USB_C_Receptacle_HRO_TYPE-C-31-M-12              149.9500   -38.0300  180.0000  top
+J4        UART                         PinHeader_1x04_P2.54mm_Vertical                  111.1100   -84.4700  180.0000  top
+R2        2k                           R_0201_0603Metric_Pad0.64x0.40mm_HandSolder      134.2400   -56.5300  -144.0000  top
+R5        470                          R_0201_0603Metric_Pad0.64x0.40mm_HandSolder      147.0700   -79.7575   90.0000  top
+R6        5.1K                         R_0201_0603Metric_Pad0.64x0.40mm_HandSolder      151.2100   -44.9700  -90.0000  top
+R7        5.1K                         R_0201_0603Metric_Pad0.64x0.40mm_HandSolder      148.1900   -45.0675  -90.0000  top
+R8        1k                           R_0805_2012Metric_Pad1.20x1.40mm_HandSolder      183.4590   -91.7978  -36.0000  top
+R9        1k                           R_0805_2012Metric_Pad1.20x1.40mm_HandSolder      179.7500   -97.8900  -36.0000  top
+SW4       SW_DIP_x01                   SW_SPDT_PCM12                                    136.8259   -39.4936  -162.0000  top
+U1        ESP32-C3-WROOM-02-H4         MODULE_ESP32-C3-WROOM-02-H4                      181.4400   -79.0200  -90.0000  top
+U2        MCP1792x-3302xDB             SOT-223-3_TabPin2                                127.5100   -47.1800  -144.0000  top
+U3        MCP73831-2-OT                SOT-23-5                                         132.1014   -53.3808   36.0000  top
+## End

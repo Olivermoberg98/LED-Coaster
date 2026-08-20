@@ -1,0 +1,28 @@
+Drill report for LED_Coaster.kicad_pcb
+Created on 2025-09-10T20:03:09+0200
+
+Copper Layer Stackup:
+    =============================================================
+    L1 :  F.Cu                      front
+    L2 :  B.Cu                      back
+
+
+Drill file 'LED_Coaster-PTH.drl' contains
+    plated through holes:
+    =============================================================
+    T1  0.300mm  0.0118"  (12 holes)
+    T2  0.400mm  0.0157"  (56 holes)
+    T3  0.600mm  0.0236"  (28 holes)  (with 4 slots)
+    T4  1.000mm  0.0394"  (8 holes)
+    T5  4.300mm  0.1693"  (3 holes)
+
+    Total plated holes count 107
+
+
+Drill file 'LED_Coaster-NPTH.drl' contains
+    unplated through holes:
+    =============================================================
+    T1  0.650mm  0.0256"  (2 holes)
+    T2  0.900mm  0.0354"  (2 holes)
+
+    Total unplated holes count 4

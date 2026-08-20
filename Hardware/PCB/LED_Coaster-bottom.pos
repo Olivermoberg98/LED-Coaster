@@ -1,0 +1,31 @@
+### Footprint positions - created on 2025-09-10T20:03:36+0200 ###
+### Printed by KiCad version 8.0.2
+## Unit = mm, Angle = deg.
+## Side : bottom
+# Ref     Val       Package                                           PosX       PosY       Rot  Side
+C3        1uF       C_0805_2012Metric_Pad1.18x1.45mm_HandSolder   168.4900   -90.7100    0.0000  bottom
+D1        WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            182.0000   -80.0000  -90.0000  bottom
+D2        WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            180.4216   -70.1136  -72.0000  bottom
+D3        WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            175.8914   -61.1889  -54.0000  bottom
+D4        WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            168.8213   -54.1297  -36.0000  bottom
+D5        WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            159.8906   -49.5737  -18.0000  bottom
+D6        WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            150.0083   -47.9962    0.0000  bottom
+D7        WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            140.1066   -49.5699   18.0000  bottom
+D8        WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            131.1972   -54.1227   36.0000  bottom
+D9        WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            124.1141   -61.1713   54.0000  bottom
+D10       WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            119.5688   -70.1078   72.0000  bottom
+D11       WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            118.0066   -79.9792   90.0000  bottom
+D12       WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            119.5781   -89.8878  108.0000  bottom
+D13       WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            124.1219   -98.7896  126.0000  bottom
+D14       WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            131.2076  -105.8806  144.0000  bottom
+D15       WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            140.1182  -110.4352  162.0000  bottom
+D16       WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            150.0209  -111.9988  180.0000  bottom
+D17       WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            159.9007  -110.4276  -162.0000  bottom
+D18       WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            168.8184  -105.8921  -144.0000  bottom
+D19       WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            175.8944   -98.8072  -126.0000  bottom
+D20       WS2812B   LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm            180.4539   -89.8912  -108.0000  bottom
+J1        Li-po     JST_EH_S2B-EH_1x02_P2.50mm_Horizontal         139.2400   -59.1200   90.0000  bottom
+R1        10k       R_0805_2012Metric_Pad1.20x1.40mm_HandSolder   163.6000   -90.7200  180.0000  bottom
+R3        10k       R_0805_2012Metric_Pad1.20x1.40mm_HandSolder   162.6300   -87.0800  -90.0000  bottom
+R4        10k       R_0805_2012Metric_Pad1.20x1.40mm_HandSolder   161.8300   -94.7800   90.0000  bottom
+## End

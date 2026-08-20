@@ -1,0 +1,6 @@
+Info: Front (top side) placement file: 'E:\code\LED-Coaster\LED_Coaster-top.pos'.
+Info: Component count: 35.
+Info: Back (bottom side) placement file: 'E:\code\LED-Coaster\LED_Coaster-bottom.pos'.
+Info: Component count: 25.
+Info: Full component count: 60.
+Info: File generation successful.
