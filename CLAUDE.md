@@ -60,6 +60,43 @@ Two activities, two *different* BLE connection models:
 - `CoasterDevice.sendPackage*` branch on API 33 for the new vs deprecated `writeCharacteristic` overloads; `MainActivity` only uses the deprecated form.
 - `gradle/libs.versions.toml` contains several IDE-generated aliases with the literal version `"your_version_here"` (`*-vyourversionhere`). They are unreferenced — never point a dependency at one.
 
+## TODO: battery level reporting (hardware done, software not started)
+
+Hardware support was added on the `fix/charging-and-power-path` branch and is
+**not yet implemented in firmware or app**. The board now has a 470k/470k divider
+from `+BATT` to **GPIO4** (`ADC1_CH4`), buffered by C21 100nF, halving the cell so
+3.0–4.2 V arrives as 1.5–2.1 V.
+
+Still to do:
+
+- **Firmware** (`Software/LED_coaster/`): read GPIO4 on ADC1 with
+  `ADC_ATTEN_DB_12`. The ESP32-C3's ADC has a real offset error — use the
+  `esp_adc_cal` / calibration API, not raw counts, or readings will be off by
+  tens of mV. Multiply by 2 to recover cell voltage. Average several samples;
+  the LED rail is noisy while patterns run. Map voltage to a percentage with a
+  Li-Po curve, not a linear 3.0–4.2 V ramp — the curve is very flat from 3.7–4.0 V.
+- **BLE contract**: there is no way to report this yet. Adding it means a new
+  package type (`0x03`?) or a second, notify-capable characteristic. Whichever is
+  chosen must land in **both** halves at once — see "The BLE contract" above; the
+  firmware silently drops mismatched packets.
+- **App** (`Software/App/Coaster_app/`): surface the level per coaster.
+  `GameActivity` already tracks devices individually via `CoasterDevice`, so the
+  natural home is a field there plus an indicator on each circle.
+
+Notes that matter for firmware:
+
+- SW1 no longer cuts power on its own — it gates a P-FET that switches the LED
+  rail, and the LDO's enable pin follows that rail, so the ESP32 does lose power
+  when the switch is off. There is no graceful-shutdown hook; power just goes.
+- The divider draws ~4.5 µA continuously from the cell even when switched off,
+  because it sits on `+BATT` upstream of the switch. That is small next to the
+  charger IC's own ~30 µA quiescent draw, but it means the battery does slowly
+  drain in storage.
+- The MCP73871's internal BAT→SYS path is ~200 mΩ and the datasheet recommends
+  keeping system load under 1 A. All 30 WS2812B at full white is ~1.8 A, which
+  exceeds that and will sag `+SYS`. Global brightness limiting in firmware is the
+  practical mitigation.
+
 ## My working preferences
 
 - Keep responses concise, no unnecessary explanation.
