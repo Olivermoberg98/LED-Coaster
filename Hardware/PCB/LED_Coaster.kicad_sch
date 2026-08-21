@@ -5,12 +5,12 @@
 	(uuid "c3ec28d0-7d6a-45c7-8929-905948ef9c11")
 	(paper "A2")
 	(lib_symbols
-		(symbol "Battery_Management:MCP73831-2-OT"
+		(symbol "Battery_Management:MCP73871-2CC"
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "U"
-				(at -7.62 6.35 0)
+				(at -7.62 24.13 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -18,8 +18,8 @@
 					(justify left)
 				)
 			)
-			(property "Value" "MCP73831-2-OT"
-				(at 1.27 6.35 0)
+			(property "Value" "MCP73871-2CC"
+				(at -15.24 21.59 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -27,8 +27,8 @@
 					(justify left)
 				)
 			)
-			(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
-				(at 1.27 -6.35 0)
+			(property "Footprint" "Package_DFN_QFN:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm"
+				(at 5.08 -22.86 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -38,8 +38,8 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" "http://ww1.microchip.com/downloads/en/DeviceDoc/20001984g.pdf"
-				(at 0 -18.288 0)
+			(property "Datasheet" "http://www.mouser.com/ds/2/268/22090a-52174.pdf"
+				(at -3.81 13.97 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -47,7 +47,7 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "Single cell, Li-Ion/Li-Po charge management controller, 4.20V, Tri-State Status Output, in SOT23-5 package"
+			(property "Description" "Single cell, Li-Ion/Li-Po charge management controller, 4.20V, 6h safety timer, 3.1V LBO threshold"
 				(at 0 0 0)
 				(effects
 					(font
@@ -65,7 +65,7 @@
 					(hide yes)
 				)
 			)
-			(property "ki_fp_filters" "SOT?23*"
+			(property "ki_fp_filters" "QFN*4x4mm*P0.5mm*"
 				(at 0 0 0)
 				(effects
 					(font
@@ -74,10 +74,10 @@
 					(hide yes)
 				)
 			)
-			(symbol "MCP73831-2-OT_0_1"
+			(symbol "MCP73871-2CC_0_1"
 				(rectangle
-					(start -7.62 5.08)
-					(end 7.62 -5.08)
+					(start -15.24 20.32)
+					(end 15.24 -20.32)
 					(stroke
 						(width 0.254)
 						(type default)
@@ -87,11 +87,11 @@
 					)
 				)
 			)
-			(symbol "MCP73831-2-OT_1_1"
-				(pin tri_state line
-					(at 10.16 -2.54 180)
+			(symbol "MCP73871-2CC_1_1"
+				(pin power_out line
+					(at 17.78 15.24 180)
 					(length 2.54)
-					(name "STAT"
+					(name "OUT"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -107,9 +107,189 @@
 					)
 				)
 				(pin power_in line
-					(at 0 -7.62 90)
+					(at 0 -22.86 90)
 					(length 2.54)
 					(name "V_{SS}"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "10"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -22.86 90)
+					(length 2.54) hide
+					(name "V_{SS}"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "11"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin bidirectional line
+					(at -17.78 0 0)
+					(length 2.54)
+					(name "PROG3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "12"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin bidirectional line
+					(at -17.78 5.08 0)
+					(length 2.54)
+					(name "PROG1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "13"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_out line
+					(at 17.78 7.62 180)
+					(length 2.54)
+					(name "V_{BAT}"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "14"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 17.78 7.62 180)
+					(length 2.54) hide
+					(name "V_{BAT}"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "15"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 17.78 2.54 180)
+					(length 2.54)
+					(name "V_{BAT_SENSE}"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "16"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -17.78 -15.24 0)
+					(length 2.54)
+					(name "CE"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "17"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 0 22.86 270)
+					(length 2.54)
+					(name "IN"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "18"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 22.86 270)
+					(length 2.54) hide
+					(name "IN"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "19"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -17.78 15.24 0)
+					(length 2.54)
+					(name "VPCC"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -124,10 +304,46 @@
 						)
 					)
 				)
-				(pin power_out line
-					(at 10.16 2.54 180)
+				(pin passive line
+					(at 17.78 15.24 180)
+					(length 2.54) hide
+					(name "OUT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "20"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 0 -22.86 90)
+					(length 2.54) hide
+					(name "V_{SS}"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "21"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -17.78 10.16 0)
 					(length 2.54)
-					(name "V_{BAT}"
+					(name "SEL"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -142,10 +358,10 @@
 						)
 					)
 				)
-				(pin power_in line
-					(at 0 7.62 270)
+				(pin input line
+					(at -17.78 2.54 0)
 					(length 2.54)
-					(name "V_{DD}"
+					(name "PROG2"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -160,10 +376,10 @@
 						)
 					)
 				)
-				(pin input line
-					(at -10.16 -2.54 0)
+				(pin bidirectional line
+					(at -17.78 -5.08 0)
 					(length 2.54)
-					(name "PROG"
+					(name "THERM"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -171,6 +387,78 @@
 						)
 					)
 					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin open_collector line
+					(at 17.78 -5.08 180)
+					(length 2.54)
+					(name "~{PG}"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin open_collector line
+					(at 17.78 -12.7 180)
+					(length 2.54)
+					(name "STAT2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin open_collector line
+					(at 17.78 -10.16 180)
+					(length 2.54)
+					(name "STAT1/~{LBO}"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -17.78 -10.16 0)
+					(length 2.54)
+					(name "~{TE}"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "9"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1682,151 +1970,6 @@
 					(at 0 -2.54 90)
 					(length 0.762)
 					(name "~"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-		)
-		(symbol "Diode:SS34"
-			(pin_numbers hide)
-			(pin_names
-				(offset 1.016) hide)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "D"
-				(at 0 2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "SS34"
-				(at 0 -2.54 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" "Diode_SMD:D_SMA"
-				(at 0 -4.445 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "https://www.vishay.com/docs/88751/ss32.pdf"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "40V 3A Schottky Diode, SMA"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "diode Schottky"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "D*SMA*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "SS34_0_1"
-				(polyline
-					(pts
-						(xy 1.27 0) (xy -1.27 0)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 1.27 1.27) (xy 1.27 -1.27) (xy -1.27 0) (xy 1.27 1.27)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -1.905 0.635) (xy -1.905 1.27) (xy -1.27 1.27) (xy -1.27 -1.27) (xy -0.635 -1.27) (xy -0.635 -0.635)
-					)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "SS34_1_1"
-				(pin passive line
-					(at -3.81 0 0)
-					(length 2.54)
-					(name "K"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 3.81 0 180)
-					(length 2.54)
-					(name "A"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -3518,20 +3661,23 @@
 				)
 			)
 		)
-		(symbol "Regulator_Linear:AMS1117-3.3"
+		(symbol "Regulator_Linear:TLV75533PDBV"
+			(pin_names
+				(offset 0.254)
+			)
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "U"
-				(at -3.81 3.175 0)
+				(at -3.81 5.715 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
 				)
 			)
-			(property "Value" "AMS1117-3.3"
-				(at 0 3.175 0)
+			(property "Value" "TLV75533PDBV"
+				(at 0 5.715 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -3539,8 +3685,18 @@
 					(justify left)
 				)
 			)
-			(property "Footprint" "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
-				(at 0 5.08 0)
+			(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
+				(at 0 8.255 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+						(italic yes)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "http://www.ti.com/lit/ds/symlink/tlv755p.pdf"
+				(at 0 1.27 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -3548,16 +3704,7 @@
 					(hide yes)
 				)
 			)
-			(property "Datasheet" "http://www.advanced-monolithic.com/pdf/ds1117.pdf"
-				(at 2.54 -6.35 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "1A Low Dropout regulator, positive, 3.3V fixed output, SOT-223"
+			(property "Description" "500mA Low Dropout Voltage Regulator, Fixed Output 3.3V, SOT-23-5"
 				(at 0 0 0)
 				(effects
 					(font
@@ -3566,7 +3713,7 @@
 					(hide yes)
 				)
 			)
-			(property "ki_keywords" "linear regulator ldo fixed positive"
+			(property "ki_keywords" "LDO Regulator Fixed Positive"
 				(at 0 0 0)
 				(effects
 					(font
@@ -3575,7 +3722,7 @@
 					(hide yes)
 				)
 			)
-			(property "ki_fp_filters" "SOT?223*TabPin2*"
+			(property "ki_fp_filters" "SOT?23*"
 				(at 0 0 0)
 				(effects
 					(font
@@ -3584,10 +3731,10 @@
 					(hide yes)
 				)
 			)
-			(symbol "AMS1117-3.3_0_1"
+			(symbol "TLV75533PDBV_0_1"
 				(rectangle
-					(start -5.08 -5.08)
-					(end 5.08 1.905)
+					(start -5.08 4.445)
+					(end 5.08 -5.08)
 					(stroke
 						(width 0.254)
 						(type default)
@@ -3597,11 +3744,11 @@
 					)
 				)
 			)
-			(symbol "AMS1117-3.3_1_1"
+			(symbol "TLV75533PDBV_1_1"
 				(pin power_in line
-					(at 0 -7.62 90)
+					(at -7.62 2.54 0)
 					(length 2.54)
-					(name "GND"
+					(name "IN"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -3616,10 +3763,10 @@
 						)
 					)
 				)
-				(pin power_out line
-					(at 7.62 0 180)
+				(pin power_in line
+					(at 0 -7.62 90)
 					(length 2.54)
-					(name "VO"
+					(name "GND"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -3634,10 +3781,10 @@
 						)
 					)
 				)
-				(pin power_in line
+				(pin input line
 					(at -7.62 0 0)
 					(length 2.54)
-					(name "VI"
+					(name "EN"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -3645,6 +3792,42 @@
 						)
 					)
 					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin no_connect line
+					(at 5.08 0 180)
+					(length 2.54) hide
+					(name "NC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin power_out line
+					(at 7.62 2.54 180)
+					(length 2.54)
+					(name "OUT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -3951,6 +4134,301 @@
 						)
 					)
 					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
+		(symbol "Transistor_FET:AO3401A"
+			(pin_names hide)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "Q"
+				(at 5.08 1.905 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "AO3401A"
+				(at 5.08 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
+				(at 5.08 -1.905 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+						(italic yes)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "http://www.aosmd.com/pdfs/datasheet/AO3401A.pdf"
+				(at 5.08 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+					(hide yes)
+				)
+			)
+			(property "Description" "-4.0A Id, -30V Vds, P-Channel MOSFET, SOT-23"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "P-Channel MOSFET"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_fp_filters" "SOT?23*"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "AO3401A_0_1"
+				(polyline
+					(pts
+						(xy 0.254 0) (xy -2.54 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.254 1.905) (xy 0.254 -1.905)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.762 -1.27) (xy 0.762 -2.286)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.762 0.508) (xy 0.762 -0.508)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.762 2.286) (xy 0.762 1.27)
+					)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.54 2.54) (xy 2.54 1.778)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.54 -2.54) (xy 2.54 0) (xy 0.762 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0.762 1.778) (xy 3.302 1.778) (xy 3.302 -1.778) (xy 0.762 -1.778)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.286 0) (xy 1.27 0.381) (xy 1.27 -0.381) (xy 2.286 0)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(polyline
+					(pts
+						(xy 2.794 -0.508) (xy 2.921 -0.381) (xy 3.683 -0.381) (xy 3.81 -0.254)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 3.302 -0.381) (xy 2.921 0.254) (xy 3.683 0.254) (xy 3.302 -0.381)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 1.651 0)
+					(radius 2.794)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(circle
+					(center 2.54 -1.778)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+				(circle
+					(center 2.54 1.778)
+					(radius 0.254)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type outline)
+					)
+				)
+			)
+			(symbol "AO3401A_1_1"
+				(pin input line
+					(at -5.08 0 0)
+					(length 2.54)
+					(name "G"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 2.54 -5.08 90)
+					(length 2.54)
+					(name "S"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 2.54 5.08 270)
+					(length 2.54)
+					(name "D"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -4320,6 +4798,246 @@
 				)
 			)
 		)
+		(symbol "power:+LED_PWR"
+			(power)
+			(pin_numbers hide)
+			(pin_names
+				(offset 0) hide)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "+LED_PWR"
+				(at 0 3.556 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"+LED_PWR\""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "global power battery"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "+LED_PWR_0_1"
+				(polyline
+					(pts
+						(xy -0.762 1.27) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 2.54) (xy 0.762 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "+LED_PWR_1_1"
+				(pin power_in line
+					(at 0 0 90)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
+		(symbol "power:+SYS"
+			(power)
+			(pin_numbers hide)
+			(pin_names
+				(offset 0) hide)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "+SYS"
+				(at 0 3.556 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"+SYS\""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "global power battery"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "+SYS_0_1"
+				(polyline
+					(pts
+						(xy -0.762 1.27) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 2.54) (xy 0.762 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "+SYS_1_1"
+				(pin power_in line
+					(at 0 0 90)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
 		(symbol "power:GND"
 			(power)
 			(pin_names
@@ -4416,6 +5134,102 @@
 				)
 			)
 		)
+		(symbol "power:PWR_FLAG"
+			(power)
+			(pin_numbers hide)
+			(pin_names
+				(offset 0) hide)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#FLG"
+				(at 0 1.905 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "PWR_FLAG"
+				(at 0 3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "~"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Special symbol for telling ERC where power comes from"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "flag power"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "PWR_FLAG_0_0"
+				(pin power_out line
+					(at 0 0 90)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(symbol "PWR_FLAG_0_1"
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 1.27) (xy -1.016 1.905) (xy 0 2.54) (xy 1.016 1.905) (xy 0 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+		)
 	)
 	(junction
 		(at 116.84 68.58)
@@ -4470,12 +5284,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "1f94eb82-5051-4c0d-a17d-81b1bdf49497")
-	)
-	(junction
-		(at 530.86 133.35)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "2009d456-9ff3-4109-939b-7f3cce304e0d")
 	)
 	(junction
 		(at 115.57 113.665)
@@ -4550,12 +5358,6 @@
 		(uuid "320d02b2-79a4-4ab6-bc7c-6c7826dbe216")
 	)
 	(junction
-		(at 450.85 133.35)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "37504912-1690-43b7-a12f-7d9b91e449af")
-	)
-	(junction
 		(at 162.56 48.26)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -4586,22 +5388,10 @@
 		(uuid "4d67f541-8d4d-4e72-a049-a0f4b0e6493a")
 	)
 	(junction
-		(at 417.83 133.35)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "51f2fdc2-3ebf-4ced-8c19-7ddcc1e498b5")
-	)
-	(junction
 		(at 436.88 68.58)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "5f0e48ae-7451-4f28-9433-728f5fdf9d63")
-	)
-	(junction
-		(at 433.07 133.35)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "6525a1bf-3a50-46d8-8621-d836845043d5")
 	)
 	(junction
 		(at 229.87 92.71)
@@ -4632,12 +5422,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "7e38e654-309a-4242-9a9f-8d43b4620634")
-	)
-	(junction
-		(at 387.35 121.92)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "811accf6-db0a-40ae-b5fc-277255b80fd5")
 	)
 	(junction
 		(at 322.58 48.26)
@@ -4674,24 +5458,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "92914e23-eaf9-4f73-b6fb-451e629d3703")
-	)
-	(junction
-		(at 387.35 119.38)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "98851dde-ed8a-4d5b-bc5f-4282c35779f3")
-	)
-	(junction
-		(at 516.89 144.78)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "9a88870a-826d-4719-95ca-0376785be71d")
-	)
-	(junction
-		(at 387.35 107.95)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "9add4808-3785-4352-9c43-9466ad410610")
 	)
 	(junction
 		(at 391.16 68.58)
@@ -4796,12 +5562,6 @@
 		(uuid "da366dfc-649a-4dc0-aef0-767cbd55565f")
 	)
 	(junction
-		(at 514.35 144.78)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "dc35653e-8823-4151-ad7b-ed2725b09053")
-	)
-	(junction
 		(at 92.71 113.665)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -4862,18 +5622,6 @@
 		(uuid "fb375184-a75e-4513-97a8-5079b517c572")
 	)
 	(junction
-		(at 500.38 133.35)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "fc6a6e66-c4fd-49b1-a900-8793c6d11cc0")
-	)
-	(junction
-		(at 494.03 133.35)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "fd626fdc-9197-4edd-81a8-d69647c29424")
-	)
-	(junction
 		(at 207.01 113.665)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -4902,10 +5650,6 @@
 	(no_connect
 		(at 140.97 190.5)
 		(uuid "7ccc950a-906c-44fd-82c4-ffaa6a65408a")
-	)
-	(no_connect
-		(at 482.6 130.81)
-		(uuid "bc07d46a-5a8b-4cea-a512-d6fd796f0995")
 	)
 	(no_connect
 		(at 176.53 187.96)
@@ -4994,16 +5738,6 @@
 			(type default)
 		)
 		(uuid "09777be8-0a71-46d7-b1ba-9ac1dff11552")
-	)
-	(wire
-		(pts
-			(xy 387.35 119.38) (xy 387.35 121.92)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0a64dc45-afc8-4b61-84f3-9c89724c7214")
 	)
 	(wire
 		(pts
@@ -5107,16 +5841,6 @@
 	)
 	(wire
 		(pts
-			(xy 417.83 133.35) (xy 417.83 135.89)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "106863d1-4ee4-4e23-88dd-6b499508db0d")
-	)
-	(wire
-		(pts
 			(xy 92.71 158.75) (xy 92.71 161.29)
 		)
 		(stroke
@@ -5134,16 +5858,6 @@
 			(type default)
 		)
 		(uuid "108c4165-7e7d-4b19-8aba-0269ca50c377")
-	)
-	(wire
-		(pts
-			(xy 530.86 139.7) (xy 530.86 144.78)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "13d5e42c-90d3-4d19-86ce-38183c2d76d6")
 	)
 	(wire
 		(pts
@@ -5194,16 +5908,6 @@
 			(type default)
 		)
 		(uuid "15b27c1b-3b82-44e3-b9f0-9a02c428d444")
-	)
-	(wire
-		(pts
-			(xy 398.78 121.92) (xy 402.59 121.92)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "163b3d11-244c-49ca-aa86-f464709352df")
 	)
 	(wire
 		(pts
@@ -5297,16 +6001,6 @@
 	)
 	(wire
 		(pts
-			(xy 530.86 133.35) (xy 530.86 134.62)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "21281088-567f-41db-9e3e-5d92375591d9")
-	)
-	(wire
-		(pts
 			(xy 184.15 92.71) (xy 184.15 95.25)
 		)
 		(stroke
@@ -5324,16 +6018,6 @@
 			(type default)
 		)
 		(uuid "236befa4-acd1-4da9-8feb-69215a2ca882")
-	)
-	(wire
-		(pts
-			(xy 500.38 134.62) (xy 500.38 133.35)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "246e7b0e-f649-47d8-b6ba-f0ea130d3679")
 	)
 	(wire
 		(pts
@@ -5457,16 +6141,6 @@
 	)
 	(wire
 		(pts
-			(xy 422.91 167.64) (xy 422.91 172.72)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "32ba3e55-20f1-49e7-b8bf-c3b2a186b838")
-	)
-	(wire
-		(pts
 			(xy 299.72 41.91) (xy 323.85 41.91)
 		)
 		(stroke
@@ -5547,26 +6221,6 @@
 	)
 	(wire
 		(pts
-			(xy 524.51 133.35) (xy 530.86 133.35)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "3bd42246-2113-4c31-9704-3c2de2b3c3be")
-	)
-	(wire
-		(pts
-			(xy 368.3 127) (xy 368.3 129.54)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "3ccda987-111d-447d-b567-a10e00067271")
-	)
-	(wire
-		(pts
 			(xy 345.44 48.26) (xy 322.58 48.26)
 		)
 		(stroke
@@ -5607,16 +6261,6 @@
 	)
 	(wire
 		(pts
-			(xy 407.67 121.92) (xy 410.21 121.92)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "41b3a2e4-a30e-4aad-b208-f89572cbbc1d")
-	)
-	(wire
-		(pts
 			(xy 67.31 237.49) (xy 67.31 233.68)
 		)
 		(stroke
@@ -5634,16 +6278,6 @@
 			(type default)
 		)
 		(uuid "41c42cd4-0038-4ad0-9ac6-fe5b9d8afa56")
-	)
-	(wire
-		(pts
-			(xy 433.07 133.35) (xy 433.07 170.18)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "42554773-5b35-44c8-befb-c02305953226")
 	)
 	(wire
 		(pts
@@ -5674,16 +6308,6 @@
 			(type default)
 		)
 		(uuid "45378245-b077-48a3-8233-6836f53354df")
-	)
-	(wire
-		(pts
-			(xy 368.3 121.92) (xy 368.3 119.38)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "45826404-51fe-4234-9197-f43bd208d864")
 	)
 	(wire
 		(pts
@@ -5737,16 +6361,6 @@
 	)
 	(wire
 		(pts
-			(xy 541.02 133.35) (xy 530.86 133.35)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "4a044dcf-cab1-4020-9d57-d8ef585c1917")
-	)
-	(wire
-		(pts
 			(xy 160.02 274.32) (xy 160.02 279.4)
 		)
 		(stroke
@@ -5784,26 +6398,6 @@
 			(type default)
 		)
 		(uuid "54107119-26b4-4563-9c1a-c3dc17ddc1c7")
-	)
-	(wire
-		(pts
-			(xy 494.03 128.27) (xy 494.03 133.35)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "55befdd7-c830-4825-b2a0-6165663c6941")
-	)
-	(wire
-		(pts
-			(xy 494.03 133.35) (xy 500.38 133.35)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "56848cec-29fa-44b8-914e-95e4d22c7c5d")
 	)
 	(wire
 		(pts
@@ -5864,16 +6458,6 @@
 			(type default)
 		)
 		(uuid "5be5046c-9a33-4fef-a2c7-c3728d4e6f39")
-	)
-	(wire
-		(pts
-			(xy 387.35 107.95) (xy 387.35 119.38)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5c40eafb-3366-40b1-84dd-17828b91ab9a")
 	)
 	(wire
 		(pts
@@ -5974,16 +6558,6 @@
 			(type default)
 		)
 		(uuid "60f21c36-a3e7-4f62-babf-f1c895ddc494")
-	)
-	(wire
-		(pts
-			(xy 433.07 170.18) (xy 425.45 170.18)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "61b073fa-65d1-4a95-aa28-891233f4f175")
 	)
 	(wire
 		(pts
@@ -6127,16 +6701,6 @@
 	)
 	(wire
 		(pts
-			(xy 387.35 121.92) (xy 387.35 128.27)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "6c99b4aa-d43d-4e46-89c2-71a2926c1583")
-	)
-	(wire
-		(pts
 			(xy 482.6 48.26) (xy 482.6 50.8)
 		)
 		(stroke
@@ -6207,16 +6771,6 @@
 	)
 	(wire
 		(pts
-			(xy 425.45 170.18) (xy 425.45 167.64)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "733406c2-0b4a-4436-b346-0ad8d77c5a44")
-	)
-	(wire
-		(pts
 			(xy 276.86 66.04) (xy 276.86 68.58)
 		)
 		(stroke
@@ -6224,36 +6778,6 @@
 			(type default)
 		)
 		(uuid "7394e15c-fead-490a-b9b3-60d64bcf272d")
-	)
-	(wire
-		(pts
-			(xy 450.85 133.35) (xy 472.44 133.35)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "73c801ab-a25b-4fff-8bac-79a16df9b1d7")
-	)
-	(wire
-		(pts
-			(xy 433.07 133.35) (xy 436.88 133.35)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "7407eb5d-6f50-4079-a06d-76bbeafc4ec8")
-	)
-	(wire
-		(pts
-			(xy 417.83 140.97) (xy 417.83 143.51)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "740897c4-b0c5-465c-a3a8-8899a4f9a10e")
 	)
 	(wire
 		(pts
@@ -6437,16 +6961,6 @@
 	)
 	(wire
 		(pts
-			(xy 368.3 119.38) (xy 387.35 119.38)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8371cc44-aa84-47c1-b69c-bf8c170526b8")
-	)
-	(wire
-		(pts
 			(xy 459.74 66.04) (xy 459.74 68.58)
 		)
 		(stroke
@@ -6507,16 +7021,6 @@
 	)
 	(wire
 		(pts
-			(xy 530.86 144.78) (xy 516.89 144.78)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8621e136-ec3a-4e9c-ad37-b456323055ec")
-	)
-	(wire
-		(pts
 			(xy 78.105 58.42) (xy 86.36 58.42)
 		)
 		(stroke
@@ -6534,26 +7038,6 @@
 			(type default)
 		)
 		(uuid "88f1d08f-686d-4812-9cbb-8afb48810578")
-	)
-	(wire
-		(pts
-			(xy 387.35 102.87) (xy 387.35 107.95)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "89ea3d7b-6a50-4071-98bf-633337899acf")
-	)
-	(wire
-		(pts
-			(xy 377.19 148.59) (xy 374.65 148.59)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8b6e5954-a593-4c45-8615-17d34e833efb")
 	)
 	(wire
 		(pts
@@ -6637,16 +7121,6 @@
 	)
 	(wire
 		(pts
-			(xy 387.35 143.51) (xy 387.35 148.59)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8edda71c-6812-4656-b654-63bd16cb2a4c")
-	)
-	(wire
-		(pts
 			(xy 436.88 48.26) (xy 414.02 48.26)
 		)
 		(stroke
@@ -6664,16 +7138,6 @@
 			(type default)
 		)
 		(uuid "91522939-03cf-481a-b8e6-76c5c95df650")
-	)
-	(wire
-		(pts
-			(xy 387.35 148.59) (xy 382.27 148.59)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9261e362-626a-4b80-8486-9fbe9251d997")
 	)
 	(wire
 		(pts
@@ -6734,26 +7198,6 @@
 			(type default)
 		)
 		(uuid "95fc5d9c-e0cf-4baf-b309-4403a5f593ce")
-	)
-	(wire
-		(pts
-			(xy 516.89 140.97) (xy 516.89 144.78)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9655fe97-d8c2-42d2-946a-35ebb0a74517")
-	)
-	(wire
-		(pts
-			(xy 374.65 148.59) (xy 374.65 138.43)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9674d679-68bd-4db3-91e1-51f472627746")
 	)
 	(wire
 		(pts
@@ -6847,26 +7291,6 @@
 	)
 	(wire
 		(pts
-			(xy 482.6 135.89) (xy 494.03 135.89)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "9e6a01bf-eddc-4caf-9c89-9463b75863cb")
-	)
-	(wire
-		(pts
-			(xy 450.85 120.65) (xy 450.85 107.95)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a0103abb-62e1-4a7f-975e-03f672ef3c18")
-	)
-	(wire
-		(pts
 			(xy 92.71 171.45) (xy 92.71 172.72)
 		)
 		(stroke
@@ -6887,16 +7311,6 @@
 	)
 	(wire
 		(pts
-			(xy 450.85 133.35) (xy 450.85 128.27)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a1c81739-9724-498a-8096-607bbff43911")
-	)
-	(wire
-		(pts
 			(xy 168.91 102.87) (xy 176.53 102.87)
 		)
 		(stroke
@@ -6904,16 +7318,6 @@
 			(type default)
 		)
 		(uuid "a1f8f4ac-12c6-4b55-bbb0-68a72a52d660")
-	)
-	(wire
-		(pts
-			(xy 500.38 133.35) (xy 509.27 133.35)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a22b740a-cede-4243-ab6f-3e607bae0837")
 	)
 	(wire
 		(pts
@@ -6954,16 +7358,6 @@
 			(type default)
 		)
 		(uuid "a9daba1f-2ccf-4c08-bb62-13d3372b8a1c")
-	)
-	(wire
-		(pts
-			(xy 410.21 138.43) (xy 397.51 138.43)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "abf91188-9326-4f61-b585-476c4a375dcf")
 	)
 	(wire
 		(pts
@@ -7067,16 +7461,6 @@
 	)
 	(wire
 		(pts
-			(xy 397.51 133.35) (xy 417.83 133.35)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b5a09d8a-d4ec-4dba-b906-ec65a6318a7c")
-	)
-	(wire
-		(pts
 			(xy 187.96 190.5) (xy 195.58 190.5)
 		)
 		(stroke
@@ -7137,16 +7521,6 @@
 	)
 	(wire
 		(pts
-			(xy 500.38 144.78) (xy 514.35 144.78)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b904fc64-3ac9-4b7e-b2b1-93fd3604baca")
-	)
-	(wire
-		(pts
 			(xy 93.98 66.04) (xy 93.98 68.58)
 		)
 		(stroke
@@ -7154,16 +7528,6 @@
 			(type default)
 		)
 		(uuid "b96b3a63-69d3-4b1a-9890-b687f002c0d0")
-	)
-	(wire
-		(pts
-			(xy 450.85 107.95) (xy 387.35 107.95)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "bbd291b5-6802-42b1-91eb-3f0d9e5d46dd")
 	)
 	(wire
 		(pts
@@ -7224,16 +7588,6 @@
 			(type default)
 		)
 		(uuid "bfc3a265-b3d3-488f-b130-471ac67cd46d")
-	)
-	(wire
-		(pts
-			(xy 444.5 133.35) (xy 450.85 133.35)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "c071190d-066a-4699-8f4f-a4c7d28ec531")
 	)
 	(wire
 		(pts
@@ -7407,16 +7761,6 @@
 	)
 	(wire
 		(pts
-			(xy 514.35 144.78) (xy 516.89 144.78)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d15af1dc-82a0-47da-bea5-4937fe592841")
-	)
-	(wire
-		(pts
 			(xy 70.485 68.58) (xy 93.98 68.58)
 		)
 		(stroke
@@ -7434,16 +7778,6 @@
 			(type default)
 		)
 		(uuid "d27cae66-f753-42b0-af0a-9d5fb6494a18")
-	)
-	(wire
-		(pts
-			(xy 374.65 138.43) (xy 377.19 138.43)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "d29a0fee-345b-4f1f-920d-1433417d575f")
 	)
 	(wire
 		(pts
@@ -7607,26 +7941,6 @@
 	)
 	(wire
 		(pts
-			(xy 410.21 121.92) (xy 410.21 138.43)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e40a827d-a32e-482e-a5b2-2dc55bd2cdd2")
-	)
-	(wire
-		(pts
-			(xy 500.38 139.7) (xy 500.38 144.78)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e437f327-d2dc-415c-9813-ec20a66e9827")
-	)
-	(wire
-		(pts
 			(xy 140.97 185.42) (xy 124.46 185.42)
 		)
 		(stroke
@@ -7697,16 +8011,6 @@
 	)
 	(wire
 		(pts
-			(xy 541.02 132.08) (xy 541.02 133.35)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ea5d1a40-42cd-4b61-9b92-329134a0a8e8")
-	)
-	(wire
-		(pts
 			(xy 307.34 58.42) (xy 314.96 58.42)
 		)
 		(stroke
@@ -7714,16 +8018,6 @@
 			(type default)
 		)
 		(uuid "ea6b6725-171c-4fe4-9e1a-5b629bf6e73a")
-	)
-	(wire
-		(pts
-			(xy 417.83 133.35) (xy 433.07 133.35)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ea9fe068-5404-4d59-b153-3cf4fe1f1d83")
 	)
 	(wire
 		(pts
@@ -7897,16 +8191,6 @@
 	)
 	(wire
 		(pts
-			(xy 494.03 135.89) (xy 494.03 133.35)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "fc966781-0a81-42ed-9e74-570e988ba1ff")
-	)
-	(wire
-		(pts
 			(xy 215.9 58.42) (xy 223.52 58.42)
 		)
 		(stroke
@@ -7927,16 +8211,6 @@
 	)
 	(wire
 		(pts
-			(xy 387.35 121.92) (xy 391.16 121.92)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "fcad86cd-3feb-4e02-8da3-dac1db93fdd7")
-	)
-	(wire
-		(pts
 			(xy 414.02 48.26) (xy 391.16 48.26)
 		)
 		(stroke
@@ -7954,46 +8228,6 @@
 			(type default)
 		)
 		(uuid "ffff53b2-9b8d-49d3-aafe-455757660b44")
-	)
-	(text "Li-Po charger\n"
-		(exclude_from_sim no)
-		(at 369.57 113.03 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "0002ce0a-70d4-42f1-ac9b-682b24f62e93")
-	)
-	(text "ON/OFF\n"
-		(exclude_from_sim no)
-		(at 482.092 121.158 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "173f25c2-6938-4e45-8638-89d28e7f0bc1")
-	)
-	(text "LDO"
-		(exclude_from_sim no)
-		(at 516.382 122.428 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "80d6e678-8f59-45e1-8837-46441aae93b2")
-	)
-	(text "Li-Po\n\n"
-		(exclude_from_sim no)
-		(at 422.91 158.75 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "9f7db964-04b2-4720-af1c-2bdb052ef0bf")
 	)
 	(label "small_ring"
 		(at 86.36 184.15 180)
@@ -8128,83 +8362,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:LED")
-		(at 394.97 121.92 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "00cd6002-07ce-4aa4-9c56-63e42f84682a")
-		(property "Reference" "D33"
-			(at 396.5575 114.3 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "LED"
-			(at 396.5575 116.84 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "LED_SMD:LED_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
-			(at 394.97 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 394.97 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 394.97 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MPN" "C2297"
-			(at 394.97 121.92 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "e8c1068f-d35b-4c87-9233-966306611e20")
-		)
-		(pin "2"
-			(uuid "f2270f9c-907c-45d2-9d7c-edaf3569b6aa")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "D33")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:R_Small")
 		(at 133.35 168.91 0)
 		(unit 1)
@@ -8278,72 +8435,6 @@
 			(project "LED_Coaster"
 				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
 					(reference "R3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+BATT")
-		(at 494.03 128.27 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "066a0833-fbf1-4df3-8fcf-20888f02a9c7")
-		(property "Reference" "#PWR08"
-			(at 494.03 132.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+BATT"
-			(at 494.03 123.19 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 494.03 128.27 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 494.03 128.27 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+BATT\""
-			(at 494.03 128.27 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "65ed8d59-0b57-4cc7-bfbd-0f17e695acc4")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "#PWR08")
 					(unit 1)
 				)
 			)
@@ -8561,72 +8652,6 @@
 			(project "LED_Coaster"
 				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
 					(reference "D30")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+3V3")
-		(at 541.02 132.08 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "11b53aef-153e-4e5f-8124-df0ce35361c5")
-		(property "Reference" "#PWR015"
-			(at 541.02 135.89 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+3V3"
-			(at 541.02 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 541.02 132.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 541.02 132.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3V3\""
-			(at 541.02 132.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "53c5b2e7-d2bd-47ba-b55e-61e8f06d2464")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "#PWR015")
 					(unit 1)
 				)
 			)
@@ -9082,96 +9107,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Battery_Management:MCP73831-2-OT")
-		(at 387.35 135.89 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "2682b80b-c38d-445c-a626-56fa2af4577a")
-		(property "Reference" "U3"
-			(at 389.5441 125.73 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "MCP73831-2-OT"
-			(at 389.5441 128.27 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
-			(at 388.62 142.24 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-					(italic yes)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://ww1.microchip.com/downloads/en/DeviceDoc/20001984g.pdf"
-			(at 387.35 154.178 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Single cell, Li-Ion/Li-Po charge management controller, 4.20V, Tri-State Status Output, in SOT23-5 package"
-			(at 387.35 135.89 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MPN" "C424093"
-			(at 387.35 135.89 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "3"
-			(uuid "e20e7840-755f-42a9-b827-f0de215c7519")
-		)
-		(pin "1"
-			(uuid "e945b7dd-c7fe-4214-be82-d485be8cbb87")
-		)
-		(pin "2"
-			(uuid "252dbe21-22dd-4fe6-902e-64ec0192ee99")
-		)
-		(pin "4"
-			(uuid "97c317b0-39bc-4045-b12c-0cf3ebae1fc6")
-		)
-		(pin "5"
-			(uuid "e5f04119-cafa-454b-948d-b3750837aa48")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "U3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "LED:WS2812B")
 		(at 208.28 58.42 0)
 		(unit 1)
@@ -9257,72 +9192,6 @@
 		)
 	)
 	(symbol
-		(lib_id "power:+5V")
-		(at 387.35 102.87 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "292364f7-f64d-4c53-b6af-563dd65ea5c2")
-		(property "Reference" "#PWR017"
-			(at 387.35 106.68 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+5V"
-			(at 387.35 97.79 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 387.35 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 387.35 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 387.35 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "7721e7e9-1793-4b11-aeab-33d28e302d66")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "#PWR017")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+3V3")
 		(at 67.31 226.06 0)
 		(unit 1)
@@ -9389,7 +9258,7 @@
 		)
 	)
 	(symbol
-		(lib_id "power:+BATT")
+		(lib_id "power:+LED_PWR")
 		(at 183.515 85.725 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -9407,7 +9276,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+BATT"
+		(property "Value" "+LED_PWR"
 			(at 183.515 80.645 0)
 			(effects
 				(font
@@ -9433,7 +9302,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+		(property "Description" "Power symbol creates a global label with name \"+LED_PWR\""
 			(at 183.515 85.725 0)
 			(effects
 				(font
@@ -10877,86 +10746,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Switch:SW_SPDT")
-		(at 477.52 133.35 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "6861cf9f-8430-46a6-b890-c5c394f5bc9e")
-		(property "Reference" "SW1"
-			(at 477.52 124.46 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "SW_SPDT"
-			(at 477.52 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Button_Switch_SMD:SW_SPDT_CK_JS102011SAQN"
-			(at 477.52 133.35 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 477.52 140.97 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Switch, single pole double throw"
-			(at 477.52 133.35 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MPN" "C221660"
-			(at 477.52 133.35 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "3"
-			(uuid "0a0b6b4c-7798-4a7f-9d23-e4feaeb6560e")
-		)
-		(pin "1"
-			(uuid "c5fa3079-a5b2-4895-b287-8547d1bff08f")
-		)
-		(pin "2"
-			(uuid "7c950a1c-104a-4daf-bbf4-9dc4cef35bc0")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "SW1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "LED:WS2812B")
 		(at 138.43 102.87 0)
 		(unit 1)
@@ -11356,86 +11145,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Regulator_Linear:AMS1117-3.3")
-		(at 516.89 133.35 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "82b7764c-1a5f-4222-b3dc-9571bd238919")
-		(property "Reference" "U4"
-			(at 516.89 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "AMS1117-3.3"
-			(at 516.89 129.54 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Package_TO_SOT_SMD:SOT-223-3_TabPin2"
-			(at 516.89 128.27 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "http://www.advanced-monolithic.com/pdf/ds1117.pdf"
-			(at 519.43 139.7 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "1A Low Dropout regulator, positive, 3.3V fixed output, SOT-223"
-			(at 516.89 133.35 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MPN" "C6186"
-			(at 516.89 133.35 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "30f7cdec-9532-493f-98a7-63b00d962e21")
-		)
-		(pin "3"
-			(uuid "4a45e21c-3e23-45fd-9fc5-8a554992abd6")
-		)
-		(pin "1"
-			(uuid "dccc9c3a-265c-418d-83b6-d23af7e027bf")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "U4")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:R_Small")
 		(at 194.31 176.53 0)
 		(unit 1)
@@ -11806,86 +11515,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Connector:Conn_01x02_Pin")
-		(at 422.91 162.56 90)
-		(mirror x)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp yes)
-		(fields_autoplaced yes)
-		(uuid "896e911f-42b0-4835-9bc6-577797db8898")
-		(property "Reference" "J1"
-			(at 421.64 161.9249 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "Li-po"
-			(at 421.64 164.4649 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Connector_JST:JST_EH_S2B-EH_1x02_P2.50mm_Horizontal"
-			(at 422.91 162.56 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 422.91 162.56 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Generic connector, single row, 01x02, script generated"
-			(at 422.91 162.56 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MPN" ""
-			(at 422.91 162.56 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "2943f378-dfbf-491a-b702-541b9bb56de7")
-		)
-		(pin "2"
-			(uuid "b08d44e5-c43d-4f18-877c-f78892f20234")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "J1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "power:+3V3")
 		(at 92.71 158.75 0)
 		(unit 1)
@@ -11946,85 +11575,6 @@
 			(project "LED_Coaster"
 				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
 					(reference "#PWR06")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:C_Small")
-		(at 417.83 138.43 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "90773bf0-e270-437f-bad0-314e9f012897")
-		(property "Reference" "C7"
-			(at 420.37 137.1535 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "4.7uF"
-			(at 420.37 139.6935 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
-			(at 417.83 138.43 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 417.83 138.43 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 417.83 138.43 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MPN" "C1779"
-			(at 417.83 138.43 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "e447820f-9b92-434d-abc5-0043c11a5dbc")
-		)
-		(pin "2"
-			(uuid "11941412-1b56-4ed5-b997-6384931afad8")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "C7")
 					(unit 1)
 				)
 			)
@@ -12367,85 +11917,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:C_Small")
-		(at 368.3 124.46 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "a986bd01-1891-4c02-8de0-25be302f154d")
-		(property "Reference" "C6"
-			(at 370.84 123.1835 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "4.7uF"
-			(at 370.84 125.7235 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
-			(at 368.3 124.46 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 368.3 124.46 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 368.3 124.46 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MPN" "C1779"
-			(at 368.3 124.46 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "8bf7c8c2-b7bb-4a41-a727-df939eea88ce")
-		)
-		(pin "2"
-			(uuid "aa8e3f8e-a5b7-4778-9504-0a8a460bada6")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "C6")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Mechanical:MountingHole")
 		(at 100.33 363.22 0)
 		(unit 1)
@@ -12689,7 +12160,7 @@
 		)
 	)
 	(symbol
-		(lib_id "power:+BATT")
+		(lib_id "power:+LED_PWR")
 		(at 323.85 39.37 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -12707,7 +12178,7 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+BATT"
+		(property "Value" "+LED_PWR"
 			(at 323.85 34.29 0)
 			(effects
 				(font
@@ -12733,7 +12204,7 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+		(property "Description" "Power symbol creates a global label with name \"+LED_PWR\""
 			(at 323.85 39.37 0)
 			(effects
 				(font
@@ -12834,83 +12305,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Diode:SS34")
-		(at 440.69 133.35 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "b2cb9631-8132-4dd3-98dd-cff5a3c0829d")
-		(property "Reference" "D31"
-			(at 441.0075 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "SS34"
-			(at 441.0075 129.54 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Diode_SMD:D_SMA"
-			(at 440.69 128.905 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.vishay.com/docs/88751/ss32.pdf"
-			(at 440.69 133.35 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "40V 3A Schottky Diode, SMA"
-			(at 440.69 133.35 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MPN" "C8678"
-			(at 440.69 133.35 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "2"
-			(uuid "8decac9e-1e4b-4555-8d03-f9b591db1ce4")
-		)
-		(pin "1"
-			(uuid "defec2f6-f45c-47f4-8ac5-2256fe47cd74")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "D31")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "LED:WS2812B")
 		(at 231.14 58.42 0)
 		(unit 1)
@@ -12990,162 +12384,6 @@
 			(project "LED_Coaster"
 				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
 					(reference "D8")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:C_Small")
-		(at 530.86 137.16 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "b7957048-3c85-4ea9-a794-5ebe8d864875")
-		(property "Reference" "C5"
-			(at 533.4 135.8835 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Value" "2.2uF"
-			(at 533.4 138.4235 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
-			(at 530.86 137.16 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 530.86 137.16 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 530.86 137.16 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MPN" "C377773"
-			(at 530.86 137.16 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "bdb2b26a-497a-4933-93cd-4d2109e077da")
-		)
-		(pin "2"
-			(uuid "c4ad34d1-be4e-43fa-b694-c2536bc2d186")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "C5")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R_Small")
-		(at 379.73 148.59 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "bc924816-28e0-43c5-a384-2ccd36afbf99")
-		(property "Reference" "R2"
-			(at 379.73 143.51 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "2k"
-			(at 379.73 146.05 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder"
-			(at 379.73 148.59 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 379.73 148.59 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Resistor, small symbol"
-			(at 379.73 148.59 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "MPN" "C17604"
-			(at 379.73 148.59 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "894556c0-7409-4032-9729-c06d20b8b5c7")
-		)
-		(pin "2"
-			(uuid "bc7c9b7e-7ef2-4ebb-b7a6-eb1dd8cb2ed2")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "R2")
 					(unit 1)
 				)
 			)
@@ -15307,44 +14545,32 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:C_Small")
-		(at 500.38 137.16 180)
+		(lib_id "Battery_Management:MCP73871-2CC")
+		(at 410.21 240.03 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "f2a1fb40-cdc3-4efd-baaa-d4d24bd5d1b2")
-		(property "Reference" "C4"
-			(at 502.92 135.8835 0)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000001")
+		(property "Reference" "U3"
+			(at 410.21 216.154 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
 			)
 		)
-		(property "Value" "2.2uF"
-			(at 502.92 138.4235 0)
+		(property "Value" "MCP73871-2CC"
+			(at 410.21 218.694 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
-			(at 500.38 137.16 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 500.38 137.16 0)
+		(property "Footprint" "Package_DFN_QFN:QFN-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm_ThermalVias"
+			(at 410.21 240.03 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15352,8 +14578,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "Unpolarized capacitor, small symbol"
-			(at 500.38 137.16 0)
+		(property "Datasheet" "http://ww1.microchip.com/downloads/en/DeviceDoc/MCP73871-Data-Sheet-20002090E.pdf"
+			(at 410.21 240.03 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15361,8 +14587,17 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C377773"
-			(at 500.38 137.16 0)
+		(property "Description" "Stand-alone system load sharing and Li-Ion/Li-Po charge management controller, 4.20V, QFN-20"
+			(at 410.21 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C637761"
+			(at 410.21 240.03 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15371,10 +14606,2029 @@
 			)
 		)
 		(pin "1"
-			(uuid "e2d33eee-ab7f-41c8-8963-911686894d0f")
+			(uuid "5ed0c0a5-0000-0000-0000-000000000002")
 		)
 		(pin "2"
-			(uuid "c68e64b9-2a94-4f6b-9b8f-ee671f75f648")
+			(uuid "5ed0c0a5-0000-0000-0000-000000000003")
+		)
+		(pin "3"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000004")
+		)
+		(pin "4"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000005")
+		)
+		(pin "5"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000006")
+		)
+		(pin "6"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000007")
+		)
+		(pin "7"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000008")
+		)
+		(pin "8"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000009")
+		)
+		(pin "9"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000000a")
+		)
+		(pin "10"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000000b")
+		)
+		(pin "11"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000000c")
+		)
+		(pin "12"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000000d")
+		)
+		(pin "13"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000000e")
+		)
+		(pin "14"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000000f")
+		)
+		(pin "15"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000010")
+		)
+		(pin "16"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000011")
+		)
+		(pin "17"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000012")
+		)
+		(pin "18"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000013")
+		)
+		(pin "19"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000014")
+		)
+		(pin "20"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000015")
+		)
+		(pin "21"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000016")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "U3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 392.43 224.79) (xy 388.62 224.79)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000017")
+	)
+	(symbol
+		(lib_id "power:+5V")
+		(at 388.62 224.79 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000018")
+		(property "Reference" "#PWR027"
+			(at 388.62 220.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+5V"
+			(at 388.62 228.346 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 388.62 224.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 388.62 224.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+5V""
+			(at 388.62 224.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000019")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR027")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 392.43 229.87) (xy 388.62 229.87)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000001a")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 388.62 229.87 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000001b")
+		(property "Reference" "#PWR028"
+			(at 388.62 226.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 388.62 233.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 388.62 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 388.62 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 388.62 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000001c")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR028")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 392.43 237.49) (xy 388.62 237.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000001d")
+	)
+	(symbol
+		(lib_id "power:+SYS")
+		(at 388.62 237.49 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000001e")
+		(property "Reference" "#PWR029"
+			(at 388.62 233.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+SYS"
+			(at 388.62 241.046 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 388.62 237.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 388.62 237.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+SYS""
+			(at 388.62 237.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000001f")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR029")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 392.43 250.19) (xy 388.62 250.19)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000020")
+	)
+	(symbol
+		(lib_id "power:+SYS")
+		(at 388.62 250.19 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000021")
+		(property "Reference" "#PWR030"
+			(at 388.62 246.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+SYS"
+			(at 388.62 253.746 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 388.62 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 388.62 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+SYS""
+			(at 388.62 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000022")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR030")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 392.43 255.27) (xy 388.62 255.27)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000023")
+	)
+	(symbol
+		(lib_id "power:+SYS")
+		(at 388.62 255.27 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000024")
+		(property "Reference" "#PWR031"
+			(at 388.62 251.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+SYS"
+			(at 388.62 258.826 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 388.62 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 388.62 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+SYS""
+			(at 388.62 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000025")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR031")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 392.43 234.95) (xy 368.3 234.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000026")
+	)
+	(wire
+		(pts
+			(xy 368.3 234.95) (xy 368.3 237.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000027")
+	)
+	(symbol
+		(lib_id "Device:R_Small")
+		(at 368.3 240.03 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000028")
+		(property "Reference" "R2"
+			(at 368.3 237.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "2k"
+			(at 368.3 242.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder"
+			(at 368.3 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 368.3 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor, small symbol"
+			(at 368.3 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C17604"
+			(at 368.3 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000029")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000002a")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "R2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 368.3 242.57) (xy 368.3 245.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000002b")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 368.3 245.11 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000002c")
+		(property "Reference" "#PWR032"
+			(at 368.3 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 368.3 248.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 368.3 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 368.3 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 368.3 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000002d")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR032")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 392.43 240.03) (xy 373.38 240.03)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000002e")
+	)
+	(wire
+		(pts
+			(xy 373.38 240.03) (xy 373.38 242.57)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000002f")
+	)
+	(symbol
+		(lib_id "Device:R_Small")
+		(at 373.38 245.11 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000030")
+		(property "Reference" "R15"
+			(at 373.38 242.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "20k"
+			(at 373.38 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder"
+			(at 373.38 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 373.38 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor, small symbol"
+			(at 373.38 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" ""
+			(at 373.38 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000031")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000032")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "R15")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 373.38 247.65) (xy 373.38 250.19)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000033")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 373.38 250.19 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000034")
+		(property "Reference" "#PWR033"
+			(at 373.38 246.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 373.38 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 373.38 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 373.38 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 373.38 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000035")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR033")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 392.43 245.11) (xy 378.46 245.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000036")
+	)
+	(wire
+		(pts
+			(xy 378.46 245.11) (xy 378.46 247.65)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000037")
+	)
+	(symbol
+		(lib_id "Device:R_Small")
+		(at 378.46 250.19 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000038")
+		(property "Reference" "R14"
+			(at 378.46 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "10k"
+			(at 378.46 252.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder"
+			(at 378.46 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 378.46 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor, small symbol"
+			(at 378.46 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C17414"
+			(at 378.46 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000039")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000003a")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "R14")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 378.46 252.73) (xy 378.46 255.27)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000003b")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 378.46 255.27 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000003c")
+		(property "Reference" "#PWR034"
+			(at 378.46 251.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 378.46 259.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 378.46 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 378.46 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 378.46 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000003d")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR034")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 410.21 217.17) (xy 410.21 212.09)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000003e")
+	)
+	(wire
+		(pts
+			(xy 410.21 212.09) (xy 410.21 209.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000003f")
+	)
+	(wire
+		(pts
+			(xy 386.08 212.09) (xy 410.21 212.09)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000040")
+	)
+	(junction
+		(at 410.21 212.09)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000041")
+	)
+	(symbol
+		(lib_id "power:+5V")
+		(at 410.21 209.55 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000042")
+		(property "Reference" "#PWR035"
+			(at 410.21 205.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+5V"
+			(at 410.21 213.106 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 410.21 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 410.21 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+5V""
+			(at 410.21 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000043")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR035")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 386.08 214.63 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000044")
+		(property "Reference" "C6"
+			(at 386.08 211.328 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "4.7uF"
+			(at 386.08 217.932 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
+			(at 386.08 214.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 386.08 214.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 386.08 214.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C1779"
+			(at 386.08 214.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000045")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000046")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 386.08 217.17) (xy 386.08 219.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000047")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 386.08 219.71 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000048")
+		(property "Reference" "#PWR036"
+			(at 386.08 215.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 386.08 223.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 386.08 219.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 386.08 219.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 386.08 219.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000049")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR036")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 410.21 262.89) (xy 410.21 265.43)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000004a")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 410.21 265.43 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000004b")
+		(property "Reference" "#PWR037"
+			(at 410.21 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 410.21 269.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 410.21 265.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 410.21 265.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 410.21 265.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000004c")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR037")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(no_connect
+		(at 427.99 245.11)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000004d")
+	)
+	(wire
+		(pts
+			(xy 427.99 232.41) (xy 434.34 232.41)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000004e")
+	)
+	(wire
+		(pts
+			(xy 434.34 232.41) (xy 434.34 229.87)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000004f")
+	)
+	(wire
+		(pts
+			(xy 434.34 232.41) (xy 434.34 237.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000050")
+	)
+	(wire
+		(pts
+			(xy 427.99 237.49) (xy 434.34 237.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000051")
+	)
+	(wire
+		(pts
+			(xy 434.34 237.49) (xy 447.04 237.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000052")
+	)
+	(junction
+		(at 434.34 232.41)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000053")
+	)
+	(junction
+		(at 434.34 237.49)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000054")
+	)
+	(symbol
+		(lib_id "power:+BATT")
+		(at 434.34 229.87 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000055")
+		(property "Reference" "#PWR038"
+			(at 434.34 226.06 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+BATT"
+			(at 434.34 233.426 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 434.34 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 434.34 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+BATT""
+			(at 434.34 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000056")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR038")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 447.04 240.03 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000057")
+		(property "Reference" "C7"
+			(at 447.04 236.728 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "4.7uF"
+			(at 447.04 243.332 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
+			(at 447.04 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 447.04 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 447.04 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C1779"
+			(at 447.04 240.03 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000058")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000059")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C7")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 447.04 242.57) (xy 447.04 245.11)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000005a")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 447.04 245.11 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000005b")
+		(property "Reference" "#PWR039"
+			(at 447.04 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 447.04 248.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 447.04 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 447.04 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 447.04 245.11 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000005c")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR039")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:Conn_01x02_Pin")
+		(at 462.28 262.89 180)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000005d")
+		(property "Reference" "J1"
+			(at 462.28 256.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "Li-po"
+			(at 462.28 269.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Connector_JST:JST_EH_S2B-EH_1x02_P2.50mm_Horizontal"
+			(at 462.28 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 462.28 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Generic connector, single row, 01x02, script generated"
+			(at 462.28 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" ""
+			(at 462.28 262.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000005e")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000005f")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "J1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 457.2 260.35) (xy 452.12 260.35)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000060")
+	)
+	(wire
+		(pts
+			(xy 452.12 260.35) (xy 452.12 257.81)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000061")
+	)
+	(symbol
+		(lib_id "power:+BATT")
+		(at 452.12 257.81 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000062")
+		(property "Reference" "#PWR040"
+			(at 452.12 254 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+BATT"
+			(at 452.12 261.366 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 452.12 257.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 452.12 257.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+BATT""
+			(at 452.12 257.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000063")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR040")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 457.2 262.89) (xy 452.12 262.89)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000064")
+	)
+	(wire
+		(pts
+			(xy 452.12 262.89) (xy 452.12 265.43)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000065")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 452.12 265.43 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000066")
+		(property "Reference" "#PWR041"
+			(at 452.12 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 452.12 269.24 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 452.12 265.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 452.12 265.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 452.12 265.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000067")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR041")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 427.99 224.79) (xy 457.2 224.79)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000068")
+	)
+	(wire
+		(pts
+			(xy 457.2 224.79) (xy 469.9 224.79)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000069")
+	)
+	(wire
+		(pts
+			(xy 469.9 224.79) (xy 477.52 224.79)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000006a")
+	)
+	(wire
+		(pts
+			(xy 477.52 224.79) (xy 490.22 224.79)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000006b")
+	)
+	(wire
+		(pts
+			(xy 490.22 224.79) (xy 514.35 224.79)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000006c")
+	)
+	(junction
+		(at 457.2 224.79)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000006d")
+	)
+	(junction
+		(at 469.9 224.79)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000006e")
+	)
+	(junction
+		(at 477.52 224.79)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000006f")
+	)
+	(junction
+		(at 490.22 224.79)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000070")
+	)
+	(wire
+		(pts
+			(xy 457.2 224.79) (xy 457.2 222.25)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000071")
+	)
+	(symbol
+		(lib_id "power:+SYS")
+		(at 457.2 222.25 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000072")
+		(property "Reference" "#PWR042"
+			(at 457.2 218.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+SYS"
+			(at 457.2 225.806 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 457.2 222.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 457.2 222.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+SYS""
+			(at 457.2 222.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000073")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR042")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 469.9 224.79) (xy 469.9 227.33)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000074")
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 469.9 229.87 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000075")
+		(property "Reference" "C4"
+			(at 469.9 226.568 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "4.7uF"
+			(at 469.9 233.172 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
+			(at 469.9 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 469.9 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 469.9 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C1779"
+			(at 469.9 229.87 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000076")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000077")
 		)
 		(instances
 			(project "LED_Coaster"
@@ -15385,34 +16639,43 @@
 			)
 		)
 	)
+	(wire
+		(pts
+			(xy 469.9 232.41) (xy 469.9 234.95)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000078")
+	)
 	(symbol
-		(lib_id "Device:R_Small")
-		(at 405.13 121.92 90)
+		(lib_id "power:GND")
+		(at 469.9 234.95 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "fdbd1ceb-c4d1-4711-bd3d-219438f28319")
-		(property "Reference" "R5"
-			(at 405.13 116.84 90)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000079")
+		(property "Reference" "#PWR043"
+			(at 469.9 231.14 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Value" "1k"
-			(at 405.13 119.38 90)
+		(property "Value" "GND"
+			(at 469.9 238.76 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder"
-			(at 405.13 121.92 0)
+		(property "Footprint" ""
+			(at 469.9 234.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15421,7 +16684,150 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 405.13 121.92 0)
+			(at 469.9 234.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 469.9 234.95 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000007a")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR043")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Transistor_FET:AO3401A")
+		(at 487.68 219.71 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000007b")
+		(property "Reference" "Q1"
+			(at 487.68 212.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "AO3401A"
+			(at 487.68 214.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23"
+			(at 487.68 219.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.aosmd.com/pdfs/datasheet/AO3401A.pdf"
+			(at 487.68 219.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "-4.0A Id, -30V Vds, P-Channel MOSFET, SOT-23"
+			(at 487.68 219.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C15127"
+			(at 487.68 219.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000007c")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000007d")
+		)
+		(pin "3"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000007e")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "Q1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:R_Small")
+		(at 477.52 222.25 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000007f")
+		(property "Reference" "R13"
+			(at 477.52 219.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100k"
+			(at 477.52 224.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder"
+			(at 477.52 222.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 477.52 222.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15430,7 +16836,1041 @@
 			)
 		)
 		(property "Description" "Resistor, small symbol"
-			(at 405.13 121.92 0)
+			(at 477.52 222.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" ""
+			(at 477.52 222.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000080")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000081")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "R13")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 482.6 219.71) (xy 477.52 219.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000082")
+	)
+	(wire
+		(pts
+			(xy 477.52 219.71) (xy 472.44 219.71)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000083")
+	)
+	(wire
+		(pts
+			(xy 472.44 219.71) (xy 472.44 212.09)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000084")
+	)
+	(junction
+		(at 477.52 219.71)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000085")
+	)
+	(symbol
+		(lib_id "Switch:SW_SPDT")
+		(at 467.36 209.55 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000086")
+		(property "Reference" "SW1"
+			(at 467.36 200.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "SW_SPDT"
+			(at 467.36 203.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Button_Switch_SMD:SW_SPDT_CK_JS102011SAQN"
+			(at 467.36 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 467.36 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Switch, single pole double throw"
+			(at 467.36 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C221660"
+			(at 467.36 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000087")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000088")
+		)
+		(pin "3"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000089")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "SW1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 462.28 209.55) (xy 457.2 209.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000008a")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 457.2 209.55 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000008b")
+		(property "Reference" "#PWR044"
+			(at 457.2 205.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 457.2 213.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 457.2 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 457.2 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 457.2 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000008c")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR044")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(no_connect
+		(at 472.44 207.01)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000008d")
+	)
+	(wire
+		(pts
+			(xy 490.22 214.63) (xy 490.22 207.01)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000008e")
+	)
+	(wire
+		(pts
+			(xy 490.22 207.01) (xy 490.22 204.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000008f")
+	)
+	(wire
+		(pts
+			(xy 490.22 207.01) (xy 500.38 207.01)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000090")
+	)
+	(junction
+		(at 490.22 207.01)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000091")
+	)
+	(symbol
+		(lib_id "power:+LED_PWR")
+		(at 490.22 204.47 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000092")
+		(property "Reference" "#PWR045"
+			(at 490.22 200.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+LED_PWR"
+			(at 490.22 208.026 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 490.22 204.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 490.22 204.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+LED_PWR""
+			(at 490.22 204.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000093")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR045")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 490.22 212.09) (xy 482.6 212.09)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000094")
+	)
+	(junction
+		(at 490.22 212.09)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000095")
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 482.6 212.09 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000096")
+		(property "Reference" "#FLG01"
+			(at 482.6 210.185 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 482.6 208.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 482.6 212.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 482.6 212.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Special symbol for telling ERC where power comes from"
+			(at 482.6 212.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000097")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#FLG01")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 500.38 209.55 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000098")
+		(property "Reference" "C20"
+			(at 500.38 206.248 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "220uF"
+			(at 500.38 212.852 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_Elec_6.3x7.7"
+			(at 500.38 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 500.38 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 500.38 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" ""
+			(at 500.38 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000099")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000009a")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C20")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 500.38 212.09) (xy 500.38 214.63)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000009b")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 500.38 214.63 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000009c")
+		(property "Reference" "#PWR046"
+			(at 500.38 210.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 500.38 218.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 500.38 214.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 500.38 214.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 500.38 214.63 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000009d")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR046")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Regulator_Linear:TLV75533PDBV")
+		(at 521.97 232.41 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000009e")
+		(property "Reference" "U4"
+			(at 521.97 222.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "TLV75533PDBVR"
+			(at 521.97 224.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_TO_SOT_SMD:SOT-23-5"
+			(at 521.97 232.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "http://www.ti.com/lit/ds/symlink/tlv755p.pdf"
+			(at 521.97 232.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "500mA Low Dropout Voltage Regulator, Fixed Output 3.3V, SOT-23-5"
+			(at 521.97 232.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C404027"
+			(at 521.97 232.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000009f")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000a0")
+		)
+		(pin "3"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000a1")
+		)
+		(pin "4"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000a2")
+		)
+		(pin "5"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000a3")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "U4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 514.35 224.79) (xy 514.35 229.87)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000a4")
+	)
+	(wire
+		(pts
+			(xy 514.35 229.87) (xy 514.35 232.41)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000a5")
+	)
+	(junction
+		(at 514.35 229.87)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000a6")
+	)
+	(wire
+		(pts
+			(xy 521.97 240.03) (xy 521.97 242.57)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000a7")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 521.97 242.57 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000a8")
+		(property "Reference" "#PWR047"
+			(at 521.97 238.76 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 521.97 246.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 521.97 242.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 521.97 242.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 521.97 242.57 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000a9")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR047")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 529.59 229.87) (xy 538.48 229.87)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000aa")
+	)
+	(wire
+		(pts
+			(xy 538.48 229.87) (xy 538.48 227.33)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000ab")
+	)
+	(junction
+		(at 538.48 229.87)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000ac")
+	)
+	(symbol
+		(lib_id "power:+3V3")
+		(at 538.48 227.33 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000ad")
+		(property "Reference" "#PWR048"
+			(at 538.48 223.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 538.48 230.886 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 538.48 227.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 538.48 227.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+3V3""
+			(at 538.48 227.33 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000ae")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR048")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 538.48 232.41 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000af")
+		(property "Reference" "C5"
+			(at 538.48 229.108 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "2.2uF"
+			(at 538.48 235.712 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
+			(at 538.48 232.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 538.48 232.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 538.48 232.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C377773"
+			(at 538.48 232.41 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000b0")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000b1")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 538.48 234.95) (xy 538.48 237.49)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000b2")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 538.48 237.49 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000b3")
+		(property "Reference" "#PWR049"
+			(at 538.48 233.68 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 538.48 241.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 538.48 237.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 538.48 237.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 538.48 237.49 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000b4")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR049")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 427.99 250.19) (xy 447.04 250.19)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000b5")
+	)
+	(symbol
+		(lib_id "Device:R_Small")
+		(at 449.58 250.19 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000b6")
+		(property "Reference" "R5"
+			(at 449.58 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k"
+			(at 449.58 252.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder"
+			(at 449.58 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 449.58 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor, small symbol"
+			(at 449.58 250.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15439,7 +17879,7 @@
 			)
 		)
 		(property "MPN" "C17513"
-			(at 405.13 121.92 0)
+			(at 449.58 250.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15447,11 +17887,11 @@
 				(hide yes)
 			)
 		)
-		(pin "2"
-			(uuid "cb655a94-466a-4cd3-ab5a-44edd6c084b9")
-		)
 		(pin "1"
-			(uuid "54789227-a6e6-46e4-98cf-a12c00541a71")
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000b7")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000b8")
 		)
 		(instances
 			(project "LED_Coaster"
@@ -15462,45 +17902,43 @@
 			)
 		)
 	)
+	(wire
+		(pts
+			(xy 452.12 250.19) (xy 457.2 250.19)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000b9")
+	)
 	(symbol
-		(lib_id "Diode:SS34")
-		(at 450.85 124.46 90)
+		(lib_id "Device:LED")
+		(at 461.01 250.19 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "feca879d-957f-48cf-8483-3a890c29d849")
-		(property "Reference" "D32"
-			(at 453.39 123.5074 90)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000ba")
+		(property "Reference" "D33"
+			(at 461.01 246.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
 			)
 		)
-		(property "Value" "SS34"
-			(at 453.39 126.0474 90)
+		(property "Value" "LED"
+			(at 461.01 254 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify right)
 			)
 		)
-		(property "Footprint" "Diode_SMD:D_SMA"
-			(at 455.295 124.46 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.vishay.com/docs/88751/ss32.pdf"
-			(at 450.85 124.46 0)
+		(property "Footprint" "LED_SMD:LED_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
+			(at 461.01 250.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15508,8 +17946,8 @@
 				(hide yes)
 			)
 		)
-		(property "Description" "40V 3A Schottky Diode, SMA"
-			(at 450.85 124.46 0)
+		(property "Datasheet" "~"
+			(at 461.01 250.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15517,8 +17955,8 @@
 				(hide yes)
 			)
 		)
-		(property "MPN" "C8678"
-			(at 450.85 124.46 0)
+		(property "Description" "Light emitting diode"
+			(at 461.01 250.19 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -15526,20 +17964,3177 @@
 				(hide yes)
 			)
 		)
-		(pin "2"
-			(uuid "4c432101-d836-4bfb-a1b4-dd82dc344b7d")
+		(property "MPN" "C2297"
+			(at 461.01 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
 		)
 		(pin "1"
-			(uuid "a1edd8f2-96e7-4407-9ba2-b55e7ebd73b7")
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000bb")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000bc")
 		)
 		(instances
 			(project "LED_Coaster"
 				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "D32")
+					(reference "D33")
 					(unit 1)
 				)
 			)
 		)
+	)
+	(wire
+		(pts
+			(xy 464.82 250.19) (xy 474.98 250.19)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000bd")
+	)
+	(wire
+		(pts
+			(xy 474.98 250.19) (xy 474.98 247.65)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000be")
+	)
+	(symbol
+		(lib_id "power:+5V")
+		(at 474.98 247.65 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000bf")
+		(property "Reference" "#PWR050"
+			(at 474.98 243.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+5V"
+			(at 474.98 251.206 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 474.98 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 474.98 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+5V""
+			(at 474.98 247.65 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000c0")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR050")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 427.99 252.73) (xy 487.68 252.73)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000c1")
+	)
+	(symbol
+		(lib_id "Device:R_Small")
+		(at 490.22 252.73 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000c2")
+		(property "Reference" "R16"
+			(at 490.22 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "1k"
+			(at 490.22 255.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder"
+			(at 490.22 252.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 490.22 252.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Resistor, small symbol"
+			(at 490.22 252.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C17513"
+			(at 490.22 252.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000c3")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000c4")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "R16")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 492.76 252.73) (xy 497.84 252.73)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000c5")
+	)
+	(symbol
+		(lib_id "Device:LED")
+		(at 501.65 252.73 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000c6")
+		(property "Reference" "D35"
+			(at 501.65 248.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LED"
+			(at 501.65 256.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "LED_SMD:LED_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
+			(at 501.65 252.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 501.65 252.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Light emitting diode"
+			(at 501.65 252.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C2297"
+			(at 501.65 252.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000c7")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000c8")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "D35")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 505.46 252.73) (xy 510.54 252.73)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000c9")
+	)
+	(wire
+		(pts
+			(xy 510.54 252.73) (xy 510.54 250.19)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000ca")
+	)
+	(symbol
+		(lib_id "power:+5V")
+		(at 510.54 250.19 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000cb")
+		(property "Reference" "#PWR051"
+			(at 510.54 246.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+5V"
+			(at 510.54 253.746 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 510.54 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 510.54 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+5V""
+			(at 510.54 250.19 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000cc")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR051")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+LED_PWR")
+		(at 340.36 285.75 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000cd")
+		(property "Reference" "#PWR052"
+			(at 340.36 281.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+LED_PWR"
+			(at 340.36 289.306 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 340.36 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 340.36 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+LED_PWR""
+			(at 340.36 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000ce")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR052")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 340.36 285.75) (xy 340.36 288.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000cf")
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 340.36 290.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000d0")
+		(property "Reference" "C8"
+			(at 340.36 287.528 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 340.36 294.132 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 340.36 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 340.36 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 340.36 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C14663"
+			(at 340.36 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000d1")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000d2")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C8")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 340.36 293.37) (xy 340.36 295.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000d3")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 340.36 295.91 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000d4")
+		(property "Reference" "#PWR053"
+			(at 340.36 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 340.36 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 340.36 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 340.36 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 340.36 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000d5")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR053")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+LED_PWR")
+		(at 353.06 285.75 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000d6")
+		(property "Reference" "#PWR054"
+			(at 353.06 281.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+LED_PWR"
+			(at 353.06 289.306 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 353.06 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 353.06 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+LED_PWR""
+			(at 353.06 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000d7")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR054")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 353.06 285.75) (xy 353.06 288.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000d8")
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 353.06 290.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000d9")
+		(property "Reference" "C9"
+			(at 353.06 287.528 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 353.06 294.132 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 353.06 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 353.06 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 353.06 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C14663"
+			(at 353.06 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000da")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000db")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C9")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 353.06 293.37) (xy 353.06 295.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000dc")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 353.06 295.91 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000dd")
+		(property "Reference" "#PWR055"
+			(at 353.06 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 353.06 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 353.06 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 353.06 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 353.06 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000de")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR055")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+LED_PWR")
+		(at 365.76 285.75 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000df")
+		(property "Reference" "#PWR056"
+			(at 365.76 281.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+LED_PWR"
+			(at 365.76 289.306 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 365.76 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 365.76 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+LED_PWR""
+			(at 365.76 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000e0")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR056")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 365.76 285.75) (xy 365.76 288.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000e1")
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 365.76 290.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000e2")
+		(property "Reference" "C10"
+			(at 365.76 287.528 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 365.76 294.132 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 365.76 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 365.76 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 365.76 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C14663"
+			(at 365.76 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000e3")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000e4")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C10")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 365.76 293.37) (xy 365.76 295.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000e5")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 365.76 295.91 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000e6")
+		(property "Reference" "#PWR057"
+			(at 365.76 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 365.76 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 365.76 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 365.76 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 365.76 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000e7")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR057")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+LED_PWR")
+		(at 378.46 285.75 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000e8")
+		(property "Reference" "#PWR058"
+			(at 378.46 281.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+LED_PWR"
+			(at 378.46 289.306 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 378.46 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 378.46 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+LED_PWR""
+			(at 378.46 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000e9")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR058")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 378.46 285.75) (xy 378.46 288.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000ea")
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 378.46 290.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000eb")
+		(property "Reference" "C11"
+			(at 378.46 287.528 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 378.46 294.132 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 378.46 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 378.46 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 378.46 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C14663"
+			(at 378.46 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000ec")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000ed")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C11")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 378.46 293.37) (xy 378.46 295.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000ee")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 378.46 295.91 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000ef")
+		(property "Reference" "#PWR059"
+			(at 378.46 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 378.46 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 378.46 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 378.46 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 378.46 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000f0")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR059")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+LED_PWR")
+		(at 391.16 285.75 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000f1")
+		(property "Reference" "#PWR060"
+			(at 391.16 281.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+LED_PWR"
+			(at 391.16 289.306 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 391.16 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 391.16 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+LED_PWR""
+			(at 391.16 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000f2")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR060")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 391.16 285.75) (xy 391.16 288.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000f3")
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 391.16 290.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000f4")
+		(property "Reference" "C12"
+			(at 391.16 287.528 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 391.16 294.132 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 391.16 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 391.16 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 391.16 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C14663"
+			(at 391.16 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000f5")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000f6")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C12")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 391.16 293.37) (xy 391.16 295.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000f7")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 391.16 295.91 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000f8")
+		(property "Reference" "#PWR061"
+			(at 391.16 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 391.16 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 391.16 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 391.16 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 391.16 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000f9")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR061")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+LED_PWR")
+		(at 403.86 285.75 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000fa")
+		(property "Reference" "#PWR062"
+			(at 403.86 281.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+LED_PWR"
+			(at 403.86 289.306 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 403.86 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 403.86 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+LED_PWR""
+			(at 403.86 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000fb")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR062")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 403.86 285.75) (xy 403.86 288.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000fc")
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 403.86 290.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-0000000000fd")
+		(property "Reference" "C13"
+			(at 403.86 287.528 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 403.86 294.132 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 403.86 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 403.86 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 403.86 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C14663"
+			(at 403.86 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000fe")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-0000000000ff")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C13")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 403.86 293.37) (xy 403.86 295.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000100")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 403.86 295.91 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000101")
+		(property "Reference" "#PWR063"
+			(at 403.86 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 403.86 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 403.86 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 403.86 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 403.86 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000102")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR063")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+LED_PWR")
+		(at 416.56 285.75 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000103")
+		(property "Reference" "#PWR064"
+			(at 416.56 281.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+LED_PWR"
+			(at 416.56 289.306 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 416.56 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 416.56 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+LED_PWR""
+			(at 416.56 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000104")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR064")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 416.56 285.75) (xy 416.56 288.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000105")
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 416.56 290.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000106")
+		(property "Reference" "C14"
+			(at 416.56 287.528 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 416.56 294.132 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 416.56 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 416.56 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 416.56 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C14663"
+			(at 416.56 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000107")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000108")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C14")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 416.56 293.37) (xy 416.56 295.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000109")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 416.56 295.91 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000010a")
+		(property "Reference" "#PWR065"
+			(at 416.56 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 416.56 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 416.56 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 416.56 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 416.56 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000010b")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR065")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+LED_PWR")
+		(at 429.26 285.75 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000010c")
+		(property "Reference" "#PWR066"
+			(at 429.26 281.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+LED_PWR"
+			(at 429.26 289.306 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 429.26 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 429.26 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+LED_PWR""
+			(at 429.26 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000010d")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR066")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 429.26 285.75) (xy 429.26 288.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000010e")
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 429.26 290.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000010f")
+		(property "Reference" "C15"
+			(at 429.26 287.528 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 429.26 294.132 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 429.26 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 429.26 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 429.26 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C14663"
+			(at 429.26 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000110")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000111")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C15")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 429.26 293.37) (xy 429.26 295.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000112")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 429.26 295.91 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000113")
+		(property "Reference" "#PWR067"
+			(at 429.26 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 429.26 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 429.26 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 429.26 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 429.26 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000114")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR067")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+LED_PWR")
+		(at 441.96 285.75 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000115")
+		(property "Reference" "#PWR068"
+			(at 441.96 281.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+LED_PWR"
+			(at 441.96 289.306 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 441.96 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 441.96 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+LED_PWR""
+			(at 441.96 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000116")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR068")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 441.96 285.75) (xy 441.96 288.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000117")
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 441.96 290.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000118")
+		(property "Reference" "C16"
+			(at 441.96 287.528 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 441.96 294.132 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 441.96 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 441.96 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 441.96 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C14663"
+			(at 441.96 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000119")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000011a")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C16")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 441.96 293.37) (xy 441.96 295.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000011b")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 441.96 295.91 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000011c")
+		(property "Reference" "#PWR069"
+			(at 441.96 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 441.96 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 441.96 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 441.96 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 441.96 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000011d")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR069")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+LED_PWR")
+		(at 454.66 285.75 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000011e")
+		(property "Reference" "#PWR070"
+			(at 454.66 281.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+LED_PWR"
+			(at 454.66 289.306 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 454.66 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 454.66 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+LED_PWR""
+			(at 454.66 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000011f")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR070")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 454.66 285.75) (xy 454.66 288.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000120")
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 454.66 290.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000121")
+		(property "Reference" "C17"
+			(at 454.66 287.528 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 454.66 294.132 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 454.66 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 454.66 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 454.66 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C14663"
+			(at 454.66 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000122")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000123")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C17")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 454.66 293.37) (xy 454.66 295.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000124")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 454.66 295.91 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000125")
+		(property "Reference" "#PWR071"
+			(at 454.66 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 454.66 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 454.66 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 454.66 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 454.66 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000126")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR071")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+LED_PWR")
+		(at 467.36 285.75 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000127")
+		(property "Reference" "#PWR072"
+			(at 467.36 281.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+LED_PWR"
+			(at 467.36 289.306 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 467.36 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 467.36 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+LED_PWR""
+			(at 467.36 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000128")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR072")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 467.36 285.75) (xy 467.36 288.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000129")
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 467.36 290.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000012a")
+		(property "Reference" "C18"
+			(at 467.36 287.528 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 467.36 294.132 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 467.36 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 467.36 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 467.36 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C14663"
+			(at 467.36 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000012b")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000012c")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C18")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 467.36 293.37) (xy 467.36 295.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000012d")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 467.36 295.91 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000012e")
+		(property "Reference" "#PWR073"
+			(at 467.36 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 467.36 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 467.36 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 467.36 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 467.36 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-00000000012f")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR073")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+LED_PWR")
+		(at 480.06 285.75 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000130")
+		(property "Reference" "#PWR074"
+			(at 480.06 281.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "+LED_PWR"
+			(at 480.06 289.306 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 480.06 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 480.06 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "+LED_PWR""
+			(at 480.06 285.75 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000131")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR074")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 480.06 285.75) (xy 480.06 288.29)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000132")
+	)
+	(symbol
+		(lib_id "Device:C_Small")
+		(at 480.06 290.83 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000133")
+		(property "Reference" "C19"
+			(at 480.06 287.528 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "100nF"
+			(at 480.06 294.132 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder"
+			(at 480.06 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 480.06 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Unpolarized capacitor, small symbol"
+			(at 480.06 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "MPN" "C14663"
+			(at 480.06 290.83 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000134")
+		)
+		(pin "2"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000135")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "C19")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 480.06 293.37) (xy 480.06 295.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000136")
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 480.06 295.91 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000137")
+		(property "Reference" "#PWR075"
+			(at 480.06 292.1 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "GND"
+			(at 480.06 299.72 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 480.06 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 480.06 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name "GND""
+			(at 480.06 295.91 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000138")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#PWR075")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(text "Li-Po charger + power path"
+		(exclude_from_sim no)
+		(at 386.08 203.2 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000139")
+	)
+	(text "SYS output feeds LDO and LED switch - NOT the same net as BAT"
+		(exclude_from_sim no)
+		(at 386.08 200.66 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000013a")
+	)
+	(text "charge current 1000/R2 = 500 mA"
+		(exclude_from_sim no)
+		(at 358.14 232.41 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000013b")
+	)
+	(text "termination 1000/R15 = 50 mA"
+		(exclude_from_sim no)
+		(at 358.14 260.35 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000013c")
+	)
+	(text "no NTC fitted: 10k to VSS"
+		(exclude_from_sim no)
+		(at 358.14 265.43 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000013d")
+	)
+	(text "CE/TE/PROG2 strapped to SYS so they never float"
+		(exclude_from_sim no)
+		(at 340.36 270.51 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000013e")
+	)
+	(text "ON/OFF (logic level only)"
+		(exclude_from_sim no)
+		(at 452.12 201.93 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-00000000013f")
+	)
+	(text "LED power switch"
+		(exclude_from_sim no)
+		(at 480.06 199.39 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000140")
+	)
+	(text "3V3 LDO"
+		(exclude_from_sim no)
+		(at 514.35 219.71 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000141")
+	)
+	(text "Li-Po"
+		(exclude_from_sim no)
+		(at 465 269.24 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000142")
+	)
+	(text "STAT1 / STAT2"
+		(exclude_from_sim no)
+		(at 430.53 259.08 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000143")
+	)
+	(text "LED ring decoupling - place one cap next to every 2-3 WS2812B on the PCB"
+		(exclude_from_sim no)
+		(at 340.36 279.4 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000144")
 	)
 	(sheet_instances
 		(path "/"
