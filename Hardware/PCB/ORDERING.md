@@ -7,7 +7,7 @@ Working checklist for taking the reworked schematic (branch
 box is the next thing to do. Notes and gotchas live under each step — read them
 before doing the step, not after.
 
-**Current status:** Phase 0 — nothing started.
+**Current status:** Phase 1 — KiCad installed, project opens. Next: run ERC.
 
 ---
 
@@ -30,7 +30,7 @@ this time if the plugin works on your KiCad version.
 
 ## Phase 0 — Install and open
 
-- [ ] **Install KiCad 10.0.5** (current stable) from <https://www.kicad.org/download/>
+- [x] **Install KiCad 10.0.5** (current stable) from <https://www.kicad.org/download/>
 
   Get the real desktop application. **VS Code extensions are not enough** — see
   the note at the bottom of this file for why.
@@ -38,7 +38,7 @@ this time if the plugin works on your KiCad version.
   During install, accept the default components. You want the libraries and the
   Plugin and Content Manager included (they are on by default).
 
-- [ ] **Get the branch**
+- [x] **Get the branch**
 
   ```bash
   cd c:/dev/LED-Coaster
@@ -46,15 +46,17 @@ this time if the plugin works on your KiCad version.
   git pull
   ```
 
-- [ ] **Open the project**
+- [x] **Open the project**
 
   Launch KiCad → *File → Open Project* → `Hardware/PCB/LED_Coaster.kicad_pro`
 
-  KiCad 10 will offer to **upgrade the file format** (the files are KiCad 8
-  format). Accept. Commit the reformatted files afterwards so the repo stays
-  consistent — the diff will look huge, that is normal and expected.
+  The files are in KiCad 8 format. KiCad 10 reads them directly and **may not
+  say anything about it** — there is not necessarily an upgrade prompt. The
+  format is rewritten to v10 the first time you *save*, which is normal.
 
-- [ ] **Commit the format upgrade on its own**
+- [ ] **Commit the format upgrade once it happens**
+
+  After your first save in either editor:
 
   ```bash
   git add Hardware/PCB
@@ -62,7 +64,8 @@ this time if the plugin works on your KiCad version.
   ```
 
   Doing this as a separate commit keeps the real design changes readable in
-  history later.
+  history later. The diff will look enormous — that is expected, KiCad rewrites
+  the whole file.
 
 ---
 
