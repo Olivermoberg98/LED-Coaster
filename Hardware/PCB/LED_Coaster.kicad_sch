@@ -9481,74 +9481,6 @@
 		)
 	)
 	(symbol
-		(lib_name "GND_2")
-		(lib_id "power:GND")
-		(at 422.91 172.72 0)
-		(mirror y)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "3664e763-fed3-4db3-aed3-d8a8ef84d587")
-		(property "Reference" "#PWR016"
-			(at 422.91 179.07 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 422.91 177.8 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 422.91 172.72 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 422.91 172.72 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 422.91 172.72 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "306ca591-0f03-4514-8710-873371ee68b8")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "#PWR016")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Switch:SW_SPST")
 		(at 227.33 198.12 0)
 		(unit 1)
@@ -11644,73 +11576,6 @@
 		)
 	)
 	(symbol
-		(lib_name "GND_2")
-		(lib_id "power:GND")
-		(at 514.35 144.78 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "96caca35-4e3f-492c-87b8-1b736c3e538f")
-		(property "Reference" "#PWR05"
-			(at 514.35 151.13 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 514.35 149.86 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 514.35 144.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 514.35 144.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 514.35 144.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "78430a3d-8c42-4856-aa60-c4a473e641cd")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "#PWR05")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_name "GND_4")
 		(lib_id "power:GND")
 		(at 160.02 279.4 0)
@@ -12542,73 +12407,6 @@
 			(project "LED_Coaster"
 				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
 					(reference "D15")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_name "GND_3")
-		(lib_id "power:GND")
-		(at 368.3 129.54 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "bf45bd93-4df5-4c6f-91c8-57509de89ddd")
-		(property "Reference" "#PWR09"
-			(at 368.3 135.89 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 368.3 134.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 368.3 129.54 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 368.3 129.54 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 368.3 129.54 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "ed1a3b52-bfd9-494e-86e3-62b55b7ffc64")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "#PWR09")
 					(unit 1)
 				)
 			)
@@ -14402,73 +14200,6 @@
 			(project "LED_Coaster"
 				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
 					(reference "D11")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_name "GND_3")
-		(lib_id "power:GND")
-		(at 417.83 143.51 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "ed6bf1d4-509f-4204-92eb-9cc9e43f212b")
-		(property "Reference" "#PWR011"
-			(at 417.83 149.86 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 417.83 148.59 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 417.83 143.51 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 417.83 143.51 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 417.83 143.51 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "e08c91f6-9ea2-48d2-8559-5054f0a6a03f")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "#PWR011")
 					(unit 1)
 				)
 			)
@@ -21961,6 +21692,176 @@
 			)
 		)
 		(uuid "5ed0c0a5-0000-0000-0000-000000000028")
+	)
+	(wire
+		(pts
+			(xy 410.21 209.55) (xy 417.83 209.55)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000001")
+	)
+	(junction
+		(at 410.21 209.55)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000002")
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 417.83 209.55 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000003")
+		(property "Reference" "#FLG02"
+			(at 417.83 207.645 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 417.83 205.74 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 417.83 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 417.83 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Special symbol for telling ERC where power comes from"
+			(at 417.83 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000004")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#FLG02")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(wire
+		(pts
+			(xy 410.21 265.43) (xy 417.83 265.43)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000005")
+	)
+	(junction
+		(at 410.21 265.43)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000006")
+	)
+	(symbol
+		(lib_id "power:PWR_FLAG")
+		(at 417.83 265.43 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000007")
+		(property "Reference" "#FLG03"
+			(at 417.83 263.525 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "PWR_FLAG"
+			(at 417.83 261.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 417.83 265.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 417.83 265.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Special symbol for telling ERC where power comes from"
+			(at 417.83 265.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "5ed0c0a5-0000-0000-0000-000000000008")
+		)
+		(instances
+			(project "LED_Coaster"
+				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
+					(reference "#FLG03")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(text "PWR_FLAG: tells ERC these rails are driven"
+		(exclude_from_sim no)
+		(at 417.83 206.38 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "5ed0c0a5-0000-0000-0000-000000000009")
 	)
 	(sheet_instances
 		(path "/"
