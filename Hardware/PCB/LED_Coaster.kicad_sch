@@ -17254,7 +17254,7 @@
 				)
 			)
 		)
-		(property "Value" "220uF"
+		(property "Value" "100uF"
 			(at 500.38 212.852 0)
 			(effects
 				(font
@@ -17262,7 +17262,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_Elec_6.3x7.7"
+		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric_Pad1.33x2.70mm_HandSolder"
 			(at 500.38 209.55 0)
 			(effects
 				(font

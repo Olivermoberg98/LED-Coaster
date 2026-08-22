@@ -8,7 +8,7 @@ Three loosely-coupled parts, no shared build:
 
 - `Software/LED_coaster/` — ESP32-C3 firmware (PlatformIO + Arduino framework, FastLED, NimBLE-Arduino). The coaster itself.
 - `Software/App/Coaster_app/` — Android app (Kotlin, classic Views + XML layouts, **no Compose**) that drives coasters over BLE GATT.
-- `Hardware/PCB/` — KiCad project for the coaster board.
+- `Hardware/PCB/` — KiCad project for the coaster board. `Hardware/PCB/ORDERING.md` is the live checklist for taking the board through layout to a JLCPCB order — check it for current progress before doing PCB work.
 
 `Software/LED_coaster/.pio/` is gitignored build output containing full copies of FastLED and NimBLE-Arduino. Exclude it when searching — it dwarfs the actual source (5 files).
 
