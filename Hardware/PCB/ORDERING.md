@@ -84,7 +84,7 @@ numbers. Open the schematic editor (the first icon in the project window).
 
 - [x] **Run ERC** — *Inspect → Electrical Rules Checker → Run ERC*
 
-  **0 errors.** ~45 warnings remain and all are pre-existing, expected, and
+  **0 errors.** 42 warnings remain and all are pre-existing, expected, and
   safe to ignore:
 
   | Warning | Count | Why it is fine |
