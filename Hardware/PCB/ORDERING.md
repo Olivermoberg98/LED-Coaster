@@ -17,10 +17,22 @@ before doing the step, not after.
 |---|---|
 | Outline | 90 mm circle, centre (150, 80) in PCB coordinates |
 | Layers | 2 (F.Cu / B.Cu) |
-| Components | both sides — **double-sided assembly** |
+| Components | both sides physically |
 | Front (F.Cu) | 46 parts: ESP32 module, USB-C, power section, small ring `D21–D30` |
 | Back (B.Cu) | 21 parts: large ring `D1–D20`, battery connector `J1` |
 | Peak LED current | ~1.8 A theoretical (30 × WS2812B, full white) |
+| Last order's assembly | **single-sided, front only, 27 parts** |
+
+**Important:** although parts sit on both sides, the previous order was
+*single-sided* assembly. JLCPCB fitted 27 front-side parts; the 30 WS2812Bs,
+the ESP32 module `U1`, the battery connector `J1` and the UART header `J4` were
+hand-soldered afterwards. You can tell because none of them have an `MPN` field,
+and only parts with an `MPN` reach the generated BOM.
+
+Keep that split if you can — it is much cheaper. The one thing that has changed
+is that the new charger `U3` is a QFN-20 with a thermal pad underneath, which
+**cannot realistically be hand-soldered**. It must be machine-placed, and it is
+on the front, so single-sided assembly still works.
 
 Previous orders used the **Fabrication Toolkit** KiCad plugin — `fabrication-toolkit-options.json`
 in this folder is its config, and `production/` holds its last output. Same route
@@ -103,20 +115,50 @@ numbers. Open the schematic editor (the first icon in the project window).
 
 - [ ] **Fill in the missing LCSC part numbers**
 
-  Six BOM lines have an empty `MPN` field because I would not guess a part
-  number and risk the wrong component being fitted. For each, search
-  <https://jlcpcb.com/parts> , confirm it is in stock, prefer **Basic** parts
-  (Extended parts carry a one-off feeder fee of a few dollars each), then in
-  KiCad double-click the symbol and put the `Cxxxxx` code in the `MPN` field.
+  **There is no BOM file to edit.** `production/bom.csv` is *output* from the
+  last order and gets overwritten in Phase 7. The part number lives on the
+  symbol in the schematic, in a field called **`MPN`**, and the BOM is generated
+  from that.
 
-  | Ref | Value | Package | Notes |
+  **This matters more than it looks:** a part with an empty `MPN` is *silently
+  left out of the generated BOM entirely* — it does not appear as a blank line,
+  it just vanishes, and JLCPCB never fits it. That is how the WS2812Bs and the
+  ESP32 module were excluded last time (deliberately — they were hand-soldered).
+  If you leave these six blank, the board comes back missing them.
+
+  | Ref | Value | Package | Purpose if missing |
   |---|---|---|---|
-  | `R13`, `R17` | 100k | 0805 | same part, one BOM line |
-  | `R15` | 20k | 0805 | sets charge termination at 50 mA |
-  | `R18`, `R19` | 470k | 0805 | same part, one BOM line |
-  | `C20` | 100µF | 1210 | X5R/X7R, 6.3 V or higher |
+  | `R13` | 100k | 0805 | FET gate pull-up — LEDs stuck on |
+  | `R17` | 100k | 0805 | rail pulldown — LDO may not shut down |
+  | `R15` | 20k | 0805 | charge termination — charging never ends properly |
+  | `R18`, `R19` | 470k | 0805 | battery sense divider |
+  | `C20` | 100µF | 1210 | LED bulk cap |
 
-  Everything else already has a code carried over from the existing BOM.
+  `R13`/`R17` are the same part, and `R18`/`R19` are the same part, so it is
+  four distinct components to find.
+
+  **How to search.** Go to <https://jlcpcb.com/parts>, pick the category, then
+  use the *filters* down the left rather than the text box — text search on
+  values is unreliable. For the resistors: category *Resistors → Chip Resistor -
+  Surface Mount*, then set **Package = 0805**, **Resistance =** the value you
+  want, **Tolerance = ±1%**, and tick **Basic Part** and **In Stock**.
+
+  Prefer **Basic** parts — Extended parts carry a one-off feeder fee of a few
+  dollars each, per part type.
+
+  Starting points worth verifying rather than trusting (stock and part numbers
+  move, and I have not confirmed these against a live listing):
+
+  - 100k 0805 1% — `0805W8F1003T5E`, listed under both `C149504` and `C17407`
+  - 100µF 1210 X5R 6.3 V — `1210X5R107M6R3NT`, `C49326798`
+  - 20k and 470k — search the filters as above
+
+  Sanity check: this board's existing 0805 resistors are all UNI-ROYAL
+  `0805W8F####T5E` (10k = `C17414`, 1k = `C17513`, 2k = `C17604`). Staying in
+  that family keeps the BOM consistent.
+
+  Then in KiCad: double-click the symbol → find the `MPN` field → paste the
+  `Cxxxxx` code. Save.
 
 - [ ] **Confirm these are still in stock** (they were when specified, stock moves)
 
@@ -203,17 +245,24 @@ flip a part to the other side of the board.
       **ESP32's GPIO4 pin**, not to the divider. The divider itself can sit near
       the battery connector.
 
-- [ ] **The 12 decoupling caps `C8–C19`** — this is the fiddly one. They must be
-      spread around **both** rings, as close to their nearest LED as physically
-      possible, one cap per 2–3 LEDs:
+- [ ] **The 12 decoupling caps `C8–C19` — keep all of them on the FRONT.**
 
-      - **8 caps on the back (B.Cu)** among `D1–D20` (the 20-LED large ring)
-      - **4 caps on the front (F.Cu)** among `D21–D30` (the 10-LED small ring)
+      The obvious move is to put 8 on the back next to the large ring. Don't:
+      that would force double-sided assembly and roughly double the assembly
+      cost, for no real electrical gain.
 
-      Select a cap, press <kbd>F</kbd> to flip it to the back for the first group.
-      Each cap connects between its neighbouring LED's pin 1 (`+LED_PWR`) and
-      pin 3 (`GND`). A cap 20 mm from its LED does nothing useful — proximity is
-      the entire point.
+      Instead place them on the front **directly opposite** their LED. The large
+      ring sits at radius 32 mm on the back, and most of that circle is clear on
+      the front — only the electronics cluster occupies part of it. A cap on the
+      opposite face, right underneath its LED, is electrically about as good as
+      one beside it: the return loop is two vias through 1.6 mm of board.
+
+      - **8 caps** spread around radius ≈32 mm, opposite `D1–D20`, skipping the
+        sector where the ESP32 and power section sit
+      - **4 caps** among `D21–D30` on the front, normally
+
+      Each cap goes between `+LED_PWR` and `GND`. Proximity is the whole point —
+      a cap 20 mm from its LED does nothing useful.
 
 ---
 
@@ -321,13 +370,20 @@ Set trace width before drawing: the dropdown in the top toolbar, or
       | Everything else | default | |
 
 - [ ] **Turn on assembly** — set *PCB Assembly* to ON.
-      - Assembly side: **both sides** (LEDs are on the back, everything else front)
+      - Assembly side: **top side only** — matches last order. The parts on
+        the back (`D1–D20`, `J1`) have no `MPN`, so they are not in the BOM and
+        you hand-solder them as before
       - Tooling holes: **added by JLCPCB**
       - Quantity: 2 to start. Assembly is where the money goes, and a first
         revision of a reworked power path is worth proving before committing to five.
 
 - [ ] **Upload BOM and CPL** — `production/bom.csv` as the BOM,
       `production/positions.csv` as the CPL (pick-and-place).
+
+      Before uploading, open `bom.csv` and **count the lines**. Every part you
+      expect to be fitted must be there. Anything with a blank `MPN` in the
+      schematic will be missing without warning — that is the single easiest way
+      to get a board back that does not work.
 
 - [ ] **Review part matching.** JLCPCB shows every line with the part it matched.
       Check each one, especially:
