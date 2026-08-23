@@ -7,7 +7,7 @@ Working checklist for taking the reworked schematic (branch
 box is the next thing to do. Notes and gotchas live under each step — read them
 before doing the step, not after.
 
-**Current status:** Phase 1 — KiCad installed, project opens. Next: run ERC.
+**Current status:** Phase 1 — ERC clean (0 errors). Next: fill in the 4 missing LCSC part numbers, then F8.
 
 ---
 
@@ -82,12 +82,24 @@ numbers. Open the schematic editor (the first icon in the project window).
   the status LEDs, the battery-sense divider, and a bank of 12 decoupling caps
   `C8–C19` laid out in a row.
 
-- [ ] **Run ERC** — *Inspect → Electrical Rules Checker → Run ERC*
+- [x] **Run ERC** — *Inspect → Electrical Rules Checker → Run ERC*
 
-  Expect **zero errors**. Warnings about power pins on `+5V`, `GND` or `+3V3` may
-  appear — those are pre-existing to this board, not from the rework. If you get
-  anything mentioning `+SYS`, `+LED_PWR`, `BAT_SENSE`, `U3`, `U4`, `Q1` or
-  `R13`–`R19`, stop and tell me what it says.
+  **0 errors.** ~45 warnings remain and all are pre-existing, expected, and
+  safe to ignore:
+
+  | Warning | Count | Why it is fine |
+  |---|---|---|
+  | `endpoint_off_grid` | ~36 | original LED-ring wires sit on an odd grid. Cosmetic; they are connected. Only fix if you ever redraw that area |
+  | `lib_symbol_mismatch` on `Device:LED`, `USB_C_Receptacle` | 4 | the board was drawn with KiCad 8 libraries and you now have KiCad 10 ones. The cached copy in the schematic is what gets used |
+  | `lib_symbol_issues` / `footprint_link_issues` on `ESP32-C3-WROOM-02-H4` | 2 | that library lives on your friend's machine, not in this repo. The symbol is cached in the schematic and the footprint is embedded in the board, so nothing is missing — but see the note below |
+
+  Everything that came from the power-path rework has been cleared.
+
+  **Note on the ESP32 library:** the repo is not self-contained for `U1`. It
+  works today because both the symbol and footprint are already baked into these
+  files, but nobody could add a second ESP32 module without that library. Worth
+  fixing at some point by extracting them into `Library.pretty/` and
+  `LED_Coaster.kicad_sym`. Not blocking the order.
 
 - [ ] **Fill in the missing LCSC part numbers**
 
