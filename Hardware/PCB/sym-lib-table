@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "LED_Coaster")(type "KiCad")(uri "${KIPRJMOD}/LED_Coaster.kicad_sym")(options "")(descr "Project power symbols"))
+)

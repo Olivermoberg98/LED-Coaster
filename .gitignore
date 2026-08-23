@@ -1,0 +1,4 @@
+
+# KiCad editor lock files and local history
+~*.lck
+.history/
