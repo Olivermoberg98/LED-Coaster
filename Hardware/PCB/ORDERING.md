@@ -411,8 +411,9 @@ Set trace width before drawing: the dropdown in the top toolbar, or
         the back and are now in the BOM
       - PCBA type: **Standard** — forced, `C2761795` is not offered on Economic
       - Tooling holes: **added by JLCPCB**
-      - Quantity: 2 to start. Assembly is where the money goes, and a first
-        revision of a reworked power path is worth proving before committing to five.
+      - Quantity: **5** — all of them. Decided deliberately: the ~$50 setup fee
+        is paid once regardless, so boards 3–5 add only ~$20 of parts between
+        them. Assembling fewer saves much less than it appears to.
 
       **Cost expectation.** Rough figures for 5 boards, from JLCPCB's published
       rates — confirm against the live quote, they change:
@@ -456,31 +457,56 @@ Set trace width before drawing: the dropdown in the top toolbar, or
       - `U3` — pin 1 orientation on the QFN
       - `U4`, `Q1` — SOT-23 packages
       - `D33`, `D35` — LED polarity
-      - **`D1`–`D30` rotation — the single biggest risk in this order.** These
-        were never machine-placed before, so there is no known-good previous run
-        to compare against. Two things stack up:
+      - **`D1`–`D30` rotation — the biggest risk in this order, but it has been
+        narrowed down to one number.** See the section below before you look.
 
-        - the footprint is a project-local custom one,
-          `Library:LED_WS2812_5050_handsolder`. The Fabrication Toolkit applies
-          JLCPCB rotation corrections from a database keyed on *footprint name*,
-          and it has no entry for this one — so no correction is applied, right
-          or wrong.
-        - all 30 are on a ring, each at a different angle, so an error is a
-          consistent offset rather than one obviously-wrong part.
+- [ ] **The WS2812B rotation check — do this one properly.**
 
-        Check the preview against the schematic: pin 1 = VDD, pin 2 = DOUT,
-        pin 3 = VSS, pin 4 = DIN, and DOUT of each LED must face DIN of the
-        next one around the ring. If the whole ring is off by a constant angle,
-        that is the missing rotation correction — fix it in the CPL before
-        paying, not after. Getting this wrong ruins all 150 LEDs.
+      **What was verified.** The footprint is project-local
+      (`Library:LED_WS2812_5050_handsolder`), and the Fabrication Toolkit's
+      correction database (`plugins/transformations.csv`) has **no entry
+      matching it** — it covers `^SOT-23`, `^QFN-`, `^SOIC-` and similar, so
+      `U3`/`U4`/`Q1` are handled, but the LEDs get no correction at all.
 
-      **Also worth knowing about that footprint:** its pads are the hand-solder
-      variant, extended well past the LED's actual contacts, and slightly
-      asymmetric (pads 1/2 at x = −2.925 mm, pads 3/4 at x = +2.65 mm). More
-      paste than a machine footprint would use, and the asymmetry pulls each
-      part ~0.14 mm off centre. For a 5050 part with 0.9 mm pads that is
-      tolerable and not worth redoing the footprint over — but it is why the
-      parts may not look perfectly centred on the boards when they arrive.
+      That sounds alarming, but the placements were checked and they are clean:
+
+      | | |
+      |---|---|
+      | Top ring `D21`–`D30` | all 10 sit at **270°** relative to their seat on the ring |
+      | Bottom ring `D1`–`D20` | all 20 sit at **270°** relative to their seat, in the mirrored frame |
+      | Spread within each ring | 0.1° (rounding) |
+      | Data chain | two clean chains, `D21→D30` and `D1→D20`, no breaks |
+
+      The toolkit applies `rotation = 180 − rotation` to bottom-side parts,
+      which is the correct JLCPCB convention, and the numbers confirm it lands
+      the bottom ring in agreement with the top.
+
+      **What this means:** there is no possibility of a per-LED error. Either
+      all 30 are right, or all 30 are wrong by the *same* constant. So the
+      preview check is quick:
+
+      1. Look at any **one** LED on the top ring and any **one** on the bottom.
+      2. Check DOUT of each faces DIN of the next one round the ring
+         (pin 1 = VDD, 2 = DOUT, 3 = VSS, 4 = DIN).
+      3. If they are right, all 30 are right. If one is rotated by 90/180/270,
+         every LED needs that same offset.
+
+      **If a correction is needed**, it does *not* mean hand-editing the CPL.
+      The toolkit reads a per-part field called **`FT Rotation Offset`**
+      (counter-clockwise degrees), so the fix lives in the schematic, survives
+      regeneration, and gets committed. Ask Claude to apply it — one command
+      sets it on all 30 — then re-run F8 and regenerate Phase 7.
+
+      Do not pay until this reads correctly. Getting it wrong ruins all 150 LEDs.
+
+      **Separately, about that footprint:** its pads are the hand-solder
+      variant, extended past the LED's actual contacts and slightly asymmetric
+      (pads 1/2 at x = −2.925 mm, pads 3/4 at +2.65 mm). More paste than a
+      machine footprint would use, and the asymmetry pulls each part ~0.14 mm
+      off centre. For a 5050 part with 0.9 mm pads that is tolerable — it was
+      considered and deliberately left alone, since swapping the footprint
+      would have disturbed the routing to all 30 LEDs on a crowded ring. Expect
+      slightly off-centre parts; expect them to work.
 
 - [ ] **Place the order.**
 
