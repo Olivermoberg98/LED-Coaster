@@ -12515,7 +12515,7 @@
 				)
 			)
 		)
-		(property "MPN" "C637761"
+		(property "MPN" "C5121473"
 			(at 410.21 240.03 0)
 			(hide yes)
 			(show_name no)
@@ -13208,7 +13208,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C4328"
 			(at 373.38 245.11 0)
 			(hide yes)
 			(show_name no)
@@ -14677,7 +14677,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C149504"
 			(at 477.52 222.25 0)
 			(hide yes)
 			(show_name no)
@@ -15045,7 +15045,7 @@
 				)
 			)
 		)
-		(property "Value" "100uF"
+		(property "Value" "22uF"
 			(at 500.38 212.852 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15055,7 +15055,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_1210_3225Metric_Pad1.33x2.70mm_HandSolder"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric_Pad1.18x1.45mm_HandSolder"
 			(at 500.38 209.55 0)
 			(hide yes)
 			(show_name no)
@@ -15088,7 +15088,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C296305"
 			(at 500.38 209.55 0)
 			(hide yes)
 			(show_name no)
@@ -19239,7 +19239,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C149504"
 			(at 511.81 204.47 0)
 			(hide yes)
 			(show_name no)
@@ -19481,7 +19481,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C17709"
 			(at 527.05 255.27 0)
 			(hide yes)
 			(show_name no)
@@ -19571,7 +19571,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C17709"
 			(at 527.05 265.43 0)
 			(hide yes)
 			(show_name no)
@@ -19694,7 +19694,7 @@
 				)
 			)
 		)
-		(property "Value" "100nF"
+		(property "Value" "0.1uF"
 			(at 519.43 266.192 0)
 			(show_name no)
 			(do_not_autoplace no)

@@ -7,7 +7,7 @@ Working checklist for taking the reworked schematic (branch
 box is the next thing to do. Notes and gotchas live under each step — read them
 before doing the step, not after.
 
-**Current status:** Phase 1 — ERC clean (0 errors). Next: fill in the 4 missing LCSC part numbers, then F8.
+**Current status:** Phase 1 complete — ERC clean, all part numbers set. Next: Phase 2, press F8 in the PCB editor.
 
 ---
 
@@ -113,62 +113,60 @@ numbers. Open the schematic editor (the first icon in the project window).
   fixing at some point by extracting them into `Library.pretty/` and
   `LED_Coaster.kicad_sym`. Not blocking the order.
 
-- [ ] **Fill in the missing LCSC part numbers**
+- [x] **Fill in the missing LCSC part numbers** — done, all six set
 
   **There is no BOM file to edit.** `production/bom.csv` is *output* from the
   last order and gets overwritten in Phase 7. The part number lives on the
   symbol in the schematic, in a field called **`MPN`**, and the BOM is generated
-  from that.
+  from that. A part with an empty `MPN` is *silently left out of the BOM* — it
+  does not appear as a blank line, it just vanishes. That is how the WS2812Bs
+  and the ESP32 module were excluded last time (deliberately, they were
+  hand-soldered).
 
-  **This matters more than it looks:** a part with an empty `MPN` is *silently
-  left out of the generated BOM entirely* — it does not appear as a blank line,
-  it just vanishes, and JLCPCB never fits it. That is how the WS2812Bs and the
-  ESP32 module were excluded last time (deliberately — they were hand-soldered).
-  If you leave these six blank, the board comes back missing them.
-
-  | Ref | Value | Package | Purpose if missing |
+  | Ref | Value | Part | Verified as |
   |---|---|---|---|
-  | `R13` | 100k | 0805 | FET gate pull-up — LEDs stuck on |
-  | `R17` | 100k | 0805 | rail pulldown — LDO may not shut down |
-  | `R15` | 20k | 0805 | charge termination — charging never ends properly |
-  | `R18`, `R19` | 470k | 0805 | battery sense divider |
-  | `C20` | 100µF | 1210 | LED bulk cap |
+  | `R13`, `R17` | 100k 0805 | `C149504` | `0805W8F1003T5E` |
+  | `R15` | 20k 0805 | `C4328` | `0805W8F2002T5E` — code 2002 = 200 × 10² = 20k |
+  | `R18`, `R19` | 470k 0805 | `C17709` | `0805W8F4703T5E` |
+  | `C20` | 22µF 0805 | `C296305` | YAGEO 22µF 6.3 V X5R |
 
-  `R13`/`R17` are the same part, and `R18`/`R19` are the same part, so it is
-  four distinct components to find.
+- [x] **Charger part number corrected — read this one**
 
-  **How to search.** Go to <https://jlcpcb.com/parts>, pick the category, then
-  use the *filters* down the left rather than the text box — text search on
-  values is unreliable. For the resistors: category *Resistors → Chip Resistor -
-  Surface Mount*, then set **Package = 0805**, **Resistance =** the value you
-  want, **Tolerance = ±1%**, and tick **Basic Part** and **In Stock**.
+  `C637761`, the part number carried over from the original fix spec, is
+  **`MCP73871-4CAI/ML`**, not the `-2CC` we designed around. Per the datasheet's
+  Product Identification System the leading digit is the charge voltage:
 
-  Prefer **Basic** parts — Extended parts carry a one-off feeder fee of a few
-  dollars each, per part type.
+  | Option | V_REG | Timer | LBO |
+  |---|---|---|---|
+  | `2CC` | **4.20 V** | 6 h | 3.1 V |
+  | `4CA` | **4.40 V** | 6 h | disabled |
 
-  Starting points worth verifying rather than trusting (stock and part numbers
-  move, and I have not confirmed these against a live listing):
+  Fitting the `-4CA` would have regulated a standard 4.2 V Li-Po to **4.40 V** —
+  a real overcharge, not a rounding error. It was also out of stock, which is
+  what prompted the search that caught it.
 
-  - 100k 0805 1% — `0805W8F1003T5E`, listed under both `C149504` and `C17407`
-  - 100µF 1210 X5R 6.3 V — `1210X5R107M6R3NT`, `C49326798`
-  - 20k and 470k — search the filters as above
+  Now set to **`C5121473` = `MCP73871-2CCI/ML` = 4.20 V**, which is exactly the
+  variant the design was built around. Bonus: the `CC` suffix means LBO is
+  enabled at 3.1 V, so `STAT1` doubles as a low-battery indicator on the LED.
 
-  Sanity check: this board's existing 0805 resistors are all UNI-ROYAL
-  `0805W8F####T5E` (10k = `C17414`, 1k = `C17513`, 2k = `C17604`). Staying in
-  that family keeps the BOM consistent.
+- [x] **Confirm remaining parts in stock** — checked
 
-  Then in KiCad: double-click the symbol → find the `MPN` field → paste the
-  `Cxxxxx` code. Save.
+  - `C404027` — TLV75533PDBVR — OK
+  - `C15127` — AO3401A — OK
+  - `C14663` — 100nF 0603 ×12 — OK
+  - `C5121473` — MCP73871-2CCI/ML — in stock, replaces the out-of-stock `C637761`
 
-- [ ] **Confirm these are still in stock** (they were when specified, stock moves)
+  **Why `C20` changed from 100µF to 22µF:** the 100µF 1210 part had a 66-piece
+  minimum order, which is absurd for a 5-board run. It is also not needed. The
+  bulk cap cannot fix low-frequency droop — that is set by battery ESR plus the
+  charger's ~200 mΩ BAT→SYS path plus the FET, roughly 400 mΩ total, so a 1 A
+  step drops ~400 mV no matter what capacitor is fitted. What the bulk cap
+  actually does is supply fast edges, and 22µF alongside the twelve distributed
+  100nF is comfortably enough for that. 100µF was generous, not necessary. If
+  flicker ever shows up on a low battery, add a second 22µF in parallel.
 
-  - `C637761` — MCP73871-2CCI/ML charger
-  - `C404027` — TLV75533PDBVR regulator
-  - `C15127` — AO3401A MOSFET (Basic part)
-  - `C14663` — 100nF 0603 (Basic part, ×12)
-
-  If the MCP73871 is gone, **any `MCP73871-2xxx` in the same QFN-20 package is
-  pin-compatible** — the `-2` prefix is what matters (4.20 V cell).
+  `C21` was also relabelled 100nF → 0.1uF so it merges with `C2` onto one BOM
+  line — same physical part, `C28233`.
 
 ---
 
@@ -239,7 +237,7 @@ flip a part to the other side of the board.
 - [ ] **`R16` + `D35`** — the second status LED. Put it next to the existing
       `D33` so the two charge-status LEDs sit together and are visible.
 
-- [ ] **`C20` (100µF bulk)** — right where `+LED_PWR` leaves `Q1` for the rings.
+- [ ] **`C20` (22µF bulk, 0805)** — right where `+LED_PWR` leaves `Q1` for the rings.
 
 - [ ] **Battery sense `R18`, `R19`, `C21`** — `C21` should be close to the
       **ESP32's GPIO4 pin**, not to the divider. The divider itself can sit near
