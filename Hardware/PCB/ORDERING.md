@@ -443,9 +443,9 @@ for what the columns should look like.
 
 - **`+SYS` and `+BATT` must stay separate.** Repeated because it is the failure
   mode that looks fine and is not.
-- **`C20` DC bias.** A 100µF 1210 MLCC delivers noticeably less than 100µF at
-  3.7 V — that is normal for ceramics. If you see LED flicker on a low battery,
-  add a second one in parallel.
+- **`C20` DC bias.** A 22µF 0805 MLCC delivers noticeably less than 22µF at
+  3.7 V — that is normal for ceramics, and already accounted for. If you see LED
+  flicker on a low battery, add a second one in parallel.
 - **Charger thermals.** At 500 mA charge current the MCP73871 dissipates around
   0.6 W worst case. The thermal vias under its exposed pad are what keep it
   cool — do not remove them, and let the ground pour reach them.
