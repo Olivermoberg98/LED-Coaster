@@ -7,9 +7,11 @@ Working checklist for taking the reworked schematic (branch
 box is the next thing to do. Notes and gotchas live under each step — read them
 before doing the step, not after.
 
-**Current status:** Phase 1 complete — ERC clean, all part numbers set, and
-`D1–D30` + `U1` switched from hand-soldered to machine-placed (double-sided
-assembly). Next: Phase 2, press F8 in the PCB editor.
+**Current status:** Phase 2 complete and verified — F8 reported 23 added /
+2 removed / 2 changed, and the file confirms the footprint swaps, the DNP
+clearing on `D1–D30` + `U1`, and that no existing routing was lost.
+Next: Phase 3, and read its warning about the ring power traces before
+deleting anything.
 
 ---
 
@@ -221,31 +223,55 @@ numbers. Open the schematic editor (the first icon in the project window).
   Click **Update PCB**. New footprints appear in a loose cluster near the board —
   that is normal.
 
-- [ ] **Read the report** — it should list 19 added, 2 removed, 2 changed
-  footprints. Anything unexpected, stop here.
+- [x] **Read the report** — **23 added, 2 removed, 2 changed.** (An earlier draft
+  of this file predicted 19 added; that was an undercount of `C8`–`C19`, not an
+  F8 problem.) Verified afterwards from the file itself:
+
+  | Check | Result |
+  |---|---|
+  | `U3` | QFN-20 4×4 with thermal vias ✓ |
+  | `U4` | SOT-23-5, was SOT-223 ✓ |
+  | `D31`/`D32` | removed ✓ |
+  | `Q1`, `R17`–`R19`, `C20`/`C21`, `D35` | present ✓ |
+  | `D1`–`D30`, `U1` | `attr smd`, DNP cleared, MPNs carried through ✓ |
+  | Still DNP | `H1`/`H3`/`H4`/`J4` only — as intended ✓ |
+  | Total copper | 413 items before **and** after — F8 deleted no routing ✓ |
+
+  PCB and schematic now both hold 88 parts.
 
 ---
 
 ## Phase 3 — Clear out the old power routing
 
-The schematic changed the nets, but existing copper keeps its old net
-assignment, so the whole power area is now wrong and DRC will scream. Easiest
-approach is to delete it and re-route rather than trying to patch.
+**This phase turned out much smaller than first written.** The original draft
+said to delete the old `+BATT` traces feeding the rings. **Do not do that** —
+see the warning below. The post-F8 file was analysed and there are exactly
+**29 stale copper items**, all in one place.
 
-- [ ] **Delete the old power-section traces.** The area is roughly x 110–150,
-      y 38–62 (upper-left of the board, around where the old charger sat).
-      Select traces and press <kbd>Delete</kbd>. Use *Edit → Find* to jump to a
-      reference if you get lost.
+- [ ] **Delete the 29 orphaned copper items.** They sit on an *empty* net —
+      the leftovers of `D31`/`D32` and the old `U3`/`U4` footprints, which took
+      their nets with them when they were removed. Bounding box is
+      **x 129–147, y 42–79**.
 
-- [ ] **Delete the old `+BATT` traces that fed the LED rings.** These are the
-      0.5 mm traces running out to `D1–D30` pin 1. That net is now `+LED_PWR`
-      and comes from the FET instead.
+      Fastest way: *Edit → Filter Selection* limited to tracks and vias, rubber
+      band that area, and check the properties panel shows no net before
+      deleting. Or highlight nets one at a time in the *Appearance* panel's
+      **Nets** tab — the stale ones show as unnamed.
 
-  Tip: in the *Appearance* panel on the right, the **Nets** tab lets you
-  highlight one net at a time. Highlight `+BATT` to see exactly what is left.
+- [ ] **DO NOT delete the ring power traces.** ⚠️ KiCad already did the right
+      thing here on its own. The 104 copper items that used to be `+BATT`
+      feeding `D1–D30` pin 1 were **automatically re-assigned to `+LED_PWR`**
+      during F8, because the pads they attach to changed net and the tracks
+      followed. Verified: `+BATT` went 104 → 0 copper items and `+LED_PWR`
+      went 0 → 104, with total board copper unchanged at 413.
 
-- [ ] **Leave everything else alone** — the LED data chain, USB, buttons and the
-      ESP32 are untouched by this rework.
+      That distribution is still correct and worth keeping — only its *source*
+      end changes, from the battery to `Q1`'s drain. Deleting it would throw
+      away the entire ring power distribution and force you to re-route 30
+      LEDs by hand for no reason.
+
+- [ ] **Leave everything else alone** — USB, buttons and the ESP32 are
+      untouched by this rework.
 
 ---
 
@@ -282,21 +308,21 @@ flip a part to the other side of the board.
       **ESP32's GPIO4 pin**, not to the divider. The divider itself can sit near
       the battery connector.
 
-- [ ] **The 12 decoupling caps `C8–C19` — keep all of them on the FRONT.**
+- [ ] **The 12 decoupling caps `C8–C19` — now put 8 of them on the BACK.**
 
-      The obvious move is to put 8 on the back next to the large ring. Don't:
-      that would force double-sided assembly and roughly double the assembly
-      cost, for no real electrical gain.
+      ⚠️ **This reverses earlier advice in this file.** The original plan kept
+      all 12 on the front, specifically to avoid triggering double-sided
+      assembly and roughly doubling the cost. That constraint no longer exists —
+      the order is double-sided regardless, so putting caps on the back is free.
 
-      Instead place them on the front **directly opposite** their LED. The large
-      ring sits at radius 32 mm on the back, and most of that circle is clear on
-      the front — only the electronics cluster occupies part of it. A cap on the
-      opposite face, right underneath its LED, is electrically about as good as
-      one beside it: the return loop is two vias through 1.6 mm of board.
+      Place them beside their LEDs rather than opposite them:
 
-      - **8 caps** spread around radius ≈32 mm, opposite `D1–D20`, skipping the
-        sector where the ESP32 and power section sit
-      - **4 caps** among `D21–D30` on the front, normally
+      - **8 caps** on the **back**, spread around radius ≈32 mm, directly next
+        to `D1`–`D20`
+      - **4 caps** on the **front**, among `D21`–`D30`
+
+      Beside beats opposite: it removes two vias and the 1.6 mm return path from
+      every decoupling loop. Press <kbd>F</kbd> to flip a part to the other side.
 
       Each cap goes between `+LED_PWR` and `GND`. Proximity is the whole point —
       a cap 20 mm from its LED does nothing useful.
@@ -304,6 +330,31 @@ flip a part to the other side of the board.
 ---
 
 ## Phase 5 — Routing
+
+⚠️ **Read this scope note first — the job is bigger than this file originally
+implied.** The post-F8 board was analysed net by net. **38 nets need routing:**
+
+| Group | Count | Notes |
+|---|---|---|
+| **LED data links** | **28** | every `DOUT → DIN` hop, both rings |
+| Power path | 2 | `+BATT`, `+SYS` |
+| Charger support | 7 | `PROG1`, `PROG3`, `THERM`, `STAT1`, `STAT2`, `Q1` gate, `D35` cathode |
+| Battery sense | 1 | `/BAT_SENSE` |
+
+The 28 LED data links are the surprise. **They were never routed in this file** —
+not something F8 broke. Verified by analysing the previous commit: the data nets
+had zero copper before F8 as well, and total board copper is 413 items in both.
+Whatever was fabricated previously must have come from a different file state
+than the one committed as "latest and greatest".
+
+What *is* already routed and should be left alone: `GND` (92 items), the ring
+power distribution now on `+LED_PWR` (104), `+3V3`, `+5V`, USB `D+`/`D-`, the
+buttons, and both ring *inputs* (`/small_ring`, `/large_ring` — ESP32 out to the
+first LED of each chain). 23 nets carry copper today.
+
+Budget real time for the 28 data hops. They are short, adjacent-LED links around
+two rings, so each one is quick — but there are 28 of them and they gate whether
+the board works at all.
 
 Set trace width before drawing: the dropdown in the top toolbar, or
 *File → Board Setup → Design Rules → Net Classes*.
@@ -326,6 +377,12 @@ Set trace width before drawing: the dropdown in the top toolbar, or
       3. `U3` IN ← `+5V` from USB
       4. `+SYS` → `U4` input, `U4` output → `+3V3`
       5. Everything thin: PROG/THERM resistors, gate, status LEDs, battery sense
+
+- [ ] **Route the 28 LED data links.** Each is a short hop from one LED's pad 2
+      (DOUT) to the next LED's pad 4 (DIN), following the chains
+      `D1 → D20` on the back and `D21 → D30` on the front. Default 0.25 mm is
+      fine — these carry no current. Keep them on the same side as their LEDs so
+      no vias are needed.
 
 - [ ] **Keep `+SYS` and `+BATT` as separate copper.** They must never touch.
       Shorting them silently recreates the original load-sharing bug — the board
