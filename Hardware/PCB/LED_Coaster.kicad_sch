@@ -10352,7 +10352,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "106ef51b-4157-48c4-9b9d-df7cea255fab")
 		(property "Reference" "D30"
@@ -10410,7 +10410,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 275.59 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -10881,7 +10881,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2208e767-0877-4996-85f0-3f65bf7931d1")
 		(property "Reference" "D21"
@@ -10939,7 +10939,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 69.85 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -10980,7 +10980,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "27458503-fe31-4972-9d06-c60af76d30d3")
 		(property "Reference" "D7"
@@ -11038,7 +11038,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 208.28 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -11325,7 +11325,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "35e18474-85ec-41ba-82f0-a79201c346e3")
 		(property "Reference" "D17"
@@ -11383,7 +11383,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 436.88 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -11606,7 +11606,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "38be7bea-3d19-4b8d-b847-1f88a9a8c35b")
 		(property "Reference" "D14"
@@ -11664,7 +11664,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 368.3 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -11796,7 +11796,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "3c2c64c3-cf7e-45d0-b9eb-669ff9f89f67")
 		(property "Reference" "D9"
@@ -11854,7 +11854,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 254 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -12084,7 +12084,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "56adf781-356b-43be-b11d-569722a85ef7")
 		(property "Reference" "D18"
@@ -12142,7 +12142,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 459.74 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -12262,7 +12262,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "59f816d4-72ae-4072-9e44-5868bf232769")
 		(property "Reference" "D29"
@@ -12320,7 +12320,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 252.73 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -12361,7 +12361,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5d2d833a-ecd8-4203-921c-07b6f83921b8")
 		(property "Reference" "D16"
@@ -12419,7 +12419,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 414.02 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -20087,7 +20087,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "65d6ed50-12a0-466a-8535-01ec0bd84102")
 		(property "Reference" "D27"
@@ -20145,7 +20145,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 207.01 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -20264,7 +20264,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "67decbb9-1bdb-44a7-8714-c0c7bce2762b")
 		(property "Reference" "D10"
@@ -20322,7 +20322,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 276.86 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -20363,7 +20363,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "704cdb22-c67e-4dbe-9fed-5a1df19922ff")
 		(property "Reference" "D24"
@@ -20421,7 +20421,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 138.43 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -20632,7 +20632,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "7cb0f732-316a-4910-94de-45eec22cdcfd")
 		(property "Reference" "D1"
@@ -20690,7 +20690,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 70.485 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -20731,7 +20731,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "81cc0858-152b-448d-b914-256ad931afd9")
 		(property "Reference" "D13"
@@ -20789,7 +20789,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 345.44 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -20922,7 +20922,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "86e57aae-0c35-4019-9adc-2c99daefb8c3")
 		(property "Reference" "D25"
@@ -20980,7 +20980,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 161.29 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -21021,7 +21021,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "8826e5bc-05cc-48b6-855f-322c3e3b8862")
 		(property "Reference" "D6"
@@ -21079,7 +21079,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 185.42 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -21738,7 +21738,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a9ccb870-d781-423c-a8df-7b8df34220e5")
 		(property "Reference" "D12"
@@ -21796,7 +21796,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 322.58 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -21837,7 +21837,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "aa8c66d0-cb29-48c6-ae54-12a0aa4b14c8")
 		(property "Reference" "D23"
@@ -21895,7 +21895,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 115.57 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -22107,7 +22107,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b31a2967-67e6-4373-8e6a-ae5f3812cd32")
 		(property "Reference" "D8"
@@ -22165,7 +22165,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 231.14 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -22297,7 +22297,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "beebb46b-6463-48b8-be22-909ead8fa055")
 		(property "Reference" "D15"
@@ -22355,7 +22355,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 391.16 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -22396,7 +22396,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c000bfba-1301-4629-8113-88edb598eedf")
 		(property "Reference" "D5"
@@ -22454,7 +22454,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 162.56 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -22588,7 +22588,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(uuid "c219d394-401b-4192-a43a-d6cb5ff59c8c")
 		(property "Reference" "D2"
 			(at 104.775 54.7721 0)
@@ -22645,7 +22645,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 93.98 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -22686,7 +22686,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c251527c-b937-443f-bee1-a5068aa2321a")
 		(property "Reference" "U1"
@@ -22851,7 +22851,7 @@
 				(justify bottom)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2944070"
 			(at 158.75 190.5 0)
 			(hide yes)
 			(show_name no)
@@ -22997,7 +22997,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "c2c7e524-e47c-44c5-8ee4-cd0d11d6916b")
 		(property "Reference" "D20"
@@ -23055,7 +23055,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 505.46 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -23189,7 +23189,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(uuid "c82b66c3-8ffc-40fc-8e67-96c101152e1d")
 		(property "Reference" "D3"
 			(at 127.635 54.7721 0)
@@ -23246,7 +23246,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 116.84 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -23366,7 +23366,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "d0c804b5-3703-475a-a5b7-39ad6a832949")
 		(property "Reference" "D26"
@@ -23424,7 +23424,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 184.15 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -23909,7 +23909,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(uuid "e1092163-5274-44e4-9068-949f0be4ef22")
 		(property "Reference" "D4"
 			(at 150.495 54.7721 0)
@@ -23966,7 +23966,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 139.7 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -24007,7 +24007,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e19d9c2d-055b-4fef-93ce-41b6a8e16991")
 		(property "Reference" "D19"
@@ -24065,7 +24065,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 482.6 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -24106,7 +24106,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e5cee717-e332-48ee-b61a-ad6772d74943")
 		(property "Reference" "D22"
@@ -24164,7 +24164,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 92.71 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -24205,7 +24205,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e76a1bcc-b614-4a1d-9690-7f9ea14ebcfb")
 		(property "Reference" "D28"
@@ -24263,7 +24263,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 229.87 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -24382,7 +24382,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp yes)
+		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "e99858e7-3fce-46d3-8ff1-fe4d18dfce5a")
 		(property "Reference" "D11"
@@ -24440,7 +24440,7 @@
 				)
 			)
 		)
-		(property "MPN" ""
+		(property "MPN" "C2761795"
 			(at 299.72 58.42 0)
 			(hide yes)
 			(show_name no)

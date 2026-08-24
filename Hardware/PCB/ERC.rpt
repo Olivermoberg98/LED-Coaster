@@ -1,0 +1,213 @@
+ERC report (2026-08-23T10:18:39, Encoding UTF8)
+Report includes: Errors, Warnings
+
+***** Sheet /
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(2125 mils, 4050 mils): Horizontal Wire, length 325 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(2150 mils, 2300 mils): Horizontal Wire, length 325 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(2750 mils, 4350 mils): Vertical Wire, length 125 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(2750 mils, 4475 mils): Horizontal Wire, length 900 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(2775 mils, 1900 mils): Horizontal Wire, length 925 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(2775 mils, 2000 mils): Vertical Wire, length 100 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(2775 mils, 2000 mils): Symbol D1 Pin 1 [VDD, Power input, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(2775 mils, 2600 mils): Vertical Wire, length 100 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(2775 mils, 2700 mils): Horizontal Wire, length 925 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(3075 mils, 2300 mils): Horizontal Wire, length 325 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(3650 mils, 4475 mils): Horizontal Wire, length 900 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(3650 mils, 4350 mils): Vertical Wire, length 125 mils
+[lib_symbol_mismatch]: Symbol 'USB_C_Receptacle_USB2.0_16P' doesn't match copy in library 'Connector'
+    ; warning
+    @(4500 mils, 11100 mils): Symbol J3 [USB_C_Receptacle_USB2.0_16P]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(4550 mils, 4350 mils): Vertical Wire, length 125 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(4550 mils, 4475 mils): Horizontal Wire, length 900 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(5450 mils, 4475 mils): Horizontal Wire, length 900 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(5450 mils, 4350 mils): Vertical Wire, length 125 mils
+[footprint_link_issues]: The current configuration does not include the footprint library 'ESP32-C3-WROOM-02-H4'
+    ; warning
+    @(6250 mils, 7500 mils): Symbol U1 [ESP32-C3-WROOM-02-H4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'ESP32-C3-WROOM-02-H4'
+    ; warning
+    @(6250 mils, 7500 mils): Symbol U1 [ESP32-C3-WROOM-02-H4]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(6350 mils, 3425 mils): Vertical Wire, length 225 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(6350 mils, 3425 mils): Horizontal Wire, length 875 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(6350 mils, 4350 mils): Vertical Wire, length 125 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(6350 mils, 4475 mils): Vertical Wire, length 100 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(6350 mils, 4575 mils): Symbol #PWR04 Hidden pin 1 [GND, Power input, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(7225 mils, 3375 mils): Symbol #PWR025 Pin 1 [Power input, Line]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(7225 mils, 3375 mils): Symbol #PWR025 [+LED_PWR]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(7225 mils, 3425 mils): Vertical Wire, length 50 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(7250 mils, 4475 mils): Horizontal Wire, length 900 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(7250 mils, 4350 mils): Vertical Wire, length 125 mils
+[lib_symbol_mismatch]: Symbol 'LED' doesn't match copy in library 'Device'
+    ; warning
+    @(7350 mils, 5950 mils): Symbol D34 [LED]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(8150 mils, 4475 mils): Horizontal Wire, length 900 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(8150 mils, 4350 mils): Vertical Wire, length 125 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(9050 mils, 4350 mils): Vertical Wire, length 125 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(9050 mils, 4475 mils): Horizontal Wire, length 900 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(9950 mils, 4475 mils): Horizontal Wire, length 900 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(9950 mils, 4350 mils): Vertical Wire, length 125 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(10850 mils, 4350 mils): Vertical Wire, length 125 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(10850 mils, 4475 mils): Horizontal Wire, length 900 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(11800 mils, 2700 mils): Vertical Wire, length 125 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(11800 mils, 2825 mils): Symbol #PWR02 Hidden pin 1 [GND, Power input, Line]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(12750 mils, 1550 mils): Symbol #PWR014 [+LED_PWR]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(13400 mils, 11250 mils): Symbol #PWR052 [+LED_PWR]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(13900 mils, 11250 mils): Symbol #PWR054 [+LED_PWR]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(14400 mils, 11250 mils): Symbol #PWR056 [+LED_PWR]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(14900 mils, 11250 mils): Symbol #PWR058 [+LED_PWR]
+[lib_symbol_issues]: Symbol '+SYS' not found in symbol library 'power'
+    ; warning
+    @(15300 mils, 9350 mils): Symbol #PWR029 [+SYS]
+[lib_symbol_issues]: Symbol '+SYS' not found in symbol library 'power'
+    ; warning
+    @(15300 mils, 9850 mils): Symbol #PWR030 [+SYS]
+[lib_symbol_issues]: Symbol '+SYS' not found in symbol library 'power'
+    ; warning
+    @(15300 mils, 10050 mils): Symbol #PWR031 [+SYS]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(15400 mils, 11250 mils): Symbol #PWR060 [+LED_PWR]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(15900 mils, 11250 mils): Symbol #PWR062 [+LED_PWR]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(16400 mils, 11250 mils): Symbol #PWR064 [+LED_PWR]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(16900 mils, 11250 mils): Symbol #PWR066 [+LED_PWR]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(17400 mils, 11250 mils): Symbol #PWR068 [+LED_PWR]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(17900 mils, 11250 mils): Symbol #PWR070 [+LED_PWR]
+[lib_symbol_issues]: Symbol '+SYS' not found in symbol library 'power'
+    ; warning
+    @(18000 mils, 8750 mils): Symbol #PWR042 [+SYS]
+[lib_symbol_mismatch]: Symbol 'LED' doesn't match copy in library 'Device'
+    ; warning
+    @(18150 mils, 9850 mils): Symbol D33 [LED]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(18400 mils, 11250 mils): Symbol #PWR072 [+LED_PWR]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(18900 mils, 11250 mils): Symbol #PWR074 [+LED_PWR]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(19300 mils, 8050 mils): Symbol #PWR045 [+LED_PWR]
+[lib_symbol_mismatch]: Symbol 'LED' doesn't match copy in library 'Device'
+    ; warning
+    @(19750 mils, 9950 mils): Symbol D35 [LED]
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(20000 mils, 9150 mils): Symbol #PWR076 [+LED_PWR]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(20160 mils, 7850 mils): Symbol #PWR077 Pin 1 [Power input, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(20160 mils, 7850 mils): Vertical Wire, length 100 mils
+[lib_symbol_issues]: Symbol '+LED_PWR' not found in symbol library 'power'
+    ; warning
+    @(20160 mils, 7850 mils): Symbol #PWR077 [+LED_PWR]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(20160 mils, 7950 mils): Symbol R17 Pin 1 [Passive, Line]
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(20160 mils, 8150 mils): Vertical Wire, length 100 mils
+[endpoint_off_grid]: Symbol pin or wire end off connection grid
+    ; warning
+    @(20160 mils, 8250 mils): Symbol #PWR078 Hidden pin 1 [GND, Power input, Line]
+
+ ** ERC messages: 67  Errors 0  Warnings 67
+
+ ** Ignored checks:
+    - Global label only appears once in the schematic
+    - Four connection points are joined together
+    - SPICE model issue
+    - Assigned footprint doesn't match footprint filters

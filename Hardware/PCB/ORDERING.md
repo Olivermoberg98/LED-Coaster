@@ -7,7 +7,9 @@ Working checklist for taking the reworked schematic (branch
 box is the next thing to do. Notes and gotchas live under each step — read them
 before doing the step, not after.
 
-**Current status:** Phase 1 complete — ERC clean, all part numbers set. Next: Phase 2, press F8 in the PCB editor.
+**Current status:** Phase 1 complete — ERC clean, all part numbers set, and
+`D1–D30` + `U1` switched from hand-soldered to machine-placed (double-sided
+assembly). Next: Phase 2, press F8 in the PCB editor.
 
 ---
 
@@ -21,18 +23,34 @@ before doing the step, not after.
 | Front (F.Cu) | 46 parts: ESP32 module, USB-C, power section, small ring `D21–D30` |
 | Back (B.Cu) | 21 parts: large ring `D1–D20`, battery connector `J1` |
 | Peak LED current | ~1.8 A theoretical (30 × WS2812B, full white) |
-| Last order's assembly | **single-sided, front only, 27 parts** |
+| Last order's assembly | single-sided, front only, 27 parts |
+| **This order's assembly** | **double-sided, 83 parts — decided deliberately, see below** |
 
-**Important:** although parts sit on both sides, the previous order was
-*single-sided* assembly. JLCPCB fitted 27 front-side parts; the 30 WS2812Bs,
-the ESP32 module `U1`, the battery connector `J1` and the UART header `J4` were
-hand-soldered afterwards. You can tell because none of them have an `MPN` field,
-and only parts with an `MPN` reach the generated BOM.
+**Important — this order changes the assembly model.** The previous order was
+*single-sided*: JLCPCB fitted 27 front-side parts, and the 30 WS2812Bs, the
+ESP32 module `U1`, the battery connector `J1` and the UART header `J4` were
+hand-soldered afterwards. Two mechanisms kept them out: they carry `(dnp yes)`
+in the schematic, and they have no `MPN` field. Only parts that are *both*
+populated and carry an `MPN` reach the generated BOM — a part failing either
+test vanishes silently rather than appearing as a blank line.
 
-Keep that split if you can — it is much cheaper. The one thing that has changed
-is that the new charger `U3` is a QFN-20 with a thermal pad underneath, which
-**cannot realistically be hand-soldered**. It must be machine-placed, and it is
-on the front, so single-sided assembly still works.
+For this order that was reversed for `D1–D30` and `U1`, so JLCPCB places the
+whole LED ring and the ESP32 module. The reasoning: hand-soldering 150 WS2812Bs
+across 5 boards is the highest-risk work in the project — the packages melt
+before the solder flows, and a single damaged LED kills every LED downstream of
+it in the data chain with no easy way to identify which one. The charger `U3`
+is also now a QFN-20 with a thermal pad underneath, which cannot realistically
+be hand-soldered at all.
+
+Still hand-soldered, deliberately:
+
+| Ref | Why |
+|---|---|
+| `J1` JST EH 2-pin | through-hole — not SMT-placeable |
+| `J4` 1×04 header | through-hole, and a debug header you may not fit at all |
+| `H1`/`H3`/`H4` | mounting holes, not parts |
+
+To revert to single-sided, set `(dnp yes)` and clear `MPN` on `D1–D30` and `U1`.
 
 Previous orders used the **Fabrication Toolkit** KiCad plugin — `fabrication-toolkit-options.json`
 in this folder is its config, and `production/` holds its last output. Same route
@@ -129,6 +147,27 @@ numbers. Open the schematic editor (the first icon in the project window).
   | `R15` | 20k 0805 | `C4328` | `0805W8F2002T5E` — code 2002 = 200 × 10² = 20k |
   | `R18`, `R19` | 470k 0805 | `C17709` | `0805W8F4703T5E` |
   | `C20` | 22µF 0805 | `C296305` | YAGEO 22µF 6.3 V X5R |
+
+- [x] **Machine-place the LED ring and the ESP32 module** — `D1–D30` and `U1`
+      switched from `(dnp yes)` to populated, with part numbers set
+
+  | Ref | Value | Part | Notes |
+  |---|---|---|---|
+  | `D1`–`D30` | WS2812B | `C2761795` | Worldsemi WS2812B-B/T, SMD5050-4P. **Standard assembly only**, MSL 5a, JLCPCB rates it "high" assembly difficulty |
+  | `U1` | ESP32-C3-WROOM-02-H4 | `C2944070` | Espressif, SMD 20×18 mm. Economic *or* Standard |
+
+  Two consequences of `C2761795` being **Standard-only**:
+
+  1. The whole order moves from Economic to Standard PCBA. Double-sided
+     assembly would have forced that anyway — Economic is single-side only —
+     so the two decisions cost the same setup fee once.
+  2. The parts are moisture-sensitive (MSL 5a) and get baked before placement.
+     That is JLCPCB's problem, not yours, but it is why the part is flagged.
+
+  There is a JLCPCB house-brand alternative, `C9900143998`, which *is* available
+  for Economic assembly. It is a "new arrivals" part with no published datasheet
+  link, so `C2761795` — the genuine Worldsemi part, 261k in stock — is the safer
+  choice, and the sides decision means Economic is off the table regardless.
 
 - [x] **Charger part number corrected — read this one**
 
@@ -368,20 +407,41 @@ Set trace width before drawing: the dropdown in the top toolbar, or
       | Everything else | default | |
 
 - [ ] **Turn on assembly** — set *PCB Assembly* to ON.
-      - Assembly side: **top side only** — matches last order. The parts on
-        the back (`D1–D20`, `J1`) have no `MPN`, so they are not in the BOM and
-        you hand-solder them as before
+      - Assembly side: **both sides** — changed from last order. `D1–D20` are on
+        the back and are now in the BOM
+      - PCBA type: **Standard** — forced, `C2761795` is not offered on Economic
       - Tooling holes: **added by JLCPCB**
       - Quantity: 2 to start. Assembly is where the money goes, and a first
         revision of a reworked power path is worth proving before committing to five.
+
+      **Cost expectation.** Rough figures for 5 boards, from JLCPCB's published
+      rates — confirm against the live quote, they change:
+
+      | | |
+      |---|---|
+      | Setup, double-sided Standard | ~$50 (vs ~$25 single side, ~$8 Economic) |
+      | ~795 extra joints @ ~$0.0017 | ~$1.35 |
+      | 150 + attrition WS2812B @ $0.0762 | ~$13 |
+      | 5 + attrition ESP32 modules @ $3.27 | ~$20 |
+      | Extended-part loading, Standard | ~$1.50 per part type |
+
+      That is roughly **$80 more than the old single-sided order**, of which
+      ~$33 is parts you would have bought anyway. So the real assembly premium
+      is ~$45 for 5 boards — about $9/board to not hand-solder 150 MSL-5a LEDs
+      and 5 ESP32 modules. Note the joint count barely matters; the setup fee
+      and the part cost are the whole story.
 
 - [ ] **Upload BOM and CPL** — `production/bom.csv` as the BOM,
       `production/positions.csv` as the CPL (pick-and-place).
 
       Before uploading, open `bom.csv` and **count the lines**. Every part you
-      expect to be fitted must be there. Anything with a blank `MPN` in the
-      schematic will be missing without warning — that is the single easiest way
-      to get a board back that does not work.
+      expect to be fitted must be there. Anything with a blank `MPN` *or* marked
+      `(dnp yes)` in the schematic will be missing without warning — that is the
+      single easiest way to get a board back that does not work.
+
+      Expect **27 lines covering 83 parts**. Confirm `C2761795` appears with a
+      quantity of **30** and `C2944070` with a quantity of **1**. If the
+      WS2812B line is absent, the DNP flag did not clear.
 
 - [ ] **Review part matching.** JLCPCB shows every line with the part it matched.
       Check each one, especially:
@@ -396,8 +456,31 @@ Set trace width before drawing: the dropdown in the top toolbar, or
       - `U3` — pin 1 orientation on the QFN
       - `U4`, `Q1` — SOT-23 packages
       - `D33`, `D35` — LED polarity
-      - the WS2812B rotations should be unchanged from your last order; if they
-        look different from what worked before, something moved that shouldn't have
+      - **`D1`–`D30` rotation — the single biggest risk in this order.** These
+        were never machine-placed before, so there is no known-good previous run
+        to compare against. Two things stack up:
+
+        - the footprint is a project-local custom one,
+          `Library:LED_WS2812_5050_handsolder`. The Fabrication Toolkit applies
+          JLCPCB rotation corrections from a database keyed on *footprint name*,
+          and it has no entry for this one — so no correction is applied, right
+          or wrong.
+        - all 30 are on a ring, each at a different angle, so an error is a
+          consistent offset rather than one obviously-wrong part.
+
+        Check the preview against the schematic: pin 1 = VDD, pin 2 = DOUT,
+        pin 3 = VSS, pin 4 = DIN, and DOUT of each LED must face DIN of the
+        next one around the ring. If the whole ring is off by a constant angle,
+        that is the missing rotation correction — fix it in the CPL before
+        paying, not after. Getting this wrong ruins all 150 LEDs.
+
+      **Also worth knowing about that footprint:** its pads are the hand-solder
+      variant, extended well past the LED's actual contacts, and slightly
+      asymmetric (pads 1/2 at x = −2.925 mm, pads 3/4 at x = +2.65 mm). More
+      paste than a machine footprint would use, and the asymmetry pulls each
+      part ~0.14 mm off centre. For a 5050 part with 0.9 mm pads that is
+      tolerable and not worth redoing the footprint over — but it is why the
+      parts may not look perfectly centred on the boards when they arrive.
 
 - [ ] **Place the order.**
 
