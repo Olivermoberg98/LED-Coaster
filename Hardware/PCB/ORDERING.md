@@ -7,11 +7,13 @@ Working checklist for taking the reworked schematic (branch
 box is the next thing to do. Notes and gotchas live under each step — read them
 before doing the step, not after.
 
-**Current status:** Phase 2 complete and verified — F8 reported 23 added /
-2 removed / 2 changed, and the file confirms the footprint swaps, the DNP
-clearing on `D1–D30` + `U1`, and that no existing routing was lost.
-Next: Phase 3, and read its warning about the ring power traces before
-deleting anything.
+**Current status:** Phase 3 complete and verified — the 29 orphaned copper
+items are gone, taking total copper from 413 to 384, and nothing else moved:
+`+LED_PWR` still holds the 104-item ring distribution, `GND` 92, the ring
+inputs and USB intact, 88 footprints, antenna keepout still in place. No
+netless copper remains on the board.
+Next: Phase 4, and read its note about the power section being off the board
+before you start moving parts.
 
 ---
 
@@ -86,18 +88,12 @@ this time if the plugin works on your KiCad version.
   say anything about it** — there is not necessarily an upgrade prompt. The
   format is rewritten to v10 the first time you *save*, which is normal.
 
-- [ ] **Commit the format upgrade once it happens**
+- [x] **Commit the format upgrade** — done
 
-  After your first save in either editor:
-
-  ```bash
-  git add Hardware/PCB
-  git commit -m "Upgrade KiCad project files to v10 format"
-  ```
-
-  Doing this as a separate commit keeps the real design changes readable in
-  history later. The diff will look enormous — that is expected, KiCad rewrites
-  the whole file.
+  The board and schematic are in v10 format (`(version 20260206)`). The rewrite
+  went in as part of commit `e196df2` rather than as a standalone commit, so
+  that commit's diff is enormous — that is the format rewrite, not design
+  changes.
 
 ---
 
@@ -213,7 +209,7 @@ numbers. Open the schematic editor (the first icon in the project window).
 
 ## Phase 2 — Push the schematic into the PCB
 
-- [ ] **Open the PCB editor** and run *Tools → Update PCB from Schematic* (<kbd>F8</kbd>)
+- [x] **Open the PCB editor** and run *Tools → Update PCB from Schematic* (<kbd>F8</kbd>)
 
   In the dialog, tick:
   - ☑ Delete footprints with no symbols  ← removes the old `D31`/`D32` diodes
@@ -248,17 +244,27 @@ said to delete the old `+BATT` traces feeding the rings. **Do not do that** —
 see the warning below. The post-F8 file was analysed and there are exactly
 **29 stale copper items**, all in one place.
 
-- [ ] **Delete the 29 orphaned copper items.** They sit on an *empty* net —
+- [x] **Delete the 29 orphaned copper items.** They sit on an *empty* net —
       the leftovers of `D31`/`D32` and the old `U3`/`U4` footprints, which took
       their nets with them when they were removed. Bounding box is
-      **x 129–147, y 42–79**.
+      **x 129.4–147.1, y 41.5–78.8**.
 
-      Fastest way: *Edit → Filter Selection* limited to tracks and vias, rubber
-      band that area, and check the properties panel shows no net before
-      deleting. Or highlight nets one at a time in the *Appearance* panel's
-      **Nets** tab — the stale ones show as unnamed.
+      They are not all on the front. The 29 are 25 F.Cu segments, 2 vias, and
+      **2 B.Cu segments** running (147.09, 76.92) → (147.09, 61.06) →
+      (140.63, 54.60). Both B.Cu endpoints land inside the bounding box, but a
+      selection made with B.Cu hidden leaves that pair behind.
 
-- [ ] **DO NOT delete the ring power traces.** ⚠️ KiCad already did the right
+      A rubber band over that area also grabs live `+5V`, `GND` and `+LED_PWR`
+      copper, so select by net instead: click one stale track, then right-click
+      → *Select → All Tracks in Net*. Every netless copper item on the board is
+      in this one cluster, so that selects exactly the 29 and nothing else.
+
+- [x] **Leave the netless B.Cu zone alone.** There is a keepout zone at
+      x 185–197, y 68–89 carrying no net and no fill. It is the ESP32 antenna
+      keepout and belongs there — it will show up in any hunt for unconnected
+      objects.
+
+- [x] **DO NOT delete the ring power traces.** ⚠️ KiCad already did the right
       thing here on its own. The 104 copper items that used to be `+BATT`
       feeding `D1–D30` pin 1 were **automatically re-assigned to `+LED_PWR`**
       during F8, because the pads they attach to changed net and the tracks
@@ -270,7 +276,7 @@ see the warning below. The post-F8 file was analysed and there are exactly
       away the entire ring power distribution and force you to re-route 30
       LEDs by hand for no reason.
 
-- [ ] **Leave everything else alone** — USB, buttons and the ESP32 are
+- [x] **Leave everything else alone** — USB, buttons and the ESP32 are
       untouched by this rework.
 
 ---
@@ -279,6 +285,22 @@ see the warning below. The post-F8 file was analysed and there are exactly
 
 Place with <kbd>M</kbd> (move) and <kbd>R</kbd> (rotate). Press <kbd>F</kbd> to
 flip a part to the other side of the board.
+
+**The whole power section is off the board, not just the new parts.** Because
+the section was redrawn in the schematic, F8 dropped every part in it into the
+loose cluster — including ones that already had positions. 28 footprints now
+sit outside the 90 mm outline: `R2`, `R5`, `R13`–`R19`, `C4`–`C15`, `C19`,
+`C20`, `C21`, `Q1`, `U4`, `SW1`, `J1`. `U3`, `D33`, `D35` and `C16`–`C18` are
+technically inside the circle but sit in the empty lower-left area, so they
+need placing too.
+
+Old positions worth reusing, from the pre-F8 board: `SW1` (136.3, 38.9),
+`J1` (139.2, 59.1), `D33` (150.3, 79.8), `U4` (122.3, 56.6), `C4` (115.8, 55.7),
+`C5` (115.8, 58.3), `C6` (140.2, 45.9), `C7` (145.4, 50.6), `R2` (137.8, 50.5),
+`R5` (147.1, 79.8).
+
+- [ ] **`J1` (battery connector)** — place this first, since `U3` and `C7` are
+      positioned relative to it. Old spot was (139.2, 59.1).
 
 - [ ] **`U3` (MCP73871, QFN-20 4×4 mm)** — put it where the two `SS34` diodes
       used to be, around (131, 48). Removing them freed exactly this pocket.
@@ -291,7 +313,8 @@ flip a part to the other side of the board.
       rail leaves for the rings. This part carries the full LED current, so keep
       its path short.
 
-- [ ] **`SW1`** — leave it where it is. It only carries microamps now.
+- [ ] **`SW1`** — back to roughly (136, 39) on the board edge, where it was
+      before F8 moved it. It only carries microamps now, so its traces are thin.
 
 - [ ] **Charger support parts, all close to `U3`:**
       `R2` (PROG1), `R15` (PROG3), `R14` (THERM), `C4` (SYS bypass), `C7` (BAT
@@ -299,8 +322,9 @@ flip a part to the other side of the board.
 
 - [ ] **`R13`, `R17`** — near `Q1` (gate pull-up and rail pulldown).
 
-- [ ] **`R16` + `D35`** — the second status LED. Put it next to the existing
-      `D33` so the two charge-status LEDs sit together and are visible.
+- [ ] **`D33`, `R16` + `D35`** — the two charge-status LEDs. `D33` needs
+      placing as well (old spot (150.3, 79.8)); put the pair side by side so
+      both are visible.
 
 - [ ] **`C20` (22µF bulk, 0805)** — right where `+LED_PWR` leaves `Q1` for the rings.
 
@@ -497,7 +521,8 @@ Set trace width before drawing: the dropdown in the top toolbar, or
       `(dnp yes)` in the schematic will be missing without warning — that is the
       single easiest way to get a board back that does not work.
 
-      Expect **27 lines covering 83 parts**. Confirm `C2761795` appears with a
+      Expect **26 lines covering 83 parts** — that is what the schematic holds
+      today, grouped by value + footprint + `MPN`. Confirm `C2761795` appears with a
       quantity of **30** and `C2944070` with a quantity of **1**. If the
       WS2812B line is absent, the DNP flag did not clear.
 
