@@ -7,13 +7,12 @@ Working checklist for taking the reworked schematic (branch
 box is the next thing to do. Notes and gotchas live under each step — read them
 before doing the step, not after.
 
-**Current status:** Phase 3 complete and verified — the 29 orphaned copper
-items are gone, taking total copper from 413 to 384, and nothing else moved:
-`+LED_PWR` still holds the 104-item ring distribution, `GND` 92, the ring
-inputs and USB intact, 88 footprints, antenna keepout still in place. No
-netless copper remains on the board.
-Next: Phase 4, and read its note about the power section being off the board
-before you start moving parts.
+**Current status:** Phase 4 complete. All 34 parts placed and verified against
+the board file — positions, angles, sides, courtyard clearance on both faces,
+board outline, and pads against foreign-net tracks. The 13 stale copper items
+and the 3 dead zones are gone; copper is 371 items and 15 zones.
+Next: Phase 5. Read its routing note and the corrected Phase 8 note on the outer
+ring before you start.
 
 ---
 
@@ -271,10 +270,10 @@ see the warning below. The post-F8 file was analysed and there are exactly
       followed. Verified: `+BATT` went 104 → 0 copper items and `+LED_PWR`
       went 0 → 104, with total board copper unchanged at 413.
 
-      That distribution is still correct and worth keeping — only its *source*
-      end changes, from the battery to `Q1`'s drain. Deleting it would throw
-      away the entire ring power distribution and force you to re-route 30
-      LEDs by hand for no reason.
+      Keep it. ⚠️ But note the correction in Phase 5: this copper is **not** a
+      working distribution — traced properly it is 28 separate groups of per-LED
+      stubs, not a ring. It is still worth keeping as the anchor each hop starts
+      from, and deleting it would only make Phase 5 longer.
 
 - [x] **Leave everything else alone** — USB, buttons and the ESP32 are
       untouched by this rework.
@@ -283,105 +282,289 @@ see the warning below. The post-F8 file was analysed and there are exactly
 
 ## Phase 4 — Placement
 
-Place with <kbd>M</kbd> (move) and <kbd>R</kbd> (rotate). Press <kbd>F</kbd> to
-flip a part to the other side of the board.
+Every position in this phase was checked against the board file itself: courtyard
+overlap against parts on the same side, through-hole pads against parts on the
+other side, all four courtyard corners inside the 90 mm circle, and every pad
+against existing tracks of a different net. All 34 come back clean.
 
-**The whole power section is off the board, not just the new parts.** Because
-the section was redrawn in the schematic, F8 dropped every part in it into the
-loose cluster — including ones that already had positions. 28 footprints now
-sit outside the 90 mm outline: `R2`, `R5`, `R13`–`R19`, `C4`–`C15`, `C19`,
-`C20`, `C21`, `Q1`, `U4`, `SW1`, `J1`. `U3`, `D33`, `D35` and `C16`–`C18` are
-technically inside the circle but sit in the empty lower-left area, so they
-need placing too.
+### 4a — Delete 13 more leftovers first
 
-Old positions worth reusing, from the pre-F8 board: `SW1` (136.3, 38.9),
-`J1` (139.2, 59.1), `D33` (150.3, 79.8), `U4` (122.3, 56.6), `C4` (115.8, 55.7),
-`C5` (115.8, 58.3), `C6` (140.2, 45.9), `C7` (145.4, 50.6), `R2` (137.8, 50.5),
-`R5` (147.1, 79.8).
+Phase 3 removed the copper that had lost its net. These 13 items kept theirs, so
+they survived — but they are the same kind of leftover, and they run straight
+through where the new parts go.
 
-- [ ] **`J1` (battery connector)** — place this first, since `U3` and `C7` are
-      positioned relative to it. Old spot was (139.2, 59.1).
+**Seven `+LED_PWR` segments on F.Cu.** They are the old feed from the switch to
+the LED ring: one chain from the via at (136.13, 43.42) down to a dead end at
+(114.71, 55.66). They are 0.5 mm wide, far too thin for the 1.8 A they would
+carry, so Phase 5 replaces them with a fresh 1.0 mm run anyway.
 
-- [ ] **`U3` (MCP73871, QFN-20 4×4 mm)** — put it where the two `SS34` diodes
-      used to be, around (131, 48). Removing them freed exactly this pocket.
-      Keep it close to `J1` (battery connector) and `C7`.
+| From | To |
+|---|---|
+| (136.13, 43.42) | (135.90, 43.42) |
+| (135.90, 43.42) | (134.77, 42.29) |
+| (134.77, 42.29) | (129.68, 43.42) |
+| (129.68, 43.42) | (119.69, 53.41) |
+| (119.69, 53.41) | (115.46, 53.41) |
+| (115.46, 53.41) | (114.71, 54.16) |
+| (114.71, 54.16) | (114.71, 55.66) |
 
-- [ ] **`U4` (TLV75533, SOT-23-5)** — where the old AMS1117 was, around
-      (122, 57). It is much smaller now, so there is spare room.
+⚠️ **Keep the via at (136.13, 43.42).** That via is where the whole LED ring is
+fed from the front side. Phase 5 routes Q1's drain to it.
 
-- [ ] **`Q1` (AO3401A, SOT-23)** — between `U3`'s SYS output and where the LED
-      rail leaves for the rings. This part carries the full LED current, so keep
-      its path short.
+**Four `GND` segments and two `GND` vias on F.Cu** — the old `C4`/`C5` ground
+connections:
 
-- [ ] **`SW1`** — back to roughly (136, 39) on the board edge, where it was
-      before F8 moved it. It only carries microamps now, so its traces are thin.
+| Item | Coordinates |
+|---|---|
+| segment | (116.79, 55.66) → (118.04, 55.66) |
+| segment | (118.04, 55.66) → (118.05, 55.67) |
+| segment | (114.75, 58.29) → (113.23, 58.29) |
+| segment | (113.23, 58.29) → (112.88, 58.64) |
+| via | (112.88, 58.64) |
+| via | (118.05, 55.67) |
 
-- [ ] **Charger support parts, all close to `U3`:**
-      `R2` (PROG1), `R15` (PROG3), `R14` (THERM), `C4` (SYS bypass), `C7` (BAT
-      bypass), `C6` (IN bypass). Short traces matter more for `C4`/`C6`/`C7`.
+Keep the GND vias at (124.12, 51.36) and (125.56, 51.34) — they stitch the two
+ground pours together and nothing lands on them.
 
-- [ ] **`R13`, `R17`** — near `Q1` (gate pull-up and rail pulldown).
+To do it: open the **Selection Filter** panel (bottom left), untick everything
+except *Tracks* and *Vias*, zoom into x 112–137 / y 42–59, then click the first
+item and <kbd>Shift</kbd>-click the other twelve before pressing <kbd>Del</kbd>.
+Copper should read **371 items** afterwards — it is 384 now.
 
-- [ ] **`D33`, `R16` + `D35`** — the two charge-status LEDs. `D33` needs
-      placing as well (old spot (150.3, 79.8)); put the pair side by side so
-      both are visible.
+### 4b — How to place a part at an exact position
 
-- [ ] **`C20` (22µF bulk, 0805)** — right where `+LED_PWR` leaves `Q1` for the rings.
+Do not drag parts by eye — type the numbers in.
 
-- [ ] **Battery sense `R18`, `R19`, `C21`** — `C21` should be close to the
-      **ESP32's GPIO4 pin**, not to the divider. The divider itself can sit near
-      the battery connector.
+1. In the **Selection Filter** panel, tick *Footprints* only. That stops you
+   grabbing a track by accident.
+2. Click the part in the loose cluster below-left of the board.
+3. Press <kbd>E</kbd> to open *Footprint Properties*.
+4. Fill in **Position X**, **Position Y** and **Orientation** from the table.
+   For the one part marked *Back*, also change **Side** to *Back*.
+5. Click OK. The part jumps to its spot.
 
-- [ ] **The 12 decoupling caps `C8–C19` — now put 8 of them on the BACK.**
+The Orientation box takes exactly the number in the table — negative values are
+fine (`-162` and `198` are the same angle). Check the units selector says **mm**.
 
-      ⚠️ **This reverses earlier advice in this file.** The original plan kept
-      all 12 on the front, specifically to avoid triggering double-sided
-      assembly and roughly doubling the cost. That constraint no longer exists —
-      the order is double-sided regardless, so putting caps on the back is free.
+If you would rather work visually: <kbd>M</kbd> moves, <kbd>R</kbd> rotates 90°
+at a time, <kbd>F</kbd> flips to the other side. Use those to get close, then
+still open <kbd>E</kbd> and type the exact numbers.
 
-      Place them beside their LEDs rather than opposite them:
+### 4c — The power section
 
-      - **8 caps** on the **back**, spread around radius ≈32 mm, directly next
-        to `D1`–`D20`
-      - **4 caps** on the **front**, among `D21`–`D30`
+| Ref | X | Y | Rotation | Side | What it is |
+|---|---|---|---|---|---|
+| `U3` | 121.00 | 53.00 | 270 | Front | MCP73871 charger |
+| `C4` | 128.00 | 48.00 | 0 | Front | +SYS bypass 4.7 µF |
+| `C6` | 128.00 | 51.00 | 0 | Front | +5V (USB) bypass 4.7 µF |
+| `C7` | 128.00 | 54.00 | 0 | Front | +BATT bypass 4.7 µF |
+| `R2` | 124.00 | 57.20 | 0 | Front | PROG1 — USB charge current |
+| `R15` | 124.00 | 59.70 | 0 | Front | PROG3 — current select |
+| `R14` | 119.50 | 57.20 | 0 | Front | THERM, 10k to GND |
+| `Q1` | 133.00 | 51.00 | 0 | Front | AO3401A load switch |
+| `R13` | 133.00 | 55.00 | 0 | Front | gate pull-up to +SYS |
+| `R17` | 137.50 | 49.50 | 0 | Front | +LED_PWR pulldown |
+| `C20` | 137.50 | 52.50 | 0 | Front | 22 µF bulk on +LED_PWR |
+| `U4` | 124.00 | 63.50 | 0 | Front | TLV75533 3.3 V LDO |
+| `C5` | 119.00 | 63.50 | 0 | Front | +3V3 output cap |
+| `SW1` | 136.30 | 38.90 | -162 | Front | slide switch |
+| `J1` | 139.24 | 59.12 | 90 | **Back** | JST battery connector |
+| `D33` | 159.45 | 39.08 | 103 | **Back** | charge-status LED |
+| `R5` | 157.94 | 42.63 | 102 | **Back** | `D33` series resistor |
+| `D35` | 162.98 | 40.06 | 108 | **Back** | second status LED |
+| `R16` | 161.80 | 43.67 | 108 | **Back** | `D35` series resistor |
+| `R18` | 176.80 | 59.40 | 0 | Front | 470k, top of divider |
+| `R19` | 176.80 | 61.80 | 0 | Front | 470k, bottom of divider |
+| `C21` | 179.60 | 67.80 | 0 | Front | 100 nF sense filter |
 
-      Beside beats opposite: it removes two vias and the 1.6 mm return path from
-      every decoupling loop. Press <kbd>F</kbd> to flip a part to the other side.
+Worth knowing about six of them:
 
-      Each cap goes between `+LED_PWR` and `GND`. Proximity is the whole point —
-      a cap 20 mm from its LED does nothing useful.
+- **`U3` at 270°** — this angle puts OUT/IN/CE on the right (facing `Q1` and the
+  USB feed), V_BAT and the PROG pins on the bottom (facing `J1`), and the STAT
+  pins on the left. Its six thermal vias go right through the board, so the spot
+  is picked to clear the back-side LED ring: the vias land 37.7–40.3 mm from the
+  board centre and the ring occupies 27.7–36.3 mm.
+- **`Q1`** — source (+SYS) faces left toward `U3`, drain (+LED_PWR) faces right
+  toward the ring-feed via at (136.13, 43.42).
+- **`SW1`** — its old, fabricated position. The body deliberately hangs over the
+  board edge so the actuator is reachable. That overhang is not a mistake, and
+  all three pads are on the board.
+- **`J1`** — it was on the back before F8 moved it to the front, so it needs the
+  *Side* dropdown changed as well as a move.
+- **The two status LEDs and their resistors moved to the back.** `D33` used to
+  sit dead centre on the front, and this file kept it there. The front face is
+  almost hidden in the enclosure, so the pair now sits on the **back**, outside
+  the LED ring, 42 mm from board centre on the arc just clockwise of the USB-C
+  port — about 10 mm from `J3`, so you see them where you plug in.
+
+  The bearings either side are taken: `J3`'s own through-holes span −96° to −84°
+  and `SW1`'s mounting pin sits at −113° to −104°, so this group lives at −72° to
+  −78°. Their rotations are set so each part points outward along the radius.
+
+  Cost of the move: the two existing `Net-(D33-K)` tracks no longer land on
+  anything and the `STAT` runs are now ~40 mm — fine at a few mA. Phase 5 needs
+  **4 extra vias**: both anodes to the `+5V` pour on F.Cu, and both `STAT` nets
+  through to `U3` on the front.
+
+**The battery-sense divider is grouped by the ESP32, not by the battery.** This
+reverses earlier advice in this file, which put `R18`/`R19` near `J1` and only
+`C21` near GPIO4. That would leave the divider's 235 kΩ output node running
+~40 mm across a board with 1.8 A of LED switching on it — a high-impedance
+antenna. Keeping all three together at the ESP32 end means the long trace is
+`+BATT` instead: a low-impedance DC rail that does not care. `C21` ends up 3.0 mm
+from `U1` pin 3 (GPIO4) at (181.34, 70.27).
+
+### 4d — The twelve decoupling caps
+
+Each one goes in the gap between two adjacent LEDs, on the same side as those
+LEDs, with its long axis pointing outward along the radius. Eight on the back
+beside the outer ring, four on the front beside the inner ring, as planned
+earlier in this file.
+
+| Ref | X | Y | Rotation | Side | Sits between |
+|---|---|---|---|---|---|
+| `C8` | 181.61 | 74.99 | 9 | Back | `D1` and `D2` |
+| `C9` | 172.63 | 57.37 | 45 | Back | `D3` and `D4` |
+| `C10` | 144.52 | 45.43 | 99 | Back | `D6` and `D7` |
+| `C11` | 127.37 | 57.37 | 135 | Back | `D8` and `D9` |
+| `C12` | 118.39 | 85.01 | 189 | Back | `D11` and `D12` |
+| `C13` | 127.37 | 102.63 | 225 | Back | `D13` and `D14` |
+| `C14` | 155.48 | 114.57 | 279 | Back | `D16` and `D17` |
+| `C15` | 172.63 | 102.63 | 315 | Back | `D18` and `D19` |
+| `C16` | 166.17 | 74.75 | 18 | Front | `D21` and `D22` |
+| `C17` | 150.00 | 63.00 | 90 | Front | `D23` and `D24` |
+| `C18` | 133.83 | 85.25 | 198 | Front | `D26` and `D27` |
+| `C19` | 150.00 | 97.00 | 270 | Front | `D28` and `D29` |
+
+`C8`–`C15` need *Side* set to **Back**. Each sits about 5 mm from either
+neighbour, which is what makes them worth fitting at all.
+
+⚠️ **Back-side rotations are not the mirror of the front-side ones — read this
+before typing them in.** Flipping a footprint mirrors it, which reverses the
+sense of its angle. Two different rules get confused here:
+
+- To point a part **outward along the radius**: front `rot = -bearing`, back
+  `rot = +bearing`.
+- To hold a **fixed angle to the neighbouring LEDs**, which is what actually
+  looks right on this board: `rot = -bearing` on **both** sides.
+
+The second is the one these tables use, because the outer LED ring does not sit
+radially — see the note in Phase 8. The front caps sit at a constant -18° to
+their LEDs and the back caps at a constant +9°, and that consistency is what
+makes the rings look even.
+
+The angles below are the values **as KiCad stores them**. Set *Side* to Back
+first, then type the angle — do **not** press <kbd>F</kbd> afterwards, because
+that rewrites the angle as `180 - angle` and silently turns these into the
+radial set instead.
+
+`C10` and `C14` are at 98° and 278° rather than the tidy 99°/279° their
+neighbours would suggest. The WS2812 hand-solder footprint is asymmetric — its
+pads run 2.925 mm one way and 2.65 mm the other — so the real gap between two
+LEDs is not quite where the geometry says. One degree of nudge is what it took to
+clear the courtyard.
+
+### 4e — Check the placement
+
+- **Nothing left outside the circle.** After all 34, the loose cluster should be
+  empty. `SW1`'s body overhanging the edge is the only thing that should look
+  like it is hanging off.
+- **Look at it in 3D** (*View → 3D Viewer*), front and back. Parts should sit in
+  the empty crescent on the left and in the gaps between LEDs — nothing on top of
+  anything.
+- **Do not read DRC as a verdict yet.** It will report a large number of
+  unconnected items, which is correct — Phase 5 has not happened.
 
 ---
 
 ## Phase 5 — Routing
 
 ⚠️ **Read this scope note first — the job is bigger than this file originally
-implied.** The post-F8 board was analysed net by net. **38 nets need routing:**
+implied, and bigger again than the last revision said.** The board was
+re-analysed by building the connected components of every net (tracks, vias and
+zone fills together), not just by asking which nets carry copper.
 
-| Group | Count | Notes |
+| Group | Connections still needed | Notes |
 |---|---|---|
 | **LED data links** | **28** | every `DOUT → DIN` hop, both rings |
+| **LED power `+LED_PWR`** | **~27** | see below — this is the new one |
 | Power path | 2 | `+BATT`, `+SYS` |
 | Charger support | 7 | `PROG1`, `PROG3`, `THERM`, `STAT1`, `STAT2`, `Q1` gate, `D35` cathode |
 | Battery sense | 1 | `/BAT_SENSE` |
 
-The 28 LED data links are the surprise. **They were never routed in this file** —
-not something F8 broke. Verified by analysing the previous commit: the data nets
-had zero copper before F8 as well, and total board copper is 413 items in both.
-Whatever was fabricated previously must have come from a different file state
+**The ring power distribution is not actually a distribution.** An earlier
+revision of this file said the 104 `+LED_PWR` copper items were the working ring
+feed and should be kept. They are not. Traced properly, `+LED_PWR` has **33 pads
+in 28 electrically separate groups**: the largest joins only `D7`, `D8`, `D17`,
+`D18`, `D19` and `D21`, and the other 27 pads are each on their own stub going
+nowhere. What look like a distribution ring are per-LED stubs a few millimetres
+long that were never joined up.
+
+Nothing was broken by F8 or by Phase 3 — the 104 items are all still there, and
+Phase 3 only deleted netless copper. The committed file simply was never fully
+routed, exactly as the LED *data* links never were. Both point at the same
+conclusion: whatever was fabricated previously came from a different file state
 than the one committed as "latest and greatest".
 
-What *is* already routed and should be left alone: `GND` (92 items), the ring
-power distribution now on `+LED_PWR` (104), `+3V3`, `+5V`, USB `D+`/`D-`, the
-buttons, and both ring *inputs* (`/small_ring`, `/large_ring` — ESP32 out to the
-first LED of each chain). 23 nets carry copper today.
+So the LED rings need **both** power and data routed all the way round: about 55
+short hops between adjacent LEDs, plus the feed from `Q1`. They are individually
+quick, but budget real time — they gate whether the board lights up at all.
 
-Budget real time for the 28 data hops. They are short, adjacent-LED links around
-two rings, so each one is quick — but there are 28 of them and they gate whether
-the board works at all.
+**`GND` is poured, not routed, and the pour needs attention.** `GND` has zones on
+both sides, so most pads connect through copper fill rather than tracks. As the
+file stands, 33 ground pads fall outside the filled area — including every front
+LED `D21`–`D30` and all four buttons. Refill with <kbd>B</kbd> first and re-check;
+if they are still outside, the F.Cu zone outline does not reach the inner ring
+and needs enlarging. DRC's unconnected-items list is the reliable answer here.
+
+What *is* genuinely routed and can be left alone: `+3V3` (all 8 pads in one
+group), USB `D+`/`D-`, the buttons, and both ring *inputs* (`/small_ring`,
+`/large_ring` — ESP32 out to the first LED of each chain). `+5V` connects through
+its own pour once refilled.
 
 Set trace width before drawing: the dropdown in the top toolbar, or
 *File → Board Setup → Design Rules → Net Classes*.
+
+**How the LED rings will route — checked against the placement.**
+
+- **No route/part conflicts.** All 19 outer-ring `+LED_PWR` hops (LED pad 1 to
+  the next LED's pad 1) are clear of every capacitor's GND pad. Nothing has to
+  detour around a decoupling cap.
+- **Capacitor GND is by pour, not by trace.** The board-wide `GND` pour on B.Cu
+  carries every back-side cap's pad 2. The stored fill is stale — it predates
+  these parts — and 5 of the 8 cap GND pads currently fall outside it. Refill
+  with <kbd>B</kbd> before judging that, and re-check.
+- **There is no constant power radius on the back.** On the front, all ten inner
+  LED `+LED_PWR` pads sit at exactly r = 18.8 mm, so that ring is a clean circle
+  and each cap taps straight into it. On the back the ring fans, putting the
+  `+LED_PWR` pads anywhere from r = 28.7 to 35.3 mm. The outer power ring has to
+  zig-zag 6.6 mm in and out whatever you do — that is set by the LEDs, not by the
+  caps. Each cap reaches its nearest LED power pad in 2.3–6.9 mm.
+
+- [ ] **Delete three stale copper zones first.** They were drawn around the old
+      AMS1117 regulator at (122.25, 56.58), which no longer exists. Each one
+      connects to **zero** pads of its own net, and all three sit on top of the
+      new charger and its PROG/THERM resistors, exactly where this phase needs
+      to route.
+
+      | Net | Priority | Outline | Now sits on |
+      |---|---|---|---|
+      | `+3V3` | 3 | x 116.0–124.8, y 57.1–62.2 | `R14`, `R2`, `R15` |
+      | `+3V3` | 4 | x 121.5–123.1, y 52.4–57.4 | `U3` — its V_BAT, +SYS, +5V and GND pads |
+      | `GND` | 5 | x 123.2–126.4, y 50.0–54.2 | nothing |
+
+      Their priorities never arbitrate anything — the two `+3V3` outlines share
+      only a 1.6 × 0.3 mm sliver and the `GND` one touches neither. Real `+3V3`
+      connectivity is elsewhere: all eight `+3V3` pads already form one group via
+      tracks on the right of the board.
+
+      **Keep the two `+5V` zones** (priority 1 at the USB connector, priority 6
+      just inland) — those carry four and two live `+5V` pads. Keep the eleven
+      keepout zones around the buttons and the ESP32 antenna, and the board-wide
+      `GND` pour on B.Cu.
+
+      To select a zone, click its hatched outline, or set the Selection Filter to
+      *Zones* and click inside it. 18 zones now, 15 afterwards.
 
 - [ ] **Set up net classes** (saves a lot of manual width switching)
 
@@ -402,11 +585,18 @@ Set trace width before drawing: the dropdown in the top toolbar, or
       4. `+SYS` → `U4` input, `U4` output → `+3V3`
       5. Everything thin: PROG/THERM resistors, gate, status LEDs, battery sense
 
-- [ ] **Route the 28 LED data links.** Each is a short hop from one LED's pad 2
-      (DOUT) to the next LED's pad 4 (DIN), following the chains
-      `D1 → D20` on the back and `D21 → D30` on the front. Default 0.25 mm is
-      fine — these carry no current. Keep them on the same side as their LEDs so
-      no vias are needed.
+- [ ] **Route the LED rings — power and data, about 55 hops.** Work one ring at
+      a time and do power before data, so you can see the ring closing.
+
+      *Power:* hop `+LED_PWR` from each LED's pad 1 to the next LED's pad 1
+      around both rings. Use the Power-high width — this is the 1.8 A net. The
+      existing per-LED stubs are 0.5 mm and want widening as you join them up.
+
+      *Data:* hop from one LED's pad 2 (DOUT) to the next LED's pad 4 (DIN),
+      following the chains `D1 → D20` on the back and `D21 → D30` on the front.
+      Default 0.25 mm is fine — these carry no current.
+
+      Keep both on the same side as their LEDs so no vias are needed.
 
 - [ ] **Keep `+SYS` and `+BATT` as separate copper.** They must never touch.
       Shorting them silently recreates the original load-sharing bug — the board
@@ -550,18 +740,31 @@ Set trace width before drawing: the dropdown in the top toolbar, or
       matching it** — it covers `^SOT-23`, `^QFN-`, `^SOIC-` and similar, so
       `U3`/`U4`/`Q1` are handled, but the LEDs get no correction at all.
 
-      That sounds alarming, but the placements were checked and they are clean:
+      That sounds alarming, and the earlier reassurance here was wrong, so
+      read this carefully.
 
       | | |
       |---|---|
-      | Top ring `D21`–`D30` | all 10 sit at **270°** relative to their seat on the ring |
-      | Bottom ring `D1`–`D20` | all 20 sit at **270°** relative to their seat, in the mirrored frame |
-      | Spread within each ring | 0.1° (rounding) |
+      | Inner ring `D21`–`D30`, on F.Cu | genuinely uniform — every LED holds the same angle to its seat, `+LED_PWR` pads all land at exactly r = 18.8 mm |
+      | Outer ring `D1`–`D20`, on B.Cu | **not uniform.** It carries front-side rotations while the parts sit on the back, so it fans through 5 orientations 36° apart, repeating every 5 LEDs |
       | Data chain | two clean chains, `D21→D30` and `D1→D20`, no breaks |
 
-      The toolkit applies `rotation = 180 − rotation` to bottom-side parts,
-      which is the correct JLCPCB convention, and the numbers confirm it lands
-      the bottom ring in agreement with the top.
+      An earlier revision claimed both rings were uniform to 0.1°. That used
+      `rot + bearing`, which is the right invariant on the front and the wrong
+      one on a mirrored layer. Measured with `rot - bearing`, the outer ring
+      spreads **324°**.
+
+      This is pre-existing — the previously fabricated board has the identical
+      convention — and it is **not worth fixing**. Re-rotating all 20 to a
+      consistent ring would give lovely uniform 5.5 mm data hops instead of
+      today's 4–16 mm, but it collides with `H1`/`H3`/`H4`, `J1`, `C10` and
+      `C14`. The mounting holes are fixed and validated against a built
+      assembly, so the ring stays as it is.
+
+      What this does **not** change: the toolkit applies
+      `rotation = 180 - rotation` to bottom-side parts, which is the correct
+      JLCPCB convention, and a global pin-1 offset error would still hit all 30
+      LEDs equally. The preview check below is still the right check.
 
       **What this means:** there is no possibility of a per-LED error. Either
       all 30 are right, or all 30 are wrong by the *same* constant. So the
