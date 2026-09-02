@@ -479,135 +479,131 @@ clear the courtyard.
 
 ## Phase 5 — Routing
 
-⚠️ **Read this scope note first — the job is bigger than this file originally
-implied, and bigger again than the last revision said.** The board was
-re-analysed by building the connected components of every net (tracks, vias and
-zone fills together), not just by asking which nets carry copper.
+Nine numbered actions below. Everything before them is background — read it once,
+then work the list top to bottom.
 
-| Group | Connections still needed | Notes |
+### Background (no actions here)
+
+**What still needs connecting.** Measured by building the connected components of
+every net — tracks, vias and zone fills together — with all 34 parts placed:
+
+| Net | Pads | Separate groups | Connections needed |
+|---|---|---|---|
+| `+LED_PWR` | 46 | 41 | ~40 |
+| `GND` | 110 | 48 | 47 isolated pads — mostly fixed by action 2 |
+| `+SYS` | 9 | 9 | 8 |
+| `+BATT` | 6 | 6 | 5 |
+| `+5V` | 10 | 8 | pour handles most, see action 2 |
+| `+3V3` | 10 | 3 | 2 — `U4` output into the existing group |
+| `/BAT_SENSE` | 4 | 4 | 3 |
+| LED data | — | — | 28 `DOUT → DIN` hops |
+
+**The ring power was never a distribution.** An early revision of this file said
+the 104 `+LED_PWR` copper items were a working ring feed worth keeping. They are
+not — they are per-LED stubs a few millimetres long that were never joined up.
+Nothing broke them; the committed file was simply never fully routed, exactly as
+the data links never were. Keep the stubs as anchors, but expect to draw the ring.
+
+**There is no constant power radius on the back.** On the front, all ten inner
+LED `+LED_PWR` pads sit at exactly r = 18.8 mm, so that ring is a clean circle.
+On the back the LED ring fans (see Phase 8), scattering its `+LED_PWR` pads from
+r = 28.7 to 35.3 mm. The outer power ring has to zig-zag about 6.6 mm in and out
+however you draw it. That is set by the LEDs, not by anything placed in Phase 4.
+
+**The capacitors are clear of the ring.** All 19 outer-ring `+LED_PWR` hops pass
+clear of every decoupling capacitor's GND pad, so no hop has to detour.
+
+**Already routed — leave alone.** `+3V3` on the right of the board (8 pads in one
+group), USB `D+`/`D-`, the buttons, and both ring *inputs* `/small_ring` and
+`/large_ring` (ESP32 out to the first LED of each chain).
+
+---
+
+### 1. Set the trace widths
+
+*File → Board Setup → Design Rules → Net Classes.*
+
+| Net class | Nets | Width |
 |---|---|---|
-| **LED data links** | **28** | every `DOUT → DIN` hop, both rings |
-| **LED power `+LED_PWR`** | **~27** | see below — this is the new one |
-| Power path | 2 | `+BATT`, `+SYS` |
-| Charger support | 7 | `PROG1`, `PROG3`, `THERM`, `STAT1`, `STAT2`, `Q1` gate, `D35` cathode |
-| Battery sense | 1 | `/BAT_SENSE` |
+| Power-high | `+LED_PWR`, `+SYS` | **1.0 mm** |
+| Power-med | `+BATT`, `+5V`, `+3V3` | 0.5 mm |
+| Default | everything else | 0.25 mm |
 
-**The ring power distribution is not actually a distribution.** An earlier
-revision of this file said the 104 `+LED_PWR` copper items were the working ring
-feed and should be kept. They are not. Traced properly, `+LED_PWR` has **33 pads
-in 28 electrically separate groups**: the largest joins only `D7`, `D8`, `D17`,
-`D18`, `D19` and `D21`, and the other 27 pads are each on their own stub going
-nowhere. What look like a distribution ring are per-LED stubs a few millimetres
-long that were never joined up.
+At 1.8 A on 1 oz copper a 0.5 mm trace runs hot; 1.0 mm keeps the rise sensible.
+Doing this first means you almost never touch the width dropdown afterwards.
 
-Nothing was broken by F8 or by Phase 3 — the 104 items are all still there, and
-Phase 3 only deleted netless copper. The committed file simply was never fully
-routed, exactly as the LED *data* links never were. Both point at the same
-conclusion: whatever was fabricated previously came from a different file state
-than the one committed as "latest and greatest".
+### 2. Add a ground pour on the front
 
-So the LED rings need **both** power and data routed all the way round: about 55
-short hops between adjacent LEDs, plus the feed from `Q1`. They are individually
-quick, but budget real time — they gate whether the board lights up at all.
+**There is currently no `GND` zone on F.Cu at all** — the small one deleted with
+the two dead `+3V3` zones was the only one, and it was a 3 × 4 mm scrap. The back
+has a board-wide pour; the front has nothing.
 
-**`GND` is poured, not routed, and the pour needs attention.** `GND` has zones on
-both sides, so most pads connect through copper fill rather than tracks. As the
-file stands, 33 ground pads fall outside the filled area — including every front
-LED `D21`–`D30` and all four buttons. Refill with <kbd>B</kbd> first and re-check;
-if they are still outside, the F.Cu zone outline does not reach the inner ring
-and needs enlarging. DRC's unconnected-items list is the reliable answer here.
+Draw one to match: *Place → Add Filled Zone*, layer **F.Cu**, net **GND**, outline
+the whole board just inside `Edge.Cuts`, priority 0.
 
-What *is* genuinely routed and can be left alone: `+3V3` (all 8 pads in one
-group), USB `D+`/`D-`, the buttons, and both ring *inputs* (`/small_ring`,
-`/large_ring` — ESP32 out to the first LED of each chain). `+5V` connects through
-its own pour once refilled.
+This is what connects 47 currently-isolated ground pads — every front LED
+`D21`–`D30`, all four buttons, the four front decoupling caps, and the new power
+section. Without it you would be drawing dozens of ground traces by hand.
 
-Set trace width before drawing: the dropdown in the top toolbar, or
-*File → Board Setup → Design Rules → Net Classes*.
+### 3. Route the power path
 
-**How the LED rings will route — checked against the placement.**
+In this order, most critical first:
 
-- **No route/part conflicts.** All 19 outer-ring `+LED_PWR` hops (LED pad 1 to
-  the next LED's pad 1) are clear of every capacitor's GND pad. Nothing has to
-  detour around a decoupling cap.
-- **Capacitor GND is by pour, not by trace.** The board-wide `GND` pour on B.Cu
-  carries every back-side cap's pad 2. The stored fill is stale — it predates
-  these parts — and 5 of the 8 cap GND pads currently fall outside it. Refill
-  with <kbd>B</kbd> before judging that, and re-check.
-- **There is no constant power radius on the back.** On the front, all ten inner
-  LED `+LED_PWR` pads sit at exactly r = 18.8 mm, so that ring is a clean circle
-  and each cap taps straight into it. On the back the ring fans, putting the
-  `+LED_PWR` pads anywhere from r = 28.7 to 35.3 mm. The outer power ring has to
-  zig-zag 6.6 mm in and out whatever you do — that is set by the LEDs, not by the
-  caps. Each cap reaches its nearest LED power pad in 2.3–6.9 mm.
+1. `U3` SYS → `Q1` source → `Q1` drain → out toward the ring feed via at
+   (136.13, 43.42)
+2. `U3` BAT ↔ `J1` and `C7`
+3. `U3` IN ← `+5V` from USB
+4. `+SYS` → `U4` input, and `U4` output → `+3V3`
+5. `C4`, `C6`, `C20` bypass caps onto the rails they sit on
 
-- [ ] **Delete three stale copper zones first.** They were drawn around the old
-      AMS1117 regulator at (122.25, 56.58), which no longer exists. Each one
-      connects to **zero** pads of its own net, and all three sit on top of the
-      new charger and its PROG/THERM resistors, exactly where this phase needs
-      to route.
+### 4. Route the outer ring — power
 
-      | Net | Priority | Outline | Now sits on |
-      |---|---|---|---|
-      | `+3V3` | 3 | x 116.0–124.8, y 57.1–62.2 | `R14`, `R2`, `R15` |
-      | `+3V3` | 4 | x 121.5–123.1, y 52.4–57.4 | `U3` — its V_BAT, +SYS, +5V and GND pads |
-      | `GND` | 5 | x 123.2–126.4, y 50.0–54.2 | nothing |
+19 hops, back side, `D1` → `D20`. Hop `+LED_PWR` from each LED's **pad 1** to the
+next LED's **pad 1**. Power-high width. Widen the old 0.5 mm stubs as you join
+them up. Keep it all on B.Cu — no vias needed.
 
-      Their priorities never arbitrate anything — the two `+3V3` outlines share
-      only a 1.6 × 0.3 mm sliver and the `GND` one touches neither. Real `+3V3`
-      connectivity is elsewhere: all eight `+3V3` pads already form one group via
-      tracks on the right of the board.
+### 5. Route the outer ring — data
 
-      **Keep the two `+5V` zones** (priority 1 at the USB connector, priority 6
-      just inland) — those carry four and two live `+5V` pads. Keep the eleven
-      keepout zones around the buttons and the ESP32 antenna, and the board-wide
-      `GND` pour on B.Cu.
+19 hops, back side. From each LED's **pad 2** (DOUT) to the next LED's **pad 4**
+(DIN), following `D1 → D20`. Default 0.25 mm. Same side as the LEDs.
 
-      To select a zone, click its hatched outline, or set the Selection Filter to
-      *Zones* and click inside it. 18 zones now, 15 afterwards.
+These hops run 4–16 mm because of the ring fan — longer than they look like they
+should be. That is expected.
 
-- [ ] **Set up net classes** (saves a lot of manual width switching)
+### 6. Route the inner ring — power, then data
 
-  | Net class | Nets | Width |
-  |---|---|---|
-  | Power-high | `+LED_PWR`, `+SYS` | **1.0 mm** |
-  | Power-med | `+BATT`, `+5V`, `+3V3` | 0.5 mm |
-  | Default | everything else | 0.25 mm |
+9 power hops and 9 data hops, front side, `D21` → `D30`, same pad rules as
+actions 4 and 5. This ring is uniform, so every hop is a tidy ~6 mm.
 
-  **Why 1.0 mm:** at 1.8 A on standard 1 oz copper, a 0.5 mm trace runs hot.
-  1.0 mm keeps the temperature rise sensible. The existing `+BATT` traces were
-  0.5 mm and were already marginal for this load.
+### 7. Connect the twelve decoupling capacitors
 
-- [ ] **Route the power path in this order** (most critical first):
-      1. `U3` SYS → `Q1` source → `Q1` drain → `+LED_PWR` out to the rings
-      2. `U3` BAT ↔ `J1` and `C7`
-      3. `U3` IN ← `+5V` from USB
-      4. `+SYS` → `U4` input, `U4` output → `+3V3`
-      5. Everything thin: PROG/THERM resistors, gate, status LEDs, battery sense
+Each cap's **pad 1** taps `+LED_PWR` at the nearest LED pad 1 — 2.3 to 6.9 mm
+away, same side as the cap. **Pad 2 needs no trace**: it is `GND` and the pour
+from action 2 (front) or the existing back pour picks it up.
 
-- [ ] **Route the LED rings — power and data, about 55 hops.** Work one ring at
-      a time and do power before data, so you can see the ring closing.
+### 8. Route what is left
 
-      *Power:* hop `+LED_PWR` from each LED's pad 1 to the next LED's pad 1
-      around both rings. Use the Power-high width — this is the 1.8 A net. The
-      existing per-LED stubs are 0.5 mm and want widening as you join them up.
+`PROG1`, `PROG3`, `THERM`, `Q1` gate, `STAT1`/`STAT2` to `R5`/`R16` and on to
+`D33`/`D35`, and `/BAT_SENSE` from the divider to `U1` pin 3. All Default width.
 
-      *Data:* hop from one LED's pad 2 (DOUT) to the next LED's pad 4 (DIN),
-      following the chains `D1 → D20` on the back and `D21 → D30` on the front.
-      Default 0.25 mm is fine — these carry no current.
+`D33`/`D35` are on the back and their anodes need `+5V`, which lives on the
+front — so this step needs **4 vias**: both anodes up to `+5V`, and both `STAT`
+nets through to `U3`.
 
-      Keep both on the same side as their LEDs so no vias are needed.
+### 9. Refill and check
 
-- [ ] **Keep `+SYS` and `+BATT` as separate copper.** They must never touch.
-      Shorting them silently recreates the original load-sharing bug — the board
-      would appear to work and charge incorrectly. This is the single most
-      important thing to get right in this layout.
+Press <kbd>B</kbd> to refill both pours. Then confirm three things:
 
-- [ ] **Ground under the charger.** `U3`'s exposed pad must connect to ground —
-      the footprint already includes thermal vias, so just make sure the pad's
-      copper reaches the ground pour.
+- **`+SYS` and `+BATT` are separate copper.** They must never touch. Shorting
+  them silently recreates the original load-sharing bug — the board would appear
+  to work and charge wrongly. This is the single most important thing in the
+  layout.
+- **`U3`'s exposed pad reaches ground.** Its thermal vias are in the footprint;
+  just make sure the pour reaches them.
+- **No unconnected items left.** DRC in Phase 6 is the reliable answer, but the
+  ratsnest going quiet is the quick check.
 
-- [ ] **Refill zones** — press <kbd>B</kbd>. Do this after any routing change.
+Refill again after any later routing change.
 
 ---
 
