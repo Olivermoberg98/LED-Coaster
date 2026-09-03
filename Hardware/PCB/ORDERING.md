@@ -7,12 +7,13 @@ Working checklist for taking the reworked schematic (branch
 box is the next thing to do. Notes and gotchas live under each step — read them
 before doing the step, not after.
 
-**Current status:** Phase 4 complete. All 34 parts placed and verified against
-the board file — positions, angles, sides, courtyard clearance on both faces,
-board outline, and pads against foreign-net tracks. The 13 stale copper items
-and the 3 dead zones are gone; copper is 371 items and 15 zones.
-Next: Phase 5. Read its routing note and the corrected Phase 8 note on the outer
-ring before you start.
+**Current status:** Phase 5 actions 1-3 done. Net classes set, a board-wide
+`GND` pour added on F.Cu, and the power path routed: `+3V3`, `+5V`, `+SYS`,
+`+BATT` and both ring inputs are each one connected group. The outer ring's power
+turned out to be already routed too.
+Next: Phase 5 action 4 onward - the LED rings. Read the background block first;
+it was corrected after a coordinate-transform error made both rings look far
+worse than they are.
 
 ---
 
@@ -484,38 +485,43 @@ then work the list top to bottom.
 
 ### Background (no actions here)
 
-**What still needs connecting.** Measured by building the connected components of
-every net — tracks, vias and zone fills together — with all 34 parts placed:
+**What still needs connecting**, measured by building the connected components of
+every net — tracks, vias and zone fills together — with actions 1–3 done:
 
-| Net | Pads | Separate groups | Connections needed |
+| Net | Pads | Groups | Still to do |
 |---|---|---|---|
-| `+LED_PWR` | 46 | 41 | ~40 |
-| `GND` | 110 | 48 | 47 isolated pads — mostly fixed by action 2 |
-| `+SYS` | 9 | 9 | 8 |
-| `+BATT` | 6 | 6 | 5 |
-| `+5V` | 10 | 8 | pour handles most, see action 2 |
-| `+3V3` | 10 | 3 | 2 — `U4` output into the existing group |
-| `/BAT_SENSE` | 4 | 4 | 3 |
+| `+LED_PWR` | 46 | 22 | 9 inner-ring hops + 12 capacitor taps |
 | LED data | — | — | 28 `DOUT → DIN` hops |
+| `/BAT_SENSE` | 4 | 4 | 3 — action 8 |
+| `+5V` | 10 | 3 | `D33`, `D35` anodes — action 8 |
+| `+SYS` | 9 | 2 | `R13` — action 8 |
+| `+BATT` | 6 | 2 | `R18` — action 8 |
+| `GND` | 110 | 3 | `R19.2`, `U3.3` — action 9 |
 
-**The ring power was never a distribution.** An early revision of this file said
-the 104 `+LED_PWR` copper items were a working ring feed worth keeping. They are
-not — they are per-LED stubs a few millimetres long that were never joined up.
-Nothing broke them; the committed file was simply never fully routed, exactly as
-the data links never were. Keep the stubs as anchors, but expect to draw the ring.
+**Both LED rings are uniformly oriented.** Every LED sits at exactly 90° to its
+own radius, inner and outer alike — spread 0.07° on the outer ring, 0.14° on the
+inner. Their `+LED_PWR` pads all land on one clean circle: r = 30.5 mm on the
+back, r = 18.8 mm on the front. So both power rings route as plain circles, and
+every `DOUT → DIN` hop is a short tidy run — **5.6 mm on the outer ring, 6.0 mm on
+the inner**.
 
-**There is no constant power radius on the back.** On the front, all ten inner
-LED `+LED_PWR` pads sit at exactly r = 18.8 mm, so that ring is a clean circle.
-On the back the LED ring fans (see Phase 8), scattering its `+LED_PWR` pads from
-r = 28.7 to 35.3 mm. The outer power ring has to zig-zag about 6.6 mm in and out
-however you draw it. That is set by the LEDs, not by anything placed in Phase 4.
+An earlier revision of this file claimed the outer ring fanned through five
+orientations and that its power pads scattered over 6.6 mm of radius, forcing a
+zig-zag. That was wrong — it came from mirroring back-side pad coordinates in the
+X axis, which KiCad does not do. Ignore any advice in older commits about the
+outer ring being irregular.
 
-**The capacitors are clear of the ring.** All 19 outer-ring `+LED_PWR` hops pass
-clear of every decoupling capacitor's GND pad, so no hop has to detour.
+**The outer ring's power is already routed.** All twenty `D1`–`D20` power pads sit
+in one group with `Q1`, `C20`, `R17` and `U4`, inherited from the existing copper.
+Action 4 is a check, not a job. The *data* links were never drawn, and neither was
+the inner ring's power.
 
-**Already routed — leave alone.** `+3V3` on the right of the board (8 pads in one
-group), USB `D+`/`D-`, the buttons, and both ring *inputs* `/small_ring` and
-`/large_ring` (ESP32 out to the first LED of each chain).
+**The capacitors are clear of the ring.** Every outer-ring `+LED_PWR` hop passes
+clear of every decoupling capacitor's GND pad, and the caps sit 0.42–1.21 mm from
+their neighbouring LEDs. Nothing has to detour.
+
+**Already connected — leave alone.** `+3V3`, `+5V` to the USB, USB `D+`/`D-`, the
+buttons, and both ring *inputs* `/small_ring` and `/large_ring`.
 
 ---
 
@@ -708,30 +714,41 @@ LED rail. It is an input, so Default width is fine.
 silently recreates the original load-sharing bug: the board looks fine and
 charges wrongly.
 
-### 4. Route the outer ring — power
+### 4. Outer ring — power (check only)
 
-19 hops, back side, `D1` → `D20`. Hop `+LED_PWR` from each LED's **pad 1** to the
-next LED's **pad 1**. Power-high width. Widen the old 0.5 mm stubs as you join
-them up. Keep it all on B.Cu — no vias needed.
+Already connected. All twenty `D1`–`D20` pad 1s are in one group with `Q1` pad 3,
+`C20`, `R17` and `U4` pad 3, on r = 30.5 mm.
 
-### 5. Route the outer ring — data
+Just confirm it: click any outer LED's pad 1 and check the highlight runs the
+whole way round. If it does, move on — nothing to draw.
 
-19 hops, back side. From each LED's **pad 2** (DOUT) to the next LED's **pad 4**
-(DIN), following `D1 → D20`. Default 0.25 mm. Same side as the LEDs.
+### 5. Outer ring — data
 
-These hops run 4–16 mm because of the ring fan — longer than they look like they
-should be. That is expected.
+**19 hops, back side, `D1` → `D20`.** From each LED's **pad 2** (DOUT) to the next
+LED's **pad 4** (DIN). Default 0.25 mm, all on B.Cu, no vias.
 
-### 6. Route the inner ring — power, then data
+Every hop is **5.6 mm** and they are all the same shape, so once you have drawn
+the first one the rest are repetition. `/large_ring` already feeds `D1` pad 4, so
+start at `D1` pad 2 and work round to `D20`.
 
-9 power hops and 9 data hops, front side, `D21` → `D30`, same pad rules as
-actions 4 and 5. This ring is uniform, so every hop is a tidy ~6 mm.
+### 6. Inner ring — power, then data
+
+Front side, `D21` → `D30`.
+
+- **Power: 9 hops.** Pad 1 to pad 1, Power-high width, on r = 18.8 mm. `D21` is
+  already tied to the rest of `+LED_PWR`, so start there and work round to `D30`.
+- **Data: 9 hops.** Pad 2 (DOUT) to pad 4 (DIN), Default width, ~6.0 mm each.
+  `/small_ring` already feeds `D21` pad 4.
+
+All on F.Cu, no vias.
 
 ### 7. Connect the twelve decoupling capacitors
 
-Each cap's **pad 1** taps `+LED_PWR` at the nearest LED pad 1 — 2.3 to 6.9 mm
-away, same side as the cap. **Pad 2 needs no trace**: it is `GND` and the pour
-from action 2 (front) or the existing back pour picks it up.
+Each cap's **pad 1** taps `+LED_PWR` at the nearest LED pad 1, on the same side as
+the cap — the back eight to the outer ring, the front four to the inner ring.
+They sit 0.42–1.21 mm from their neighbours, so these are very short runs.
+
+**Pad 2 needs no trace** — it is `GND` and the pour picks it up.
 
 ### 8. Route what is left
 
@@ -888,31 +905,26 @@ Refill again after any later routing change.
       matching it** — it covers `^SOT-23`, `^QFN-`, `^SOIC-` and similar, so
       `U3`/`U4`/`Q1` are handled, but the LEDs get no correction at all.
 
-      That sounds alarming, and the earlier reassurance here was wrong, so
-      read this carefully.
+      That sounds alarming, but the placements were checked and they are clean:
 
       | | |
       |---|---|
-      | Inner ring `D21`–`D30`, on F.Cu | genuinely uniform — every LED holds the same angle to its seat, `+LED_PWR` pads all land at exactly r = 18.8 mm |
-      | Outer ring `D1`–`D20`, on B.Cu | **not uniform.** It carries front-side rotations while the parts sit on the back, so it fans through 5 orientations 36° apart, repeating every 5 LEDs |
-      | Data chain | two clean chains, `D21→D30` and `D1→D20`, no breaks |
+      | Inner ring `D21`–`D30`, F.Cu | every LED at 90° to its own radius, spread 0.14° |
+      | Outer ring `D1`–`D20`, B.Cu | every LED at 90° to its own radius, spread 0.07° |
+      | `+LED_PWR` pads | one clean circle per ring — r = 18.8 mm front, r = 30.5 mm back |
+      | Data chain | two clean chains, `D21→D30` and `D1→D20`, no breaks, uniform 6.0 mm and 5.6 mm hops |
 
-      An earlier revision claimed both rings were uniform to 0.1°. That used
-      `rot + bearing`, which is the right invariant on the front and the wrong
-      one on a mirrored layer. Measured with `rot - bearing`, the outer ring
-      spreads **324°**.
+      A revision of this file in between claimed the outer ring fanned through
+      five orientations with a 324° spread. That was wrong. It came from
+      mirroring back-side pad coordinates in the X axis when deriving the
+      geometry — KiCad does not do that — and every conclusion drawn from it
+      (irregular hops, scattered power radius, a forced zig-zag) was an artifact.
+      Both rings are uniform.
 
-      This is pre-existing — the previously fabricated board has the identical
-      convention — and it is **not worth fixing**. Re-rotating all 20 to a
-      consistent ring would give lovely uniform 5.5 mm data hops instead of
-      today's 4–16 mm, but it collides with `H1`/`H3`/`H4`, `J1`, `C10` and
-      `C14`. The mounting holes are fixed and validated against a built
-      assembly, so the ring stays as it is.
-
-      What this does **not** change: the toolkit applies
-      `rotation = 180 - rotation` to bottom-side parts, which is the correct
-      JLCPCB convention, and a global pin-1 offset error would still hit all 30
-      LEDs equally. The preview check below is still the right check.
+      The toolkit applies `rotation = 180 - rotation` to bottom-side parts, which
+      is the correct JLCPCB convention, and the numbers confirm it lands the
+      bottom ring in agreement with the top. A pin-1 offset error would still hit
+      all 30 LEDs equally, so the preview check below is the right check.
 
       **What this means:** there is no possibility of a per-LED error. Either
       all 30 are right, or all 30 are wrong by the *same* constant. So the
