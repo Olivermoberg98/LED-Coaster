@@ -521,16 +521,27 @@ group), USB `D+`/`D-`, the buttons, and both ring *inputs* `/small_ring` and
 
 ### 1. Set the trace widths
 
-*File → Board Setup → Design Rules → Net Classes.*
+*File → Board Setup → Design Rules → Net Classes.* Two things to get right: the
+class widths, and **which net is assigned to which class** — they are separate
+lists in that dialog and it is easy to fill in one and forget the other.
 
-| Net class | Nets | Width |
+| Net class | Width | Assign these nets |
 |---|---|---|
-| Power-high | `+LED_PWR`, `+SYS` | **1.0 mm** |
-| Power-med | `+BATT`, `+5V`, `+3V3` | 0.5 mm |
-| Default | everything else | 0.25 mm |
+| Power-high | **1.0 mm** | `+LED_PWR`, `+SYS` |
+| Power-med | 0.5 mm | `+BATT`, `+5V`, `+3V3` |
+| Default | 0.25 mm | everything else |
+
+⚠️ A net with **no** assignment silently falls to Default. That is the failure to
+watch for: `+LED_PWR` and `+SYS` are the two nets carrying 1.8 A, and if they are
+left unassigned they come out at 0.25 mm — a quarter of what they need — with no
+warning at all.
 
 At 1.8 A on 1 oz copper a 0.5 mm trace runs hot; 1.0 mm keeps the rise sensible.
-Doing this first means you almost never touch the width dropdown afterwards.
+`+5V`, `+3V3` and `+BATT` never carry more than ~0.5 A, so 1.0 mm on those just
+makes them awkward to route into fine-pitch pads.
+
+**Sanity check when you are done:** click any `+SYS` track and read the width in
+the status bar. It should say 1.0 mm.
 
 ### 2. Add a ground pour on the front
 
@@ -576,6 +587,60 @@ Helpers worth knowing:
 
 Five sub-steps. **3.1 is the only one carrying 1.8 A** — draw it at the
 Power-high width from action 1 and keep it short.
+
+**You cannot start a 1.0 mm trace on a `U3` pad — and you are not meant to.**
+
+`U3` is a QFN-20 on 0.5 mm pitch. Each pad is **0.25 mm wide** with a 0.25 mm gap
+to its neighbour. A 1.0 mm trace is four times the pad width, so the moment you
+start one it laps over the pads either side and DRC complains. That is the error
+you hit, and it is telling the truth.
+
+The fix is the standard QFN **fan-out**:
+
+1. Leave the pad **straight outward**, perpendicular to that edge of the package,
+   at **0.25 mm** (Default width). Every pad's long axis already points outward,
+   so this never runs between two pads — it runs along its own lane. Clearance to
+   the neighbouring pad works out at 0.25 mm, comfortably over the 0.2 mm rule.
+2. Carry on for about **1 mm**, until you are clear of the package body.
+3. **Then widen to 1.0 mm** for the rest of the run.
+
+To change width mid-route, use the track-width dropdown in the top toolbar. If it
+only offers one size, add the sizes first in *Board Setup → Design Rules →
+Pre-defined Sizes*. Easiest alternative if that feels fiddly: draw the 0.25 mm
+escape, press <kbd>Esc</kbd>, then start a **new** trace at 1.0 mm from the end of
+the stub. Two traces meeting end to end are one connection.
+
+The wide trace only has to be wide where it is long. A 1 mm stub at 0.25 mm adds
+about 4 mΩ — irrelevant next to the 400 mΩ the battery and charger already put in
+the path.
+
+**What pads 4, 9 and 17 actually are.**
+
+They are **not** extra output pins and they do **not** share the load. They are
+configuration inputs that the design ties to `+SYS`:
+
+| Pad | Pin | What it does | Current |
+|---|---|---|---|
+| 1, 20 | OUT | the charger's real output | **the full 1.8 A** |
+| 17 | CE | chip enable — high means charging allowed | ~0 |
+| 9 | TE | timer enable — sets the safety-timer behaviour | ~0 |
+| 4 | PROG2 | selects the input current limit | ~0 |
+
+So pads 4, 9 and 17 each need **a thin 0.25 mm trace to any `+SYS` copper** —
+nothing more. They are on three different edges (4 on top, 17 on the right, 9 on
+the left), so do not try to gather them into one place near the package; that is
+what blocks everything. Route each one outward from its own edge and join the
+nearest `+SYS` you can reach.
+
+**If the right-hand edge gets too congested**, that is expected — pads 20, 19,
+18, 17 and 16 all want to escape rightward and they are four different nets. Two
+ways out, either is fine:
+
+- Fan all five straight out in parallel at 0.25 mm (they stay on 0.5 mm pitch, so
+  clearance holds), then diverge once past the courtyard.
+- Or drop `U3` pad 17 through a via onto B.Cu right after its escape, run it a few
+  millimetres clear, and come back up. The `GND` pour there clears around it
+  automatically.
 
 ⚠️ **`U3` has five pads on `+SYS`, and they are not interchangeable.** Only pads
 **1 and 20** are the charger's actual output. Pads 4, 9 and 17 are configuration
