@@ -545,16 +545,103 @@ This is what connects 47 currently-isolated ground pads — every front LED
 `D21`–`D30`, all four buttons, the four front decoupling caps, and the new power
 section. Without it you would be drawing dozens of ground traces by hand.
 
+### How to draw a trace (read once)
+
+1. Press <kbd>X</kbd>, or click **Route Tracks** in the right-hand toolbar.
+2. **Click once on the starting pad.** The trace snaps to the pad centre and the
+   width comes from the net class automatically — you never type a width.
+3. Move the mouse. Click to drop a corner. KiCad keeps 45° angles by default;
+   <kbd>D</kbd> cycles that if you need a free angle.
+4. **Double-click the destination pad** to finish, or press <kbd>Esc</kbd> to stop
+   where you are.
+5. <kbd>Backspace</kbd> undoes the last segment while still routing.
+6. <kbd>V</kbd> drops a via and switches layer mid-route — needed only in action 8.
+
+Helpers worth knowing:
+
+- The thin white lines are the **ratsnest** — every one is a connection still
+  missing. They vanish as you route. That is your progress bar.
+- **Hover a pad and the status bar names its net.** That is the fastest way to
+  confirm you grabbed the right one.
+- KiCad names pads by **number**, not by function — `Q1` has no pad called
+  "source". The tables below give pad numbers, nets and exact coordinates, so
+  you can always check the status bar against them.
+- If a trace refuses to attach, you are probably on the wrong layer. Front parts
+  route on **F.Cu**, back parts on **B.Cu**; the layer dropdown is in the top
+  toolbar.
+
+---
+
 ### 3. Route the power path
 
-In this order, most critical first:
+Five sub-steps. **3.1 is the only one carrying 1.8 A** — draw it at the
+Power-high width from action 1 and keep it short.
 
-1. `U3` SYS → `Q1` source → `Q1` drain → out toward the ring feed via at
-   (136.13, 43.42)
-2. `U3` BAT ↔ `J1` and `C7`
-3. `U3` IN ← `+5V` from USB
-4. `+SYS` → `U4` input, and `U4` output → `+3V3`
-5. `C4`, `C6`, `C20` bypass caps onto the rails they sit on
+⚠️ **`U3` has five pads on `+SYS`, and they are not interchangeable.** Only pads
+**1 and 20** are the charger's actual output. Pads 4, 9 and 17 are configuration
+straps (PROG2, TE, CE) that just need to sit on the same net — thin traces, no
+current. Putting the load path through a strap pin would run 1.8 A through a
+signal pin.
+
+| `U3` pad | Function | Role |
+|---|---|---|
+| 20 at (122.94, 52.00) | OUT | **load path** |
+| 1 at (122.00, 51.06) | OUT | **load path** |
+| 17 at (122.94, 53.50) | CE | strap, thin |
+| 4 at (120.50, 51.06) | PROG2 | strap, thin |
+| 9 at (119.06, 53.50) | TE | strap, thin |
+
+**3.1 — the LED power path (Power-high, 1.0 mm)**
+
+| From | To | Note |
+|---|---|---|
+| `U3` pad 20 (122.94, 52.00) | `Q1` pad 2 (132.06, 51.95) | the main run, ~9 mm, almost straight across |
+| `U3` pad 1 (122.00, 51.06) | onto that run | second output pin in parallel — start on the pad and finish anywhere on the trace you just drew |
+| `C4` pad 1 (126.96, 48.00) | onto that run | `+SYS` bypass, tap straight down |
+| `Q1` pad 3 (133.94, 51.00) | the via at (136.13, 43.42) | this is `+LED_PWR` leaving for the rings |
+| `C20` pad 1 (136.46, 52.50) | onto the `+LED_PWR` run | 22 µF bulk |
+| `R17` pad 1 (136.50, 49.50) | onto the `+LED_PWR` run | rail pulldown, thin is fine |
+
+Then the three straps, Default width: `U3` pad 17 → pad 20 (they are 1.5 mm
+apart on the same edge), and pads 4 and 9 across to the nearest `+SYS` copper.
+
+**3.2 — battery (Power-med, 0.5 mm)**
+
+`J1` is on the **back**, `U3` and `C7` on the front, so this one needs a via.
+
+| From | To |
+|---|---|
+| `U3` pad 15 (122.00, 54.94) | `C7` pad 1 (126.96, 54.00) |
+| `U3` pad 14 (121.50, 54.94) | onto that run |
+| `U3` pad 16 (122.94, 54.00) | onto that run |
+| `C7` pad 1 | a via, then across B.Cu to `J1` pad 2 (139.24, 56.62) |
+
+**3.3 — USB input (Power-med, 0.5 mm)**
+
+| From | To |
+|---|---|
+| `U3` pad 19 (122.94, 52.50) | `C6` pad 1 (126.96, 51.00) |
+| `U3` pad 18 (122.94, 53.00) | onto that run |
+| `C6` pad 1 | the existing `+5V` copper — its nearest free end is (133.36, 46.59) |
+| `U3` pad 2 (121.50, 51.06) | onto the `+5V` run — VPCC, thin |
+
+**3.4 — the 3.3 V regulator (Power-med, 0.5 mm)**
+
+| From | To |
+|---|---|
+| `U4` pad 1 (122.86, 62.55) | the `+SYS` run from 3.1 |
+| `U4` pad 5 (125.14, 62.55) | `C5` pad 1 (117.96, 63.50) — this is `+3V3` |
+| `C5` pad 1 | onward to the existing `+3V3` copper on the right of the board |
+| `U4` pad 3 (122.86, 64.45) | the `+LED_PWR` run — this is the enable pin, thin |
+
+`U4` pad 3 being on `+LED_PWR` is deliberate: the regulator switches off with the
+LED rail. It is an input, so Default width is fine.
+
+**3.5 — check before moving on**
+
+`+SYS` and `+BATT` must be separate copper — never let them touch. Shorting them
+silently recreates the original load-sharing bug: the board looks fine and
+charges wrongly.
 
 ### 4. Route the outer ring — power
 
