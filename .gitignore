@@ -2,3 +2,5 @@
 # KiCad editor lock files and local history
 ~*.lck
 .history/
+__pycache__/
+*.pyc
