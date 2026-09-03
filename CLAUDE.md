@@ -60,6 +60,45 @@ Two activities, two *different* BLE connection models:
 - `CoasterDevice.sendPackage*` branch on API 33 for the new vs deprecated `writeCharacteristic` overloads; `MainActivity` only uses the deprecated form.
 - `gradle/libs.versions.toml` contains several IDE-generated aliases with the literal version `"your_version_here"` (`*-vyourversionhere`). They are unreferenced — never point a dependency at one.
 
+## PCB analysis tooling — use this before answering questions about the board
+
+`Hardware/PCB/tools/pcb_check.py` reads `LED_Coaster.kicad_pcb` directly. Pure
+stdlib Python, no KiCad install needed. **Run it rather than re-deriving board
+geometry by hand** — the parsing has several non-obvious traps and getting one
+wrong produces confident, wrong answers.
+
+```bash
+cd Hardware/PCB/tools
+python pcb_check.py nets                  # split nets + stranded pads
+python pcb_check.py net "+LED_PWR"        # one net: groups and every copper item
+python pcb_check.py shorts                # foreign copper overlapping a pad
+python pcb_check.py rings                 # LED chain continuity, ring uniformity
+python pcb_check.py zones                 # zone net/layer/priority/fill state
+python pcb_check.py widths                # track widths actually used per net
+python pcb_check.py placement             # positions, angles, sides, off-board
+python pcb_check.py all
+```
+
+KiCad's DRC remains the authority on manufacturability. This answers the
+questions DRC doesn't — *is this net actually one island, and which pad is
+stranded* — and answers them without opening the GUI.
+
+**Traps it encodes** (the header comment in the file lists all six):
+
+- **Back-side pads are not X-mirrored.** `B.Cu` footprints use the same
+  local→board transform as `F.Cu`. Mirroring swaps pad 3 for pad 4 and invents
+  shorts that do not exist. This one caused a long chain of wrong conclusions —
+  it made a uniform LED ring look like it fanned through five orientations.
+- A track end inside a **via's pad radius** is connected, not merely near it.
+- Zone fills carry a **per-polygon layer** tag; one zone can span both sides.
+- Two same-net zones whose **fills touch are one island**; priority decides
+  overlaps, so a higher-priority zone can orphan a lower one.
+- Pads **sharing a number** on one footprint are internally connected.
+- Fine-pitch rectangular pads must not be approximated by their circumradius.
+
+Board constants (outline centre and radius) are at the top of the file; update
+them if the outline ever changes.
+
 ## TODO: battery level reporting (hardware done, software not started)
 
 Hardware support was added on the `fix/charging-and-power-path` branch and is
