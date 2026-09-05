@@ -53,6 +53,15 @@ CX, CY, R_BOARD = 150.0, 80.0, 45.0
 #    shields) are internally connected. Treat them as one node.
 # 6. Fine-pitch rectangular pads must not be approximated by their circum-
 #    radius. On a 0.5 mm pitch QFN that over-reports clearance failures wildly.
+# 7. Nor may a round pad be approximated by its bounding square: the corners
+#    overstate it by a factor of sqrt(2). On an 8.6 mm M4 mounting-hole pad
+#    that is 1.8 mm of copper that is not there, and it invents shorts.
+#    Every pad here carries its corner radius and is traced as an outline.
+# 8. A pad's (at x y ang) angle is ABSOLUTE - KiCad has already folded the
+#    footprint's rotation into it. Adding the footprint rotation again turns
+#    every pad on a rotated part by an extra rot; on this board that is 71 of
+#    88 footprints, and it silently rotates fine-pitch pads across their
+#    neighbours. Omitted means the pad matches the footprint's own rotation.
 # ---------------------------------------------------------------------------
 
 
@@ -104,6 +113,34 @@ def _rect(cx, cy, w, h, ang):
     return out
 
 
+# Points per 90 deg of corner arc when tracing a rounded pad outline.
+_ARC = 4
+
+
+def _pad_outline(cx, cy, w, h, ang, r):
+    """Outline of a pad as a polygon, corners rounded by radius r (gotcha 7).
+
+    r = 0 gives the plain rectangle; r = min(w, h) / 2 gives a circle or a
+    stadium. Corners are traced with _ARC points each, so the polygon sits
+    just inside the true arc - clearance comes out marginally pessimistic,
+    never optimistic.
+    """
+    r = max(0.0, min(r, min(w, h) / 2.0))
+    if r <= 1e-9:
+        return _rect(cx, cy, w, h, ang)
+    a = math.radians(-ang)
+    ca, sa = math.cos(a), math.sin(a)
+    ix, iy = w / 2.0 - r, h / 2.0 - r
+    out = []
+    for qx, qy, base in ((ix, iy, 0.0), (-ix, iy, 90.0),
+                         (-ix, -iy, 180.0), (ix, -iy, 270.0)):
+        for k in range(_ARC + 1):
+            t = math.radians(base + 90.0 * k / _ARC)
+            dx, dy = qx + r * math.cos(t), qy + r * math.sin(t)
+            out.append((cx + dx * ca - dy * sa, cy + dx * sa + dy * ca))
+    return out
+
+
 def _pt_seg(p, a, b):
     dx, dy = b[0] - a[0], b[1] - a[1]
     L = dx * dx + dy * dy
@@ -149,8 +186,11 @@ def _pad_in_zone(pad, plat, zone):
 
     Not a centre test: a thermally-relieved pad sits in a hole in the fill and
     is joined by narrow spokes that overlap the pad edge. Sample across the pad
-    so a spoke landing anywhere on it counts.
+    so a spoke landing anywhere on it counts. The outline supplies the edge
+    points; the grid runs over the pad's core rect, which is inside the shape
+    whatever the corner radius (gotcha 7).
     """
+    core = pad["core"]
     for zl, poly in zone["fills"]:
         if not pad["th"] and zl != plat:
             continue
@@ -160,10 +200,10 @@ def _pad_in_zone(pad, plat, zone):
         for i in range(5):
             for j in range(5):
                 u, v = i / 4.0, j / 4.0
-                ax = pad["poly"][0][0] + (pad["poly"][1][0] - pad["poly"][0][0]) * u
-                ay = pad["poly"][0][1] + (pad["poly"][1][1] - pad["poly"][0][1]) * u
-                bx = pad["poly"][3][0] + (pad["poly"][2][0] - pad["poly"][3][0]) * u
-                by = pad["poly"][3][1] + (pad["poly"][2][1] - pad["poly"][3][1]) * u
+                ax = core[0][0] + (core[1][0] - core[0][0]) * u
+                ay = core[0][1] + (core[1][1] - core[0][1]) * u
+                bx = core[3][0] + (core[2][0] - core[3][0]) * u
+                by = core[3][1] + (core[2][1] - core[3][1]) * u
                 if _in_poly((ax + (bx - ax) * v, ay + (by - ay) * v), poly):
                     return True
     return False
@@ -196,23 +236,36 @@ class Board(object):
                 for a, c in re.findall(r"\((?:start|end|xy) ([-0-9.]+) ([-0-9.]+)\)", seg):
                     crt.append((float(a), float(c)))
             for p in _blocks(b, "pad"):
-                num = re.match(r'\(pad "([^"]*)"', p).group(1)
+                head = re.match(r'\(pad "([^"]*)" +(\w+) +(\w+)', p)
+                num = head.group(1)
                 if not num:
                     continue
+                shape = head.group(3)
                 pm = re.search(r"\(at ([-0-9.]+) ([-0-9.]+)(?: ([-0-9.]+))?\)", p)
                 sz = re.search(r"\(size ([-0-9.]+) ([-0-9.]+)\)", p)
+                rr = re.search(r"\(roundrect_rratio ([-0-9.]+)\)", p)
                 net = re.search(r'\(net "([^"]*)"\)', p)
                 fn = re.search(r'\(pinfunction "([^"]*)"', p)
                 px, py = float(pm.group(1)), float(pm.group(2))
-                prot = float(pm.group(3) or 0)
+                # A pad's stored angle is absolute, not relative to the
+                # footprint (gotcha 8). Omitted means "same as the footprint".
+                ang = float(pm.group(3)) if pm.group(3) else rot
                 w = float(sz.group(1)) if sz else 0.5
                 h = float(sz.group(2)) if sz else 0.5
+                if shape in ("circle", "oval"):
+                    r = min(w, h) / 2.0
+                elif shape == "roundrect":
+                    r = float(rr.group(1)) * min(w, h) if rr else 0.0
+                else:
+                    r = 0.0
                 bx, by = f(px, py)
                 pads.append(dict(num=num, net=net.group(1) if net else "",
                                  fn=fn.group(1) if fn else "", x=bx, y=by,
-                                 w=w, h=h, ang=rot + prot,
+                                 w=w, h=h, ang=ang, shape=shape, r=r,
                                  th="thru_hole" in p.split("\n")[0],
-                                 poly=_rect(bx, by, w, h, rot + prot)))
+                                 core=_rect(bx, by, max(w - 2 * r, 0.0),
+                                            max(h - 2 * r, 0.0), ang),
+                                 poly=_pad_outline(bx, by, w, h, ang, r)))
             if crt:
                 xs = [c[0] for c in crt]
                 ys = [c[1] for c in crt]
