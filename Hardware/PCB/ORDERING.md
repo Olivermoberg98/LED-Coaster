@@ -496,7 +496,11 @@ every net — tracks, vias and zone fills together — with actions 1–3 done:
 | `+5V` | 10 | 3 | `D33`, `D35` anodes — action 8 |
 | `+SYS` | 9 | 2 | `R13` — action 8 |
 | `+BATT` | 6 | 2 | `R18` — action 8 |
-| `GND` | 110 | 3 | `R19.2`, `U3.3` — action 9 |
+| `GND` | 110 | 2 | `R19.2` — action 8.5 |
+
+`U3`'s own ground pins are **not** on that list. Pads 3, 10 and 11 each already
+have a short escape stub out to the pour, and the exposed pad (21) sits under
+the fill. Nothing to do there.
 
 **Both LED rings are uniformly oriented.** Every LED sits at exactly 90° to its
 own radius, inner and outer alike — spread 0.07° on the outer ring, 0.14° on the
@@ -752,12 +756,115 @@ They sit 0.42–1.21 mm from their neighbours, so these are very short runs.
 
 ### 8. Route what is left
 
-`PROG1`, `PROG3`, `THERM`, `Q1` gate, `STAT1`/`STAT2` to `R5`/`R16` and on to
-`D33`/`D35`, and `/BAT_SENSE` from the divider to `U1` pin 3. All Default width.
+Five sub-steps, 17 traces. **8.1 to 8.3 are all short front-side runs** — start
+there, they are the easy half. 8.4 and 8.5 are the two long hauls and the only
+places you need a via.
 
-`D33`/`D35` are on the back and their anodes need `+5V`, which lives on the
-front — so this step needs **4 vias**: both anodes up to `+5V`, and both `STAT`
-nets through to `U3`.
+Widths come from the net class, so you never type one: everything here is
+Default 0.25 mm except `+BATT` and `+5V` (Power-med 0.5 mm) and the one `+SYS`
+trace in 8.3 (Power-high 1.0 mm).
+
+**8.1 — `U3`'s three configuration resistors (F.Cu, Default)**
+
+All three land on parts sitting just below `U3`. Nothing is routed on these
+nets yet, so each is one clean run.
+
+| From | To | Note |
+|---|---|---|
+| `U3` pad 13 (121.00, 54.94) | `R2` pad 1 (123.00, 57.20) | PROG1, ~3.0 mm |
+| `U3` pad 12 (120.50, 54.94) | `R15` pad 1 (123.00, 59.70) | PROG3, ~5.3 mm |
+| `U3` pad 5 (120.00, 51.06) | `R14` pad 1 (118.50, 57.20) | THERM — pad 5 is on the *top* edge, so escape upward and come round `U3`'s left side |
+
+**8.2 — the P-FET gate (F.Cu, Default)**
+
+`SW1` switches the LED rail by pulling `Q1`'s gate; `R13` is the pull-up that
+holds it off. `Q1` pad 1 sits between the other two, so route through it.
+
+| From | To | Note |
+|---|---|---|
+| `SW1` pad 3 (134.77, 42.29) | `Q1` pad 1 (132.06, 50.05) | ~8.2 mm |
+| `Q1` pad 1 (132.06, 50.05) | `R13` pad 1 (132.00, 55.00) | ~5.0 mm, straight down |
+
+**8.3 — `R13`'s other end to `+SYS` (F.Cu, Power-high 1.0 mm)**
+
+| From | To | Note |
+|---|---|---|
+| `R13` pad 2 (134.00, 55.00) | `Q1` pad 2 (132.06, 51.95) | ~3.6 mm |
+
+This is a pull-up carrying microamps, not a load path — it only comes out at
+1.0 mm because `+SYS` is in Power-high. `R13`'s pad is 1.2 mm wide so the class
+width does fit; let it. You are landing on the same `Q1` pad 2 that 3.1 already
+took the full 1.8 A to, which is exactly right: `R13` has to reference `+SYS` to
+hold the gate off.
+
+**8.4 — the two status LEDs (F.Cu → B.Cu, Default)**
+
+The awkward one. `U3` is on the front at the upper left; `R5`, `R16`, `D33` and
+`D35` are all on the **back**, clustered at the top of the board. The two `STAT`
+nets have to cross about 40 mm and change layer on the way.
+
+| From | To | Layer | Note |
+|---|---|---|---|
+| `U3` pad 8 (119.06, 53.00) | `R5` pad 1 (158.15, 43.61) | F.Cu → via → B.Cu | STAT1, ~40 mm |
+| `U3` pad 7 (119.06, 52.50) | `R16` pad 1 (162.11, 44.62) | F.Cu → via → B.Cu | STAT2, ~44 mm |
+| `R5` pad 2 (157.73, 41.65) | `D33` pad 1 (159.68, 40.08) | B.Cu | ~2.5 mm |
+| `R16` pad 2 (161.49, 42.72) | `D35` pad 1 (163.30, 41.03) | B.Cu | ~2.5 mm |
+| `D33` pad 2 (159.22, 38.08) | `D35` pad 2 (162.66, 39.09) | B.Cu | joins both anodes, ~3.6 mm |
+| that run | `J3` pad A4 (152.40, 42.08) | via → F.Cu | `+5V`, Power-med 0.5 mm |
+
+That is **three vias**, not four: `R5` and `R16` are already on B.Cu, so the
+`STAT` nets change layer once, near `U3`, and stay down. Joining the two anodes
+first means they share one via up to `+5V`. Give each anode its own via if you
+prefer — four is equally correct, just more work.
+
+Two things make this easier than it looks:
+
+- **The back of the board is nearly empty out here.** Between `U3` and `R5`
+  there is a clean annulus, measured from the board centre (150, 80): the outer
+  LED ring's copper stops at r = 34.4 mm, and the next thing outward is `J3`'s
+  shield holes at r = 38.0 mm. Run the pair as an arc at **r ≈ 35.5–37.5 mm**
+  and nothing is in the way the whole distance. `R5` and `R16` sit at r = 36.5,
+  so the arc lands straight on them.
+- `J3`'s VBUS pad A4 is the nearest `+5V` copper to the LEDs by a wide margin —
+  7.9 mm, against 15.9 mm to the nearest free end of the existing `+5V` run at
+  (147.69, 49.08). ⚠️ But `J3`'s shield holes at (154.27, 36.98) and
+  (154.27, 41.16) sit between it and the LEDs, with a 3.2 mm lane between them.
+  Aim for y ≈ 39 as you pass x = 154.3. Put the via on the LED side of those
+  holes, so the F.Cu leg is the short one.
+
+⚠️ **Stagger the two `U3` vias.** Pads 7 and 8 are 0.5 mm apart, but a 0.8 mm
+via needs 1.0 mm centre to centre. Fan the two escapes apart on F.Cu first, then
+drop. There is a `+SYS` strap already running left out of pad 9 at y = 53.50, so
+leave that lane alone.
+
+**8.5 — the battery-sense divider (F.Cu, Default unless noted)**
+
+`R18`/`R19` halve `+BATT` and feed `U1`'s ADC; `C21` is the buffer cap. Four of
+the five runs are millimetres apart on the right-hand edge. The fifth is not.
+
+| From | To | Note |
+|---|---|---|
+| `R18` pad 2 (177.80, 59.40) | `R19` pad 1 (175.80, 61.80) | the divider tap |
+| `R19` pad 1 (175.80, 61.80) | `C21` pad 1 (178.56, 67.80) | ~6.6 mm |
+| `C21` pad 1 (178.56, 67.80) | `U1` pad 3 (181.34, 70.27) | `IO4`, the ADC input |
+| `R19` pad 2 (177.80, 61.80) | `GND` at (181.25, 59.89) | see below |
+| `R18` pad 1 (175.80, 59.40) | `+BATT` at `J1` pad 2 (139.24, 56.62) | Power-med 0.5 mm, ~37 mm |
+
+**`R19` pad 2 will not pick up the pour on its own.** It sits 0.5 mm from the
+fill edge — exactly the zone clearance — so refilling in action 9 will not
+close it. Draw the short stub to the `GND` copper at (181.25, 59.89).
+
+**The `+BATT` run is long and that is fine.** The divider is 470k/470k, so it
+draws about 4.5 µA; ~37 mm of 0.5 mm trace is electrically nothing. There is no
+`+BATT` copper anywhere nearer — the whole charging section is on the opposite
+side of the board. Two things help:
+
+- Keep it on **F.Cu**. The outer LED ring is entirely back-side, so a front-side
+  trace crosses straight under it without meeting anything.
+- A chord at y ≈ 56–59 clears the inner ring comfortably (closest approach
+  ~24 mm against its 18.8 mm radius). Watch for `R13` at (133.00, 55.00) as you
+  come in near `J1`, and drop through a via at the end since `J1` pad 2 is on
+  the back.
 
 ### 9. Refill and check
 
