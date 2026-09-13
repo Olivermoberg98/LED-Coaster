@@ -18,8 +18,17 @@ Firmware (from `Software/LED_coaster/`):
 ```bash
 pio run                      # build
 pio run -t upload            # flash
-pio device monitor -b 9600   # serial log (Serial.begin(9600) in main.cpp)
+pio device monitor           # serial log over USB-C (baud is ignored)
 ```
+
+`Serial` is the ESP32-C3's USB-Serial-JTAG peripheral, not a UART — `platformio.ini`
+sets `ARDUINO_USB_CDC_ON_BOOT=1` and `ARDUINO_USB_MODE=1`, and both are required
+(`HWCDC.h` only declares `Serial` inside `#if ARDUINO_USB_MODE`). So flashing and
+logging both work over the USB-C connector alone; the `Serial.begin(9600)` in
+`main.cpp` keeps its argument only because HWCDC ignores it. UART0 on IO20/IO21 is
+still reachable as `Serial0`, wired to the `J4` header — which is DNP, so nothing is
+fitted there unless you solder it yourself. Never add `while (!Serial)`: on battery
+with no USB host it would hang the coaster forever.
 
 Android app (from `Software/App/Coaster_app/`, use `gradlew.bat` on Windows):
 ```bash
