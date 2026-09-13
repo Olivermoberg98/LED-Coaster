@@ -20,7 +20,8 @@ Subcommands:
   zones      copper zones: net, layers, priority, fill state
   placement  footprints: position, angle, side, off-board, courtyard overlaps
   rings      LED ring checks: chain continuity, orientation uniformity, pad radii
-  all        nets + shorts + zones summary
+  strays     copper DRC misses: board-edge clearance, dangling stubs, zero-length
+  all        nets + shorts + zones + strays
 """
 
 import math
@@ -62,6 +63,12 @@ CX, CY, R_BOARD = 150.0, 80.0, 45.0
 #    every pad on a rotated part by an extra rot; on this board that is 71 of
 #    88 footprints, and it silently rotates fine-pitch pads across their
 #    neighbours. Omitted means the pad matches the footprint's own rotation.
+# 9. KiCad's stock rule set misses three kinds of junk copper: anything too
+#    near the board edge (min_copper_edge_clearance ships as 0.0, so the check
+#    passes whatever you draw), dangling stubs left by a mis-started trace, and
+#    zero-length segments from the interactive router. `strays` covers all
+#    three. Edge clearance is the one that reaches the fab: the routing bit
+#    eats a trace sitting 0.02 mm from the outline and nothing warns you.
 # ---------------------------------------------------------------------------
 
 
@@ -115,6 +122,9 @@ def _rect(cx, cy, w, h, ang):
 
 # Points per 90 deg of corner arc when tracing a rounded pad outline.
 _ARC = 4
+
+# Two track ends closer than this are the same node.
+_NODE_TOL = 0.15
 
 
 def _pad_outline(cx, cy, w, h, ang, r):
@@ -346,9 +356,14 @@ class Board(object):
                     out.append((ref, p, f["layer"]))
         return out
 
-    def connectivity(self, net):
-        """Connected components of one net. Returns list of pad-name lists."""
-        segs = [t for t in self.tracks if t["net"] == net]
+    def connectivity(self, net, segs=None):
+        """Connected components of one net. Returns list of pad-name lists.
+
+        `segs` overrides the net's copper, so callers can ask what the net
+        would look like with some items deleted.
+        """
+        if segs is None:
+            segs = [t for t in self.tracks if t["net"] == net]
         pads = self.net_pads(net)
         zs = [z for z in self.zones if z["net"] == net]
         n = len(segs) + len(pads) + len(zs)
@@ -579,16 +594,182 @@ def cmd_rings(bd, args):
         print()
 
 
+EDGE_CLEARANCE = 0.3
+
+
+def cmd_strays(bd, args):
+    """Copper KiCad's DRC will not complain about (gotcha 9).
+
+    Three classes, none of which the stock rule set catches: copper closer
+    to the board edge than the fab process allows, dangling stubs left by a
+    mis-started trace, and zero-length segments from the interactive router.
+
+    The dangling sweep prunes leaves repeatedly, so it follows a spur all the
+    way back to the junction it grew from rather than stopping at the last
+    segment. Every removal is checked against connectivity first, because a
+    free end on its own does not prove copper is dead - a zone can carry the
+    net past it.
+    """
+    lay = lambda t: set(l.split(".")[0] for l in t["lay"])
+    bad = 0
+
+    print("=== copper to board edge (want >= %.2f mm) ===" % EDGE_CLEARANCE)
+    near = []
+    for t in bd.tracks:
+        for q in t["pts"]:
+            d = R_BOARD - math.hypot(q[0] - CX, q[1] - CY) - t["w"] / 2
+            if d < EDGE_CLEARANCE:
+                near.append((d, t, q))
+                break
+    near.sort(key=lambda z: z[0])
+    if not near:
+        print("   none")
+    for d, t, q in near:
+        print("   %.3f mm  %-12s w=%.2f %-11s at (%.2f, %.2f)"
+              % (d, t["net"] or "NO-NET", t["w"], ",".join(t["lay"]), q[0], q[1]))
+    bad += len(near)
+
+    print("\n=== zero-length segments ===")
+    zl = [t for t in bd.tracks
+          if len(t["pts"]) >= 2 and math.hypot(t["pts"][0][0] - t["pts"][1][0],
+                                               t["pts"][0][1] - t["pts"][1][1]) < 1e-3]
+    print("   %d found%s" % (len(zl), "" if zl else ""))
+    for t in zl:
+        print("      %-12s (%.6f, %.6f)" % (t["net"] or "NO-NET", t["pts"][0][0], t["pts"][0][1]))
+    bad += len(zl)
+
+    print("\n=== dangling copper (a free end touching no pad, track or pour) ===")
+    total = 0
+    for net in sorted(set(t["net"] for t in bd.tracks if t["net"])):
+        items = [t for t in bd.tracks if t["net"] == net]
+        pads = bd.net_pads(net)
+        zs = [z for z in bd.zones if z["net"] == net]
+
+        def anchored(e, t):
+            # Copper joins edge to edge, so an end lands on a pad when the
+            # track's own copper reaches it - not only when the centreline
+            # point falls inside the pad outline. Use the same test
+            # connectivity() does, or a stub ending just shy of a pad reads
+            # as dangling when it is soldered solid.
+            for ref, p, plat in pads:
+                if not (p["th"] or plat.split(".")[0] in lay(t)):
+                    continue
+                if _poly_seg_dist(p["poly"], e, e) - t["w"] / 2 <= 0.01:
+                    return True
+            for z in zs:
+                for zl_, poly in z["fills"]:
+                    if zl_.split(".")[0] in lay(t) and _in_poly(e, poly):
+                        return True
+            return False
+
+        def is_via(t):
+            return len(t["pts"]) == 1
+
+        def degenerate(t):
+            # A segment shorter than the node tolerance has no reach: both its
+            # ends land on the same node, so it cannot tell one end from the
+            # other and always looks connected at both. Letting it count as a
+            # neighbour stalls the cascade - which is how a 39 mm spur hid
+            # behind one 0.01 mm stub, and a stranded U3 ground pin hid behind
+            # a 0.07 mm one. The threshold must be the node tolerance itself,
+            # not something smaller.
+            return (not is_via(t)) and math.hypot(t["pts"][0][0] - t["pts"][1][0],
+                                                  t["pts"][0][1] - t["pts"][1][1]) < _NODE_TOL
+
+        def touches(e, t, j):
+            o = items[j]
+            tol = o["w"] / 2 + 0.05 if is_via(o) else _NODE_TOL
+            return any(math.hypot(e[0] - q[0], e[1] - q[1]) < tol for q in o["pts"])
+
+        self_conn = bd.connectivity
+        baseline = len(self_conn(net, items))
+        alive = set(range(len(items)))
+        stuck = set()
+        dropped = []
+        while True:
+            cut = None
+            for i in sorted(alive - stuck):
+                t = items[i]
+                if is_via(t):
+                    # A via earns its place only by joining copper on each of
+                    # its layers; one with a live side and a dead side is a
+                    # stub like any other.
+                    e = t["pts"][0]
+                    dead = False
+                    for l in lay(t):
+                        if anchored(e, dict(t, lay=[l])):
+                            continue
+                        if any(l in lay(items[j]) and not degenerate(items[j])
+                               and touches(e, t, j)
+                               for j in alive if j != i):
+                            continue
+                        dead = True
+                    if dead:
+                        cut = i
+                        break
+                    continue
+                loose = False
+                for e in t["pts"]:
+                    if anchored(e, t):
+                        continue
+                    if any(lay(items[j]) & lay(t) and not degenerate(items[j])
+                           and touches(e, t, j)
+                           for j in alive if j != i):
+                        continue
+                    loose = True
+                if loose:
+                    cut = i
+                    break
+            if cut is None:
+                break
+            # Gate every removal on connectivity. A free end alone does not
+            # prove copper is dead - a zone can carry the net past it, and
+            # geometry rules alone will happily strip a live path. If taking
+            # this item apart would split the net's pads, it stays.
+            trial = [items[j] for j in alive if j != cut]
+            if len(self_conn(net, trial)) != baseline:
+                stuck.add(cut)
+                continue
+            alive.discard(cut)
+            dropped.append(items[cut])
+        if dropped:
+            L = sum(0.0 if is_via(t) else
+                    math.hypot(t["pts"][0][0] - t["pts"][1][0],
+                               t["pts"][0][1] - t["pts"][1][1]) for t in dropped)
+            nv = sum(1 for t in dropped if is_via(t))
+            print("   %-30s %d item(s), %.2f mm%s"
+                  % (net, len(dropped), L, ", %d via" % nv if nv else ""))
+            for t in sorted(dropped, key=lambda t: -(0.0 if is_via(t) else
+                            math.hypot(t["pts"][0][0] - t["pts"][1][0],
+                                       t["pts"][0][1] - t["pts"][1][1]))):
+                if is_via(t):
+                    print("        (%.2f,%.2f)  via d=%.2f  %s"
+                          % (t["pts"][0][0], t["pts"][0][1], t["w"], ",".join(t["lay"])))
+                else:
+                    print("        (%.2f,%.2f) -> (%.2f,%.2f)  w=%.2f %s"
+                          % (t["pts"][0][0], t["pts"][0][1], t["pts"][1][0], t["pts"][1][1],
+                             t["w"], ",".join(t["lay"])))
+            total += len(dropped)
+    if not total:
+        print("   none")
+    bad += total
+
+    print("\n%s" % ("clean" if not bad else "%d item(s) to deal with" % bad))
+
+
 def cmd_all(bd, args):
     cmd_nets(bd, args)
     print()
     cmd_zones(bd, args)
     print()
     cmd_shorts(bd, args)
+    print()
+    cmd_strays(bd, args)
 
 
 CMDS = dict(nets=cmd_nets, net=cmd_net, shorts=cmd_shorts, widths=cmd_widths,
-            zones=cmd_zones, placement=cmd_placement, rings=cmd_rings, all=cmd_all)
+            zones=cmd_zones, placement=cmd_placement, rings=cmd_rings,
+            strays=cmd_strays, all=cmd_all)
 
 
 def main():
