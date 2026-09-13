@@ -63,6 +63,9 @@ CX, CY, R_BOARD = 150.0, 80.0, 45.0
 #    every pad on a rotated part by an extra rot; on this board that is 71 of
 #    88 footprints, and it silently rotates fine-pitch pads across their
 #    neighbours. Omitted means the pad matches the footprint's own rotation.
+# 10. A via is copper too. Checks that walk tracks as start/end pairs skip
+#    vias unless they handle the single-point case, and a via sitting on a
+#    foreign pad is exactly the kind of thing those checks exist to find.
 # 9. KiCad's stock rule set misses three kinds of junk copper: anything too
 #    near the board edge (min_copper_edge_clearance ships as 0.0, so the check
 #    passes whatever you draw), dangling stubs left by a mis-started trace, and
@@ -125,6 +128,9 @@ _ARC = 4
 
 # Two track ends closer than this are the same node.
 _NODE_TOL = 0.15
+
+# Board clearance rule, from Board Setup -> Design Rules -> Net Classes.
+CLEARANCE = 0.2
 
 
 def _pad_outline(cx, cy, w, h, ang, r):
@@ -189,6 +195,26 @@ def _poly_seg_dist(poly, a, b):
     for i in range(len(poly)):
         best = min(best, _seg_seg(poly[i], poly[(i + 1) % len(poly)], a, b))
     return best
+
+
+def _pad_in_fill(pad, plat, zl, poly):
+    """Is a pad connected to one fill island? See _pad_in_zone."""
+    if not pad["th"] and zl != plat:
+        return False
+    core = pad["core"]
+    for c in pad["poly"]:
+        if _in_poly(c, poly):
+            return True
+    for i in range(5):
+        for j in range(5):
+            u, v = i / 4.0, j / 4.0
+            ax = core[0][0] + (core[1][0] - core[0][0]) * u
+            ay = core[0][1] + (core[1][1] - core[0][1]) * u
+            bx = core[3][0] + (core[2][0] - core[3][0]) * u
+            by = core[3][1] + (core[2][1] - core[3][1]) * u
+            if _in_poly((ax + (bx - ax) * v, ay + (by - ay) * v), poly):
+                return True
+    return False
 
 
 def _pad_in_zone(pad, plat, zone):
@@ -365,8 +391,14 @@ class Board(object):
         if segs is None:
             segs = [t for t in self.tracks if t["net"] == net]
         pads = self.net_pads(net)
-        zs = [z for z in self.zones if z["net"] == net]
-        n = len(segs) + len(pads) + len(zs)
+        # One node per FILL ISLAND, not per zone (gotcha 4). A zone's filler
+        # emits disjoint islands, and two islands of the same zone are not
+        # connected just because they share a zone object - that is exactly
+        # how a fragmented pour reads as one net when it is really several.
+        fills = [(z, zl, poly) for z in self.zones if z["net"] == net
+                 for zl, poly in z["fills"]]
+        zs = fills
+        n = len(segs) + len(pads) + len(fills)
         par = list(range(n))
 
         def find(a):
@@ -407,8 +439,8 @@ class Board(object):
                 d = _poly_seg_dist(p["poly"], a, b) - t["w"] / 2
                 if d <= 0.01:
                     uni(P(pi), S(si))
-            for zi, z in enumerate(zs):
-                if _pad_in_zone(p, plat, z):
+            for zi, (z, zl, poly) in enumerate(fills):
+                if _pad_in_fill(p, plat, zl, poly):
                     uni(P(pi), Z(zi))
             # gotcha 5: same pad number on one footprint = internally joined
             for pj in range(pi):
@@ -416,29 +448,25 @@ class Board(object):
                     uni(P(pi), P(pj))
 
         for si, t in enumerate(segs):
-            for zi, z in enumerate(zs):
-                for zl, poly in z["fills"]:
-                    if zl.split(".")[0] not in lay(t):
-                        continue
-                    if any(_in_poly(p, poly) for p in t["pts"]):
-                        uni(S(si), Z(zi))
-                        break
+            for zi, (z, zl, poly) in enumerate(fills):
+                if zl.split(".")[0] not in lay(t):
+                    continue
+                if any(_in_poly(p, poly) for p in t["pts"]):
+                    uni(S(si), Z(zi))
 
-        # gotcha 4: same-net zones whose fills touch are one island
-        for i in range(len(zs)):
-            for j in range(i + 1, len(zs)):
-                touch = False
-                for l1, p1 in zs[i]["fills"]:
-                    for l2, p2 in zs[j]["fills"]:
-                        if l1 != l2:
-                            continue
-                        if any(math.hypot(a[0] - b[0], a[1] - b[1]) < 0.05
-                               for a in p1 for b in p2):
-                            touch = True
-                            break
-                    if touch:
-                        break
-                if touch:
+        # gotcha 4: islands from DIFFERENT zones merge where their fills meet.
+        # Islands within one zone are disjoint by construction - the filler
+        # emits them separately - so they are never merged here.
+        for i in range(len(fills)):
+            for j in range(i + 1, len(fills)):
+                zi_, li, poly_i = fills[i]
+                zj_, lj, poly_j = fills[j]
+                if zi_ is zj_ or li != lj:
+                    continue
+                if (any(_in_poly(c, poly_j) for c in poly_i)
+                        or any(_in_poly(c, poly_i) for c in poly_j)
+                        or any(math.hypot(a[0] - b[0], a[1] - b[1]) < 0.05
+                               for a in poly_i for b in poly_j)):
                     uni(Z(i), Z(j))
 
         groups = collections.defaultdict(list)
@@ -499,29 +527,38 @@ def cmd_net(bd, args):
 
 
 def cmd_shorts(bd, args):
-    """Foreign copper overlapping a pad. True rotated-rect test (gotcha 6)."""
+    """Foreign copper near or over a pad. True rotated-rect test (gotcha 6).
+
+    Vias count. Skipping single-point items because they have no second
+    endpoint is how a +3V3 via ended up 0.132 mm from R19's ground pad with
+    this check reporting the board clean (gotcha 10); a via is just a
+    zero-length segment of its own diameter.
+    """
     hits = []
+    lay = lambda t: set(l.split(".")[0] for l in t["lay"])
     for ref, f in bd.fps.items():
         if not bd.on_board(ref):
             continue
         for p in f["pads"]:
             for t in bd.tracks:
-                if len(t["pts"]) < 2:
-                    continue
-                if not p["th"] and f["layer"] not in t["lay"]:
+                if not p["th"] and f["layer"].split(".")[0] not in lay(t):
                     continue
                 if t["net"] == p["net"]:
                     continue
-                d = _poly_seg_dist(p["poly"], t["pts"][0], t["pts"][1]) - t["w"] / 2
-                if d < 0:
-                    hits.append((ref, p["num"], p["net"], t["net"], -d, t["pts"]))
+                pts = t["pts"]
+                a, b = (pts[0], pts[1]) if len(pts) >= 2 else (pts[0], pts[0])
+                d = _poly_seg_dist(p["poly"], a, b) - t["w"] / 2
+                if d < CLEARANCE - 1e-6:
+                    hits.append((ref, p["num"], p["net"], t["net"], -d, pts))
     if not hits:
-        print("no foreign copper overlapping any pad")
+        print("no foreign copper within %.2f mm of any pad" % CLEARANCE)
         return
-    print("%d overlap(s):" % len(hits))
+    print("%d pad clearance violation(s), rule %.2f mm:" % (len(hits), CLEARANCE))
     for ref, num, pnet, tnet, ov, pts in sorted(hits, key=lambda z: -z[4]):
-        print("   %-5s pad %-3s [%-20s] vs %-12s  %.3f mm  %s"
-              % (ref, num, pnet, tnet or "NO-NET", ov,
+        gap = -ov
+        print("   %-5s pad %-3s [%-20s] vs %-12s  %s  %s"
+              % (ref, num, pnet, tnet or "NO-NET",
+                 ("OVERLAP %.3f mm" % ov) if ov > 0 else ("gap %.3f mm" % gap),
                  " -> ".join("(%.2f,%.2f)" % q for q in pts)))
 
 
