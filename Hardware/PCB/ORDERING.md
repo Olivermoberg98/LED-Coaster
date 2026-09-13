@@ -879,7 +879,68 @@ Press <kbd>B</kbd> to refill both pours. Then confirm three things:
 - **No unconnected items left.** DRC in Phase 6 is the reliable answer, but the
   ratsnest going quiet is the quick check.
 
+⚠️ **Refill before you believe any connectivity result.** A pour that has not
+been refilled since you last drew copper still carries its *old* geometry, and
+every check — the ratsnest, this file's `nets`, your own eyes — reads that stale
+fill as if it were real. It will happily show a net connected through copper the
+filler is about to take away. Press <kbd>B</kbd>, save, and only then judge.
+
+That is not hypothetical here: after action 8 the pour was a whole action out of
+date, `nets` reported `GND` fully connected, and the refill then stranded eleven
+ground pads that had looked fine.
+
 Refill again after any later routing change.
+
+### 9a. Make the pour actually reach every ground pad
+
+After the refill, run `python tools/pcb_check.py nets`. If `GND` comes back as
+more than one group, the usual cause is **thermal spokes, not routing**.
+
+Read the numbers before you touch anything. A stranded pad sitting **0.50 mm**
+from a *large* island is not a pad the pour failed to reach — 0.50 mm is the
+zone's own `thermal_gap`. The copper is wrapped right around it; the filler
+simply could not place the two spokes `min_resolved_spokes` insists on, because
+the ring traces block the spoke directions, and KiCad's answer to "I can only
+manage one spoke" is to connect nothing at all. A pad **1–2 mm** out is the
+different problem: there the pour really has retreated and the pad needs a stub.
+
+For the spoke case:
+
+1. Open the `GND` zone properties (select the pour, <kbd>E</kbd>).
+2. Set **Pad connection: Solid**. On an SMT-assembled board this is the normal
+   choice anyway — reflow does not care, and it lowers ground impedance.
+3. That breaks hand-soldering on the through-hole parts, so put those back:
+   for `J1`, `J4` and `J3`'s shield pads, open Pad Properties (<kbd>E</kbd> on
+   the pad) and set **Connection to copper zones: Thermal relief**.
+4. Refill (<kbd>B</kbd>), save, and re-run `nets`.
+
+For the retreated case, draw a short stub from the pad to the nearest `GND`
+copper, exactly as `U3`'s ground pins already do.
+
+⚠️ Do not "fix" this by lowering `min_resolved_spokes` to 1 unless you have
+looked at what it does to the pads that *are* connected — a single spoke is a
+single point of failure on a ground return.
+
+### 9b. Sweep for junk copper
+
+Three kinds of stray copper survive a clean DRC run, so check for them here:
+
+```bash
+python tools/pcb_check.py strays
+```
+
+- **Copper near the board edge** — measured against 0.30 mm. KiCad's own
+  `copper_edge_clearance` rule defaults to 0.0, so it never fires; Phase 6 tells
+  you to set it, and this catches it beforehand.
+- **Dangling stubs** — a trace with a free end touching no pad, no other track
+  and no pour. Usually a mis-started route. Harmless electrically, but it is
+  copper you did not mean to ship, and it eats clearance from things you did.
+- **Zero-length segments** — nanometre-long artifacts the interactive router
+  leaves behind. *Tools → Cleanup Tracks & Vias* (the **Tools** menu, not Edit),
+  tick **Delete tracks with zero length**, then Update. Do not hunt them by
+  hand: at zero length there is nothing on screen to click. If your KiCad has
+  no such dialog, leave them — they are electrically nothing and DRC ignores
+  them; just re-run `strays` after any cleanup to see the count drop.
 
 ---
 
@@ -890,9 +951,17 @@ Refill again after any later routing change.
 
       - Minimum track width: **0.15 mm**
       - Minimum clearance: **0.15 mm**
+      - **Copper to board edge: 0.30 mm** — see below
       - Minimum via: 0.6 mm diameter / 0.3 mm drill
       - Minimum annular ring: 0.13 mm
       - Minimum hole-to-hole: 0.5 mm
+
+      ⚠️ **Copper-to-edge ships as 0.0 and therefore never fails.** That is the
+      one constraint in this list KiCad will not nag you about, because the
+      default rule permits copper flush with the outline — and the routing bit
+      then eats it. This board has already had a 1.0 mm `+SYS` trace sitting
+      0.022 mm from the edge with DRC perfectly happy. Set it to 0.30 mm
+      before you run anything.
 
 - [ ] **Run DRC** — *Inspect → Design Rules Checker → Run DRC*, with
       "Check footprint courtyard overlap" and "Test for parity between PCB and
