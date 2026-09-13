@@ -955,6 +955,15 @@ python tools/pcb_check.py strays
       - Minimum via: 0.6 mm diameter / 0.3 mm drill
       - Minimum annular ring: 0.13 mm
       - Minimum hole-to-hole: 0.5 mm
+      - **Minimum through hole: 0.20 mm**, not 0.30 — see below
+
+      ⚠️ **"Minimum through hole" hits vias, not just component holes.** 0.30 mm
+      is the right floor for a hole you push a lead through, but KiCad applies
+      the same rule to the stitching vias that live inside footprints — `U3`'s
+      QFN thermal vias are 0.20 mm and `U1`'s are 0.25 mm. Leave it at 0.30 and
+      DRC throws 16 errors at two vendor land patterns that are perfectly
+      manufacturable. There is no component hole on this board below 0.60 mm,
+      so 0.20 costs you no protection.
 
       ⚠️ **Copper-to-edge ships as 0.0 and therefore never fails.** That is the
       one constraint in this list KiCad will not nag you about, because the
