@@ -15799,7 +15799,7 @@
 			)
 		)
 		(zone_connect 1)
-		(attr through_hole)
+		(attr through_hole dnp)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 0.3 -2.1)

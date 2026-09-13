@@ -14045,7 +14045,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "5ed0c0a5-0000-0000-0000-00000000005d")
 		(property "Reference" "J1"
 			(at 462.28 256.54 0)

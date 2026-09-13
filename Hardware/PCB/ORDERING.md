@@ -24,19 +24,36 @@ worse than they are.
 | Outline | 90 mm circle, centre (150, 80) in PCB coordinates |
 | Layers | 2 (F.Cu / B.Cu) |
 | Components | both sides physically |
-| Front (F.Cu) | 46 parts: ESP32 module, USB-C, power section, small ring `D21–D30` |
-| Back (B.Cu) | 21 parts: large ring `D1–D20`, battery connector `J1` |
+| Front (F.Cu) | 51 parts: ESP32 module, USB-C, power section, small ring `D21–D30`, 4 decoupling caps |
+| Back (B.Cu) | 33 parts: large ring `D1–D20`, 8 decoupling caps, status LEDs, battery connector `J1` |
 | Peak LED current | ~1.8 A theoretical (30 × WS2812B, full white) |
 | Last order's assembly | single-sided, front only, 27 parts |
 | **This order's assembly** | **double-sided, 83 parts — decided deliberately, see below** |
 
+83 is 84 placeable parts minus `J1`, which is hand-soldered. `H1`/`H3`/`H4` are
+mounting holes and never counted.
+
 **Important — this order changes the assembly model.** The previous order was
 *single-sided*: JLCPCB fitted 27 front-side parts, and the 30 WS2812Bs, the
 ESP32 module `U1`, the battery connector `J1` and the UART header `J4` were
-hand-soldered afterwards. Two mechanisms kept them out: they carry `(dnp yes)`
-in the schematic, and they have no `MPN` field. Only parts that are *both*
-populated and carry an `MPN` reach the generated BOM — a part failing either
-test vanishes silently rather than appearing as a blank line.
+hand-soldered afterwards.
+
+⚠️ **What actually keeps a part out is `(dnp yes)` — nothing else.** An earlier
+revision of this file claimed a missing `MPN` field would also do it, and that
+such a part "vanishes silently rather than appearing as a blank line". That is
+wrong, and it cost a round of regeneration: `J1` had no `MPN`, was not DNP, and
+came out in `bom.csv` as a line with an empty `LCSC Part #` — unsourceable, and
+exactly the blank line the old text promised could not happen. The Fabrication
+Toolkit filters on its `EXCLUDE DNP` option (set `true` in
+`fabrication-toolkit-options.json`) and on that alone.
+
+Set DNP in **both** places, the way `J1` and `J4` now are:
+
+- schematic — the symbol carries `(dnp yes)`
+- board — the footprint carries `(attr through_hole dnp)`
+
+The schematic is the one that matters, because *Update PCB from Schematic* will
+overwrite a board-only change and quietly put the part back in your BOM.
 
 For this order that was reversed for `D1–D30` and `U1`, so JLCPCB places the
 whole LED ring and the ESP32 module. The reasoning: hand-soldering 150 WS2812Bs
@@ -54,7 +71,11 @@ Still hand-soldered, deliberately:
 | `J4` 1×04 header | through-hole, and a debug header you may not fit at all |
 | `H1`/`H3`/`H4` | mounting holes, not parts |
 
-To revert to single-sided, set `(dnp yes)` and clear `MPN` on `D1–D30` and `U1`.
+To revert to single-sided, set `(dnp yes)` on everything on the back — the
+33 back-side parts are `D1`–`D20`, `C8`–`C15`, `R5`, `R16`, `D33`, `D35` and
+`J1`. That leaves the whole charging path, the ESP32 and the inner ring, which
+is enough to bring the board up and test charging; hand-solder `R5`/`R16`/
+`D33`/`D35` if you want the charge-status LEDs while you do it.
 
 Previous orders used the **Fabrication Toolkit** KiCad plugin — `fabrication-toolkit-options.json`
 in this folder is its config, and `production/` holds its last output. Same route
@@ -1057,9 +1078,12 @@ python tools/pcb_check.py strays
       `production/positions.csv` as the CPL (pick-and-place).
 
       Before uploading, open `bom.csv` and **count the lines**. Every part you
-      expect to be fitted must be there. Anything with a blank `MPN` *or* marked
-      `(dnp yes)` in the schematic will be missing without warning — that is the
-      single easiest way to get a board back that does not work.
+      expect to be fitted must be there. Anything marked `(dnp yes)` in the
+      schematic will be missing without warning — that is the single easiest
+      way to get a board back that does not work. Check the other direction
+      too: a part that is *not* DNP but has no `MPN` comes out as a line with
+      an empty `LCSC Part #`, which JLCPCB cannot source. Neither state is
+      announced; both are silent.
 
       Expect **26 lines covering 83 parts** — that is what the schematic holds
       today, grouped by value + footprint + `MPN`. Confirm `C2761795` appears with a
