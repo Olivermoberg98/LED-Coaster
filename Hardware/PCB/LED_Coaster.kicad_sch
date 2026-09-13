@@ -11424,7 +11424,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "36bba5be-ffca-4e2a-a906-bb0cb34aa2ca")
 		(property "Reference" "Btn3"
@@ -11705,7 +11705,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "3ba7e9ff-fed2-44cc-9c11-3a9f2b878542")
 		(property "Reference" "Btn1"
@@ -15088,7 +15088,7 @@
 				)
 			)
 		)
-		(property "MPN" "C296305"
+		(property "MPN" "C380336"
 			(at 500.38 209.55 0)
 			(hide yes)
 			(show_name no)
@@ -20541,7 +20541,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "7aebd6ea-60ab-482d-83c8-dd91fc34314f")
 		(property "Reference" "Btn2"
@@ -23637,7 +23637,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "d7399fa0-3160-46f3-acad-8a32c070f7b9")
 		(property "Reference" "Btn4"

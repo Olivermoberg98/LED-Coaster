@@ -28,10 +28,10 @@ worse than they are.
 | Back (B.Cu) | 33 parts: large ring `D1–D20`, 8 decoupling caps, status LEDs, battery connector `J1` |
 | Peak LED current | ~1.8 A theoretical (30 × WS2812B, full white) |
 | Last order's assembly | single-sided, front only, 27 parts |
-| **This order's assembly** | **double-sided, 83 parts — decided deliberately, see below** |
+| **This order's assembly** | **double-sided, 79 parts — decided deliberately, see below** |
 
-83 is 84 placeable parts minus `J1`, which is hand-soldered. `H1`/`H3`/`H4` are
-mounting holes and never counted.
+79 is 84 placeable parts minus `J1` and `BTN1`-`BTN4`, all hand-soldered.
+`H1`/`H3`/`H4` are mounting holes and never counted.
 
 **Important — this order changes the assembly model.** The previous order was
 *single-sided*: JLCPCB fitted 27 front-side parts, and the 30 WS2812Bs, the
@@ -69,6 +69,7 @@ Still hand-soldered, deliberately:
 |---|---|
 | `J1` JST EH 2-pin | through-hole — not SMT-placeable |
 | `J4` 1×04 header | through-hole, and a debug header you may not fit at all |
+| `BTN1`–`BTN4` | `C318884` went out of stock, and the firmware reads none of them. `BTN3`/`BTN4` are the ESP32 boot and reset buttons, which native USB flashing does not need. Any replacement must match the land pattern: two 1.80 × 1.10 mm pads plus two mechanical, in an 8.6 × 9.3 mm envelope |
 | `H1`/`H3`/`H4` | mounting holes, not parts |
 
 To revert to single-sided, set `(dnp yes)` on everything on the back — the
@@ -1085,7 +1086,7 @@ python tools/pcb_check.py strays
       an empty `LCSC Part #`, which JLCPCB cannot source. Neither state is
       announced; both are silent.
 
-      Expect **26 lines covering 83 parts** — that is what the schematic holds
+      Expect **23 lines covering 79 parts** — that is what the schematic holds
       today, grouped by value + footprint + `MPN`. Confirm `C2761795` appears with a
       quantity of **30** and `C2944070` with a quantity of **1**. If the
       WS2812B line is absent, the DNP flag did not clear.

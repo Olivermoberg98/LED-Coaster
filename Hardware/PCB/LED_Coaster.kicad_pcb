@@ -2362,7 +2362,7 @@
 				)
 			)
 		)
-		(property "MPN" "C296305"
+		(property "MPN" "C380336"
 			(at 0 0 0)
 			(unlocked yes)
 			(layer "F.Fab")
@@ -5110,7 +5110,7 @@
 				(pins "1" "2")
 			)
 		)
-		(attr smd)
+		(attr smd dnp)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -2.72 1.04)
@@ -6781,7 +6781,7 @@
 				(pins "1" "2")
 			)
 		)
-		(attr smd)
+		(attr smd dnp)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 1.449999 2.72)
@@ -11639,7 +11639,7 @@
 				(pins "1" "2")
 			)
 		)
-		(attr smd)
+		(attr smd dnp)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start -2.719999 1.04)
@@ -12512,7 +12512,7 @@
 				(pins "1" "2")
 			)
 		)
-		(attr smd)
+		(attr smd dnp)
 		(duplicate_pad_numbers_are_jumpers no)
 		(fp_line
 			(start 1.449999 2.72)
