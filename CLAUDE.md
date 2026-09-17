@@ -108,12 +108,20 @@ stranded* — and answers them without opening the GUI.
 Board constants (outline centre and radius) are at the top of the file; update
 them if the outline ever changes.
 
-## TODO: battery level reporting (hardware done, software not started)
+## TODO: battery and charger reporting (software not started)
 
-Hardware support was added on the `fix/charging-and-power-path` branch and is
-**not yet implemented in firmware or app**. The board now has a 470k/470k divider
-from `+BATT` to **GPIO4** (`ADC1_CH4`), buffered by C21 100nF, halving the cell so
-3.0–4.2 V arrives as 1.5–2.1 V.
+Two hardware paths feed this and **neither is implemented in firmware or app**.
+
+**Battery level — hardware done.** A 470k/470k divider runs from `+BATT` to
+**GPIO4** (`ADC1_CH4`), buffered by C21 100nF, halving the cell so 3.0–4.2 V
+arrives as 1.5–2.1 V.
+
+**Charger status — hardware specified, not yet routed.** `Hardware/PCB/ORDERING.md`
+Phase 5 §10 is the spec: `U3`'s three open-drain status outputs go to the ESP32 —
+`STAT1`/`LBO` → **GPIO5**, `STAT2` → **GPIO6**, `PG` → **GPIO10** — and the status
+LEDs `D33`/`D35` with `R5`/`R16` are deleted. Deleting them is required, not
+cosmetic: they pull `STAT1`/`STAT2` to `+5V`, which would destroy a 3.6 V-max
+ESP32 pin.
 
 Still to do:
 
@@ -123,13 +131,35 @@ Still to do:
   tens of mV. Multiply by 2 to recover cell voltage. Average several samples;
   the LED rail is noisy while patterns run. Map voltage to a percentage with a
   Li-Po curve, not a linear 3.0–4.2 V ramp — the curve is very flat from 3.7–4.0 V.
-- **BLE contract**: there is no way to report this yet. Adding it means a new
-  package type (`0x03`?) or a second, notify-capable characteristic. Whichever is
-  chosen must land in **both** halves at once — see "The BLE contract" above; the
-  firmware silently drops mismatched packets.
-- **App** (`Software/App/Coaster_app/`): surface the level per coaster.
-  `GameActivity` already tracks devices individually via `CoasterDevice`, so the
-  natural home is a field there plus an indicator on each circle.
+- **Firmware — charger status**: read the three pins as `INPUT_PULLUP`
+  (High-Z reads HIGH) and decode per the MCP73871 datasheet Table 5-1:
+
+  | `PG` | `STAT1` | `STAT2` | State |
+  |---|---|---|---|
+  | L | L | H | charging |
+  | L | H | L | charge complete |
+  | L | L | L | temperature fault |
+  | L | H | H | no battery present |
+  | H | L | H | **low battery** (under 3.1 V, LBO) |
+  | H | H | H | no input power, running on battery |
+
+  `PG` is not optional — charging and low-battery share the same
+  `STAT1`/`STAT2` pair and differ only in `PG`. Note `PG` is *pseudo*
+  open-drain with a diode path back to `IN`, so the internal pull-up
+  back-feeds ~58 µA into `+5V` when USB is unplugged; harmless, see
+  ORDERING.md §10.
+- **BLE contract — the blocker for both.** Every package today is
+  app→coaster; there is no coaster→app path at all. Adding one means a new
+  package type (`0x03`?) on the existing characteristic for the app to read, or
+  a second notify-capable characteristic so the coaster can push. Notify suits
+  status better. Carry battery level *and* charger state in one package so the
+  contract changes once. Whichever is chosen must land in **both** halves at
+  once — see "The BLE contract" above; the firmware silently drops mismatched
+  packets.
+- **App** (`Software/App/Coaster_app/`): surface level and charger state per
+  coaster. `GameActivity` already tracks devices individually via
+  `CoasterDevice`, so the natural home is a field there plus an indicator on
+  each circle.
 
 Notes that matter for firmware:
 
@@ -140,6 +170,11 @@ Notes that matter for firmware:
   because it sits on `+BATT` upstream of the switch. That is small next to the
   charger IC's own ~30 µA quiescent draw, but it means the battery does slowly
   drain in storage.
+- `U3` is strapped for USB-port mode (`SEL` low), a 500 mA input limit
+  (`PROG2` high), 500 mA charge current (`R2` 2k on `PROG1`), 50 mA termination
+  (`R15` 20k on `PROG3`), no thermistor (`R14` 10k on `THERM`), and the safety
+  timer **disabled** (`TE` high) — so a timer fault never occurs and both
+  status outputs low means a temperature fault.
 - The MCP73871's internal BAT→SYS path is ~200 mΩ and the datasheet recommends
   keeping system load under 1 A. All 30 WS2812B at full white is ~1.8 A, which
   exceeds that and will sag `+SYS`. Global brightness limiting in firmware is the

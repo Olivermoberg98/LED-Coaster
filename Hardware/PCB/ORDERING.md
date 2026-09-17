@@ -7,13 +7,18 @@ Working checklist for taking the reworked schematic (branch
 box is the next thing to do. Notes and gotchas live under each step — read them
 before doing the step, not after.
 
-**Current status:** Phase 5 actions 1-3 done. Net classes set, a board-wide
-`GND` pour added on F.Cu, and the power path routed: `+3V3`, `+5V`, `+SYS`,
-`+BATT` and both ring inputs are each one connected group. The outer ring's power
-turned out to be already routed too.
-Next: Phase 5 action 4 onward - the LED rings. Read the background block first;
-it was corrected after a coordinate-transform error made both rings look far
-worse than they are.
+**Current status:** layout, DRC and production files are done. The order was
+then re-scoped on cost: it is now **Economic PCBA, single-sided, front only**
+— 20 BOM lines, 47 placed parts, ~$88 against the $172.46 that Standard
+double-sided quoted. `D1`–`D30` are `C55109525` (WS2812B-V7, Economic-eligible,
+classic pinout), `C1`/`C3`/`C5` are merged onto the 4.7 µF line, and the 32
+back-side parts carry `(dnp yes)`.
+Next: **Phase 5 §10** — the charger-status rework, which routes `STAT1`/`STAT2`/
+`PG` to `IO5`/`IO6`/`IO10` and deletes `D33`/`D35`/`R5`/`R16`. It leaves the BOM
+and the quote unchanged and takes stage-1 hand-soldering down to `J1` alone.
+Then F8, Phase 6 (DRC), Phase 7 (regenerate `production/`), and quote. Read the
+LED pinout block in Phase 1 before substituting any LED — an SK6812 at 0°
+destroys every LED on the board.
 
 ---
 
@@ -28,10 +33,13 @@ worse than they are.
 | Back (B.Cu) | 33 parts: large ring `D1–D20`, 8 decoupling caps, status LEDs, battery connector `J1` |
 | Peak LED current | ~1.8 A theoretical (30 × WS2812B, full white) |
 | Last order's assembly | single-sided, front only, 27 parts |
-| **This order's assembly** | **double-sided, 79 parts — decided deliberately, see below** |
+| **This order's assembly** | **Economic, single-sided front only, 47 parts — see below** |
 
-79 is 84 placeable parts minus `J1` and `BTN1`-`BTN4`, all hand-soldered.
-`H1`/`H3`/`H4` are mounting holes and never counted.
+47 is the front side minus `J4` and `BTN1`-`BTN4`, which are unfitted or
+hand-soldered. The placeable back-side parts — `C8`–`C15` and `D1`–`D20`, 28 of
+them after the Phase 5 §10 rework deletes `D33`/`D35`/`R5`/`R16` — all carry
+`(dnp yes)`, and `J1` is hand-soldered as it always was. `H1`/`H3`/`H4` are
+mounting holes and never counted.
 
 **Important — this order changes the assembly model.** The previous order was
 *single-sided*: JLCPCB fitted 27 front-side parts, and the 30 WS2812Bs, the
@@ -55,13 +63,15 @@ Set DNP in **both** places, the way `J1` and `J4` now are:
 The schematic is the one that matters, because *Update PCB from Schematic* will
 overwrite a board-only change and quietly put the part back in your BOM.
 
-For this order that was reversed for `D1–D30` and `U1`, so JLCPCB places the
-whole LED ring and the ESP32 module. The reasoning: hand-soldering 150 WS2812Bs
-across 5 boards is the highest-risk work in the project — the packages melt
-before the solder flows, and a single damaged LED kills every LED downstream of
-it in the data chain with no easy way to identify which one. The charger `U3`
-is also now a QFN-20 with a thermal pad underneath, which cannot realistically
-be hand-soldered at all.
+For this order `U1` and the inner ring `D21`–`D30` are machine-placed; the outer
+ring `D1`–`D20` is not. Hand-soldering WS2812Bs is the highest-risk work in the
+project — the packages melt before the solder flows, and a single damaged LED
+kills every LED downstream of it in the data chain with no easy way to identify
+which one — but Economic PCBA is single-side only, and Economic saves roughly
+$84 against Standard double-sided on a 5-board run. The compromise keeps the
+count that must be hand-soldered at 100 rather than 150, and keeps the parts
+that genuinely cannot be hand-soldered on the machine: `U3` is a QFN-20 with a
+thermal pad underneath.
 
 Still hand-soldered, deliberately:
 
@@ -72,11 +82,29 @@ Still hand-soldered, deliberately:
 | `BTN1`–`BTN4` | `C318884` went out of stock, and the firmware reads none of them. `BTN3`/`BTN4` are the ESP32 boot and reset buttons, which native USB flashing does not need. Any replacement must match the land pattern: two 1.80 × 1.10 mm pads plus two mechanical, in an 8.6 × 9.3 mm envelope |
 | `H1`/`H3`/`H4` | mounting holes, not parts |
 
-To revert to single-sided, set `(dnp yes)` on everything on the back — the
-33 back-side parts are `D1`–`D20`, `C8`–`C15`, `R5`, `R16`, `D33`, `D35` and
-`J1`. That leaves the whole charging path, the ESP32 and the inner ring, which
-is enough to bring the board up and test charging; hand-solder `R5`/`R16`/
-`D33`/`D35` if you want the charge-status LEDs while you do it.
+**Nothing on the back is required for the front to work.** The charging path,
+`U1`, the inner ring, `C16`–`C19` + `C20` and the battery-sense divider are all
+front-side, so the hand-soldering splits into two stages:
+
+| Stage | Parts | Count | Gets you |
+|---|---|---|---|
+| 1 | `J1` | **1** | battery, charging with status in firmware, BLE, inner ring |
+| 2 | `D1`–`D20`, `C8`–`C15` | 28 | the outer ring |
+
+`C8`–`C15` are `+LED_PWR` decoupling for the outer ring only — the inner ring
+has its own in `C16`–`C19` and `C20` — so they wait for stage 2. Leaving
+`D1`–`D20` off during stage 1 also holds peak current to a third, which helps
+given the MCP73871's 1 A system-load recommendation.
+
+**Charger state is read in firmware, not off LEDs** — see Phase 5 §10.
+`STAT1`/`LBO`, `STAT2` and `PG` route to `IO5`, `IO6` and `IO10`, and the two
+status LEDs `D33`/`D35` and their resistors `R5`/`R16` are deleted. That is what
+takes stage 1 down to a single through-hole connector. `/BAT_SENSE` already
+reaches `U1` pin 3 (GPIO4) for the battery percentage — note that voltage alone
+cannot distinguish charging from charged from fault, which is the whole reason
+the status pins are worth routing. `D34` on `IO7` is a firmware-driven LED on
+the front, machine-placed, and is handy for blinking out charger state during
+bring-up before the app work lands.
 
 Previous orders used the **Fabrication Toolkit** KiCad plugin — `fabrication-toolkit-options.json`
 in this folder is its config, and `production/` holds its last output. Same route
@@ -173,21 +201,48 @@ numbers. Open the schematic editor (the first icon in the project window).
 
   | Ref | Value | Part | Notes |
   |---|---|---|---|
-  | `D1`–`D30` | WS2812B | `C2761795` | Worldsemi WS2812B-B/T, SMD5050-4P. **Standard assembly only**, MSL 5a, JLCPCB rates it "high" assembly difficulty |
+  | `D1`–`D30` | WS2812B | `C55109525` | Worldsemi WS2812B-V7, SMD5050-4P. **Economic or Standard**, MSL 5a |
   | `U1` | ESP32-C3-WROOM-02-H4 | `C2944070` | Espressif, SMD 20×18 mm. Economic *or* Standard |
 
-  Two consequences of `C2761795` being **Standard-only**:
+  **The LED pinout decides this part, not the price.** The footprint
+  `Library:LED_WS2812_5050_handsolder` is wired for the classic WS2812B
+  arrangement, and its pads carry these nets:
 
-  1. The whole order moves from Economic to Standard PCBA. Double-sided
-     assembly would have forced that anyway — Economic is single-side only —
-     so the two decisions cost the same setup fee once.
-  2. The parts are moisture-sensitive (MSL 5a) and get baked before placement.
-     That is JLCPCB's problem, not yours, but it is why the part is flagged.
+  | pad | local (mm) | net |
+  |---|---|---|
+  | 1 | (−2.925, −1.65) | `+LED_PWR` |
+  | 2 | (−2.925, +1.65) | DOUT |
+  | 3 | (+2.65, +1.65) | `GND` |
+  | 4 | (+2.65, −1.65) | DIN |
 
-  There is a JLCPCB house-brand alternative, `C9900143998`, which *is* available
-  for Economic assembly. It is a "new arrivals" part with no published datasheet
-  link, so `C2761795` — the genuine Worldsemi part, 261k in stock — is the safer
-  choice, and the sides decision means Economic is off the table regardless.
+  `C55109525` is 1 = VDD, 2 = DOUT, 3 = GND, 4 = DIN, so it drops on at **0°**
+  with no rotation offset, and the silkscreen pin-1 mark stays truthful — which
+  matters, because `D1`–`D20` are hand-soldered by eye.
+
+  ⚠️ **Do not substitute an SK6812 without rotating it.** `C5380881` (OPSCO
+  SK6812-B) is also Economic-eligible and slightly cheaper, but its pinout is
+  **1 = GND, 2 = DIN, 3 = VDD, 4 = DOUT**. Placed at 0° it puts VDD on the `GND`
+  pad and GND on `+LED_PWR` — reversed supply, every LED destroyed at power-up.
+  Pads 1/3 and 2/4 are diagonal pairs, so **180°** maps all four signals
+  correctly, and it is the only rotation that does. If that part is ever used,
+  set `FT Rotation Offset` = 180 on all thirty — and note the silkscreen then
+  points at the wrong corner for hand-soldering.
+
+  Why not `C2761795` (WS2812B-B/T), which an earlier revision specified: it is
+  **Standard assembly only**, and one Standard-only line forces the whole order
+  onto Standard PCBA at $25.56/side setup instead of Economic's $8.18. Being
+  Standard-only is not a property of genuine parts in general — `C55109525`,
+  `C5380881` and `C26167850` are all offered on Economic. The two JLCPCB
+  house-brand parts (`C9900143998`, `C9900021185`) are Economic-eligible but
+  stock 0 and consign-only, so they cannot be bought, only shipped in.
+
+  **Firmware caveat.** Newer WS2812B revisions raise the latch time from 50 µs
+  to **280 µs**. `FastLED.show()` renders both controllers and is called twice
+  per `loop()` iteration, so the outer ring's latch gap is roughly the inner
+  ring's 300 µs transmission — above the requirement, but with little margin.
+  If the outer ring flickers or shifts by a pixel, add `delay(1)` at the end of
+  `loop()`. `pulse` and `chaser` are `millis()`-based so their speed will not
+  change; `rainbow` counts frames and would need its `% 50` constant reduced.
 
 - [x] **Charger part number corrected — read this one**
 
@@ -966,6 +1021,182 @@ python tools/pcb_check.py strays
 
 ---
 
+### 10. Charger status to the ESP32 — the rework
+
+This is a deliberate change of scope, taken after the Economic re-quote. It
+routes the MCP73871's three status outputs to spare ESP32 pins and **deletes the
+two status LEDs**, so charger state becomes readable in firmware and sendable to
+the app, and the back side drops to the outer ring alone.
+
+⚠️ **Deleting the LEDs is not optional — it is what makes the GPIO connection
+safe.** `STAT1`, `STAT2` and `PG` are **open-drain**. Today `D33`/`D35` pull
+`STAT1`/`STAT2` up to **`+5V`**, so whenever the charger releases the output the
+net sits at 5 V. Wiring that to an ESP32-C3 pin rated 3.6 V max would damage it.
+With the LEDs gone the nets have no pull-up at all, the open-drain outputs never
+source voltage, and the ESP32's internal pull-ups to 3.3 V are the only thing
+holding them high. Do not keep the LEDs and add the GPIO.
+
+**Pin mapping** (all confirmed free — `IO5`, `IO6`, `IO10` are not ESP32-C3
+strapping pins; those are `IO2`, `IO8`, `IO9`):
+
+| Signal | `U3` pad | at (mm) | → | `U1` pad | at (mm) |
+|---|---|---|---|---|---|
+| `STAT1`/`LBO` | 8 | (122.94, 53.00) | `IO5` | 4 | (183.04, 87.73) |
+| `STAT2` | 7 | (122.94, 53.50) | `IO6` | 5 | (184.54, 87.73) |
+| `PG` | 6 | (122.94, 54.00) | `IO10` | 10 | (190.54, 70.23) |
+
+`IO5` is `ADC2_CH0`, but it is being used as a digital input so the ADC2/WiFi
+restriction does not apply.
+
+- [x] **10a. Schematic first — this is the authoritative change** — done, ready for ERC
+
+  Applied: `D33`, `D35`, `R5`, `R16` and their two `+5V` power symbols deleted
+  along with the eight wires of both LED chains; the `no_connect` flags cleared
+  from `U3` pin 6 and `U1` pins 4, 5 and 10; and six labels placed directly on
+  those pins — `STAT1` on `U3`.8 + `U1`.4, `STAT2` on `U3`.7 + `U1`.5, `PG` on
+  `U3`.6 + `U1`.10. Nets come out as `/STAT1`, `/STAT2`, `/PG`.
+  165 symbols → 159, structure verified balanced.
+
+  1. Delete the symbols `D33`, `D35`, `R5`, `R16`.
+  2. Wire `U3` pin 8 → `U1` pin 4, pin 7 → pin 5, pin 6 → pin 10. Use **net
+     labels**, not long wires — name them `/STAT1`, `/STAT2`, `/PG` so they read
+     clearly in the netlist and in `pcb_check.py net`.
+  3. Remove the *unconnected* flag on `U3` pin 6 if one is placed, or ERC will
+     complain that a no-connect pin is driven.
+  4. Re-run ERC. Expect **0 errors**; the 42 pre-existing warnings from Phase 1
+     stay.
+
+- [ ] **10b. Push it into the board**
+
+  *Tools → Update PCB from Schematic* (<kbd>F8</kbd>). Tick **Delete footprints
+  with no symbol** so `D33`/`D35`/`R5`/`R16` actually come off the board — without
+  it they stay as orphans with live copper attached.
+
+- [ ] **10c-1. Delete the orphaned copper**
+
+  F8 removed the four footprints but left behind the copper that fed them. None
+  of it connects anything — `pcb_check nets` shows all six pads stranded:
+
+  | Net | Left behind | What it was |
+  |---|---|---|
+  | `/STAT1` | 22 items, 1 via | the old `U3` → `R5` run |
+  | `/STAT2` | 13 items, 1 via | the old `U3` → `R16` run |
+  | `+5V` | 8 items, 1 via | the old `D33`/`D35` anode feeds |
+
+  It all sits between `U3` (lower left) and the top centre of the board where
+  `D33`/`D35` used to be. In the board editor hover any segment, press
+  <kbd>U</kbd> twice to select the whole connected run, then <kbd>Delete</kbd>.
+
+  Check it is gone:
+
+  ```bash
+  cd Hardware/PCB/tools
+  python pcb_check.py strays
+  ```
+
+  The `+5V`, `/STAT1` and `/STAT2` entries under *dangling copper* must all
+  disappear. Nothing else in that report should change.
+
+- [ ] **10c-2. Set the width**
+
+  **0.25 mm** — what every other signal net on this board uses.
+
+- [ ] **10c-3. Route the three nets**
+
+  Click the source pad, route, click the destination pad. One net at a time:
+
+  | # | Net | From | To |
+  |---|---|---|---|
+  | 1 | `/STAT1` | `U3` pad **8** | `U1` pad **4** |
+  | 2 | `/STAT2` | `U3` pad **7** | `U1` pad **5** |
+  | 3 | `/PG` | `U3` pad **6** | `U1` pad **10** |
+
+  Do `/STAT1` and `/STAT2` as a pair — they start on adjacent `U3` pins and end
+  on adjacent `U1` pins 1.5 mm apart, so they run together the whole way.
+
+  **The corridor:** via down to **B.Cu** near `U3`, sweep round to `U1`, via back
+  up. Stay in the band **r ≈ 35–42 mm** from the board centre (150, 80) — outside
+  the outer LED ring at r = 32, inside the 45 mm edge. That band is exactly what
+  deleting `D33`/`D35` (r = 42) and `R5`/`R16` (r = 38) freed up. B.Cu carries a
+  `GND` pour; it will part around the new tracks when you refill.
+
+  Take any path that fits. These signals change about once a second, so there is
+  no length, impedance or timing constraint whatsoever.
+
+- [ ] **10c-4. Refill the zones** — <kbd>B</kbd> refills all of them.
+
+- [ ] **10d. Verify before moving on**
+
+  ```bash
+  cd Hardware/PCB/tools
+  python pcb_check.py net "/STAT1"
+  python pcb_check.py net "/STAT2"
+  python pcb_check.py net "/PG"
+  python pcb_check.py nets
+  python pcb_check.py strays
+  ```
+
+  Each of the three must come back as **one connected group with exactly two
+  pads**. `nets` must show no new split nets or stranded pads — deleting four
+  footprints is a classic way to strand the copper that fed them.
+
+**What this changes downstream:**
+
+- The BOM stays at **20 lines / 47 parts**. `D33`/`D35` shared the `C2297` line
+  with `D34`, and `R5`/`R16` shared `C17513` with `R8`/`R9`/`R12`; both lines
+  survive on their front-side members, and all four deleted parts were already
+  `(dnp yes)`. **The quote does not move.**
+- Back-side placeable parts drop **32 → 28**, and stage-1 hand-soldering drops
+  from five parts to **one** — `J1`, the through-hole battery connector.
+- Firmware gains three inputs on `INPUT_PULLUP`. Decode per the datasheet's
+  **Table 5-1** (DS20002090F p.21); a pull-up makes High-Z read HIGH:
+
+  | `PG` | `STAT1` | `STAT2` | State |
+  |---|---|---|---|
+  | L | L | H | **Charging** — preconditioning, constant current or constant voltage |
+  | L | H | L | **Charge complete** / standby |
+  | L | L | L | **Fault** — temperature (the safety timer is strapped off, below) |
+  | L | H | H | No battery present, or `CE` low |
+  | H | L | H | **Low battery** — running on battery, cell under 3.1 V (LBO) |
+  | H | H | H | No input power — running on battery, level OK |
+
+  **`PG` is what makes this decodable.** "Charging" and "low battery" share the
+  same `STAT1`/`STAT2` pair and differ *only* in `PG`. Two pins would be
+  ambiguous; three are not. That is why `PG` is worth the extra track.
+
+  ⚠️ **`PG` is *pseudo* open-drain.** §5.2.4: it "must not be pulled up higher
+  than V_IN because there is a diode path back to V_IN". With USB unplugged
+  V_IN is 0 V, so the ESP32's ~45 kΩ internal pull-up back-feeds about
+  (3.3 − 0.7)/45k ≈ 58 µA into `+5V` and floats that rail to ~2.6 V. Harmless
+  here: 2.6 V is far below `U3`'s UVLO so the charger stays in battery-powered
+  mode, `PG` still reads HIGH correctly, and `SW1` cuts ESP32 power entirely
+  when off so nothing drains in storage. Worth knowing, not worth a part.
+  `STAT1`/`STAT2` are true open-drain and carry no such restriction.
+
+- **How `U3` is strapped**, verified against the datasheet — this is what the
+  decode table assumes:
+
+  | Pin | | Net | Meaning |
+  |---|---|---|---|
+  | 3 | `SEL` | `GND` | USB-port mode |
+  | 4 | `PROG2` | `+SYS` | 500 mA USB input limit |
+  | 13 | `PROG1` | `R2` 2k | I_REG = 1000/2 = **500 mA** charge current |
+  | 12 | `PROG3` | `R15` 20k | I_TERM = 1000/20 = **50 mA** termination |
+  | 5 | `THERM` | `R14` 10k to `GND` | thermistor monitoring **disabled** |
+  | 9 | `TE` | `+SYS` | safety timer **disabled** |
+  | 17 | `CE` | `+SYS` | charger enabled |
+  | 2 | `VPCC` | `+5V` (= IN) | VPCC feature **disabled** |
+
+  `TE` high means a timer fault can never occur, so both-status-low is
+  unambiguously a temperature fault. Note `R15` sets the *termination current*,
+  not the timer — the timer is factory-set (6 h on the `-2CC`) and gated by
+  `TE`.
+- The BLE contract needs a coaster→app path, which it does not have today. See
+  the battery-level TODO in CLAUDE.md — do both in one package type, and land
+  firmware and app together.
+
+---
+
 ## Phase 6 — DRC
 
 - [ ] **Set manufacturing limits** — *File → Board Setup → Design Rules →
@@ -1050,30 +1281,35 @@ python tools/pcb_check.py strays
       | Everything else | default | |
 
 - [ ] **Turn on assembly** — set *PCB Assembly* to ON.
-      - Assembly side: **both sides** — changed from last order. `D1–D20` are on
-        the back and are now in the BOM
-      - PCBA type: **Standard** — forced, `C2761795` is not offered on Economic
+      - Assembly side: **top side only** — the 32 back-side parts are `(dnp yes)`
+        and hand-soldered. Economic is single-side only regardless
+      - PCBA type: **Economic** — possible because `C55109525` is offered on it.
+        Verify the cart accepts it; one Standard-only line forces the whole
+        order to Standard
       - Tooling holes: **added by JLCPCB**
       - Quantity: **5** — all of them. Decided deliberately: the ~$50 setup fee
         is paid once regardless, so boards 3–5 add only ~$20 of parts between
         them. Assembling fewer saves much less than it appears to.
 
-      **Cost expectation.** Rough figures for 5 boards, from JLCPCB's published
-      rates — confirm against the live quote, they change:
+      **Cost expectation**, 5 boards, against the Standard double-sided quote
+      that prompted the re-scope. Confirm against the live quote:
 
-      | | |
-      |---|---|
-      | Setup, double-sided Standard | ~$50 (vs ~$25 single side, ~$8 Economic) |
-      | ~795 extra joints @ ~$0.0017 | ~$1.35 |
-      | 150 + attrition WS2812B @ $0.0762 | ~$13 |
-      | 5 + attrition ESP32 modules @ $3.27 | ~$20 |
-      | Extended-part loading, Standard | ~$1.50 per part type |
+      | | Standard, 2-side | **Economic, front only** |
+      |---|---|---|
+      | Setup | $51.12 ($25.56/side) | **$8.18** |
+      | Stencil | $16.42 ($8.21/side) | **$1.53** |
+      | Feeder loading | $35.19 (23 lines × $1.53) | **$21.49** (7 extended × $3.07) |
+      | Components | $66.23 | **~$54.50** |
+      | **Total** | **$172.46** | **~$88** |
 
-      That is roughly **$80 more than the old single-sided order**, of which
-      ~$33 is parts you would have bought anyway. So the real assembly premium
-      is ~$45 for 5 boards — about $9/board to not hand-solder 150 MSL-5a LEDs
-      and 5 ESP32 modules. Note the joint count barely matters; the setup fee
-      and the part cost are the whole story.
+      The fee structure is the whole story. Standard bills the loading fee on
+      **every** line, Basic included; Economic bills it only on extended parts.
+      That one difference is worth $13.70 here, and the setup and stencil
+      another $57.83. Note also that the bare PCB is quoted separately — it is
+      not in the $172.46 above — and that the monthly PCBA coupons ($6/$9/$10,
+      one per order) apply. ENIG is still selected above; lead-free HASL would
+      take another ~$15–20 off the board line if you are willing to solder the
+      QFN on it.
 
 - [ ] **Upload BOM and CPL** — `production/bom.csv` as the BOM,
       `production/positions.csv` as the CPL (pick-and-place).
@@ -1086,10 +1322,11 @@ python tools/pcb_check.py strays
       an empty `LCSC Part #`, which JLCPCB cannot source. Neither state is
       announced; both are silent.
 
-      Expect **23 lines covering 79 parts** — that is what the schematic holds
-      today, grouped by value + footprint + `MPN`. Confirm `C2761795` appears with a
-      quantity of **30** and `C2944070` with a quantity of **1**. If the
-      WS2812B line is absent, the DNP flag did not clear.
+      Expect **20 lines covering 47 parts**, 7 of them extended — that is what
+      the schematic holds today, grouped by value + footprint + `MPN`. Confirm
+      `C55109525` appears with a quantity of **10** (the inner ring only) and
+      `C2944070` with **1**. A quantity of 30 on the LED line means the
+      back-side DNP flags did not take.
 
 - [ ] **Review part matching.** JLCPCB shows every line with the part it matched.
       Check each one, especially:

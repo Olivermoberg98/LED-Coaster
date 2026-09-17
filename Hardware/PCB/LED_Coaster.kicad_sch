@@ -6373,24 +6373,12 @@
 		(uuid "feb37799-bc1d-4c71-a57b-fce24afd538e")
 	)
 	(no_connect
-		(at 140.97 195.58)
-		(uuid "2deffeca-9a6e-4bcf-8775-a9d81f152649")
-	)
-	(no_connect
 		(at 129.54 294.64)
 		(uuid "47118152-9335-492f-934a-2d29c824ed2f")
 	)
 	(no_connect
-		(at 427.99 245.11)
-		(uuid "5ed0c0a5-0000-0000-0000-00000000004d")
-	)
-	(no_connect
 		(at 472.44 207.01)
 		(uuid "5ed0c0a5-0000-0000-0000-00000000008d")
-	)
-	(no_connect
-		(at 140.97 193.04)
-		(uuid "61bbfbcb-244f-4421-a85b-0f0bebcff941")
 	)
 	(no_connect
 		(at 283.21 102.87)
@@ -6399,10 +6387,6 @@
 	(no_connect
 		(at 129.54 297.18)
 		(uuid "76716ff7-7fdb-4c62-89e5-749952442522")
-	)
-	(no_connect
-		(at 176.53 187.96)
-		(uuid "eec89f68-92f9-44b0-b6a8-f2d137b3d253")
 	)
 	(no_connect
 		(at 513.08 58.42)
@@ -7767,86 +7751,6 @@
 			(type default)
 		)
 		(uuid "5ed0c0a5-0000-0000-0000-0000000000b2")
-	)
-	(wire
-		(pts
-			(xy 427.99 250.19) (xy 447.04 250.19)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5ed0c0a5-0000-0000-0000-0000000000b5")
-	)
-	(wire
-		(pts
-			(xy 452.12 250.19) (xy 457.2 250.19)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5ed0c0a5-0000-0000-0000-0000000000b9")
-	)
-	(wire
-		(pts
-			(xy 464.82 250.19) (xy 474.98 250.19)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5ed0c0a5-0000-0000-0000-0000000000bd")
-	)
-	(wire
-		(pts
-			(xy 474.98 250.19) (xy 474.98 247.65)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5ed0c0a5-0000-0000-0000-0000000000be")
-	)
-	(wire
-		(pts
-			(xy 427.99 252.73) (xy 487.68 252.73)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5ed0c0a5-0000-0000-0000-0000000000c1")
-	)
-	(wire
-		(pts
-			(xy 492.76 252.73) (xy 497.84 252.73)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5ed0c0a5-0000-0000-0000-0000000000c5")
-	)
-	(wire
-		(pts
-			(xy 505.46 252.73) (xy 510.54 252.73)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5ed0c0a5-0000-0000-0000-0000000000c9")
-	)
-	(wire
-		(pts
-			(xy 510.54 252.73) (xy 510.54 250.19)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5ed0c0a5-0000-0000-0000-0000000000ca")
 	)
 	(wire
 		(pts
@@ -10094,6 +9998,66 @@
 			)
 		)
 	)
+	(label "STAT1"
+		(at 427.99 250.19 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "58d2b801-8246-4d02-a89d-6ebed3c2c9c4")
+	)
+	(label "STAT2"
+		(at 427.99 252.73 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "9e046f06-b3aa-411a-aaae-2cc0bcfe5bac")
+	)
+	(label "PG"
+		(at 427.99 245.11 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "1918910c-fd2d-4471-af0b-eeaa0f92b81c")
+	)
+	(label "STAT1"
+		(at 140.97 193.04 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "95f8c5fc-37ae-4db8-876d-be2f015b38af")
+	)
+	(label "STAT2"
+		(at 140.97 195.58 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right bottom)
+		)
+		(uuid "f8059de0-e5b6-4b60-bdb7-ff2219da3262")
+	)
+	(label "PG"
+		(at 176.53 187.96 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "8ce63b90-6c1c-4808-b334-dffb9d57a8e9")
+	)
 	(symbol
 		(lib_id "Device:R_Small")
 		(at 133.35 168.91 0)
@@ -10410,7 +10374,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 275.59 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -10939,7 +10903,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 69.85 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -10980,7 +10944,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "27458503-fe31-4972-9d06-c60af76d30d3")
 		(property "Reference" "D7"
@@ -11038,7 +11002,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 208.28 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -11325,7 +11289,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "35e18474-85ec-41ba-82f0-a79201c346e3")
 		(property "Reference" "D17"
@@ -11383,7 +11347,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 436.88 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -11606,7 +11570,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "38be7bea-3d19-4b8d-b847-1f88a9a8c35b")
 		(property "Reference" "D14"
@@ -11664,7 +11628,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 368.3 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -11796,7 +11760,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "3c2c64c3-cf7e-45d0-b9eb-669ff9f89f67")
 		(property "Reference" "D9"
@@ -11854,7 +11818,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 254 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -12084,7 +12048,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "56adf781-356b-43be-b11d-569722a85ef7")
 		(property "Reference" "D18"
@@ -12142,7 +12106,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 459.74 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -12320,7 +12284,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 252.73 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -12361,7 +12325,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "5d2d833a-ecd8-4203-921c-07b6f83921b8")
 		(property "Reference" "D16"
@@ -12419,7 +12383,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 414.02 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -15538,7 +15502,7 @@
 				)
 			)
 		)
-		(property "Value" "2.2uF"
+		(property "Value" "4.7uF"
 			(at 538.48 235.712 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -15581,7 +15545,7 @@
 				)
 			)
 		)
-		(property "MPN" "C377773"
+		(property "MPN" "C1779"
 			(at 538.48 232.41 0)
 			(hide yes)
 			(show_name no)
@@ -15684,518 +15648,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R_Small")
-		(at 449.58 250.19 90)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "5ed0c0a5-0000-0000-0000-0000000000b6")
-		(property "Reference" "R5"
-			(at 449.58 247.65 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "1k"
-			(at 449.58 252.73 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder"
-			(at 449.58 250.19 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 449.58 250.19 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Resistor, small symbol"
-			(at 449.58 250.19 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "C17513"
-			(at 449.58 250.19 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "5ed0c0a5-0000-0000-0000-0000000000b7")
-		)
-		(pin "2"
-			(uuid "5ed0c0a5-0000-0000-0000-0000000000b8")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "R5")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:LED")
-		(at 461.01 250.19 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "5ed0c0a5-0000-0000-0000-0000000000ba")
-		(property "Reference" "D33"
-			(at 461.01 246.38 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "LED"
-			(at 461.01 254 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "LED_SMD:LED_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
-			(at 461.01 250.19 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 461.01 250.19 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Light emitting diode"
-			(at 461.01 250.19 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "C2297"
-			(at 461.01 250.19 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "5ed0c0a5-0000-0000-0000-0000000000bb")
-		)
-		(pin "2"
-			(uuid "5ed0c0a5-0000-0000-0000-0000000000bc")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "D33")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+5V")
-		(at 474.98 247.65 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "5ed0c0a5-0000-0000-0000-0000000000bf")
-		(property "Reference" "#PWR050"
-			(at 474.98 243.84 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "+5V"
-			(at 474.98 251.206 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 474.98 247.65 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 474.98 247.65 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 474.98 247.65 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "5ed0c0a5-0000-0000-0000-0000000000c0")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "#PWR050")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:R_Small")
-		(at 490.22 252.73 90)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "5ed0c0a5-0000-0000-0000-0000000000c2")
-		(property "Reference" "R16"
-			(at 490.22 250.19 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "1k"
-			(at 490.22 255.27 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric_Pad1.20x1.40mm_HandSolder"
-			(at 490.22 252.73 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 490.22 252.73 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Resistor, small symbol"
-			(at 490.22 252.73 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "C17513"
-			(at 490.22 252.73 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "5ed0c0a5-0000-0000-0000-0000000000c3")
-		)
-		(pin "2"
-			(uuid "5ed0c0a5-0000-0000-0000-0000000000c4")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "R16")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:LED")
-		(at 501.65 252.73 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "5ed0c0a5-0000-0000-0000-0000000000c6")
-		(property "Reference" "D35"
-			(at 501.65 248.92 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "LED"
-			(at 501.65 256.54 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "LED_SMD:LED_0805_2012Metric_Pad1.15x1.40mm_HandSolder"
-			(at 501.65 252.73 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 501.65 252.73 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Light emitting diode"
-			(at 501.65 252.73 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "MPN" "C2297"
-			(at 501.65 252.73 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "5ed0c0a5-0000-0000-0000-0000000000c7")
-		)
-		(pin "2"
-			(uuid "5ed0c0a5-0000-0000-0000-0000000000c8")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "D35")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+5V")
-		(at 510.54 250.19 0)
-		(unit 1)
-		(body_style 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(in_pos_files yes)
-		(dnp no)
-		(uuid "5ed0c0a5-0000-0000-0000-0000000000cb")
-		(property "Reference" "#PWR051"
-			(at 510.54 246.38 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "+5V"
-			(at 510.54 253.746 0)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 510.54 250.19 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Datasheet" ""
-			(at 510.54 250.19 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+5V\""
-			(at 510.54 250.19 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(pin "1"
-			(uuid "5ed0c0a5-0000-0000-0000-0000000000cc")
-		)
-		(instances
-			(project "LED_Coaster"
-				(path "/c3ec28d0-7d6a-45c7-8929-905948ef9c11"
-					(reference "#PWR051")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "LED_Coaster:+LED_PWR")
 		(at 340.36 285.75 0)
 		(unit 1)
@@ -16280,7 +15732,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "5ed0c0a5-0000-0000-0000-0000000000d0")
 		(property "Reference" "C8"
 			(at 340.36 287.528 0)
@@ -16522,7 +15974,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "5ed0c0a5-0000-0000-0000-0000000000d9")
 		(property "Reference" "C9"
 			(at 353.06 287.528 0)
@@ -16764,7 +16216,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "5ed0c0a5-0000-0000-0000-0000000000e2")
 		(property "Reference" "C10"
 			(at 365.76 287.528 0)
@@ -17006,7 +16458,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "5ed0c0a5-0000-0000-0000-0000000000eb")
 		(property "Reference" "C11"
 			(at 378.46 287.528 0)
@@ -17248,7 +16700,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "5ed0c0a5-0000-0000-0000-0000000000f4")
 		(property "Reference" "C12"
 			(at 391.16 287.528 0)
@@ -17490,7 +16942,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "5ed0c0a5-0000-0000-0000-0000000000fd")
 		(property "Reference" "C13"
 			(at 403.86 287.528 0)
@@ -17732,7 +17184,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "5ed0c0a5-0000-0000-0000-000000000106")
 		(property "Reference" "C14"
 			(at 416.56 287.528 0)
@@ -17974,7 +17426,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "5ed0c0a5-0000-0000-0000-00000000010f")
 		(property "Reference" "C15"
 			(at 429.26 287.528 0)
@@ -20145,7 +19597,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 207.01 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -20264,7 +19716,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "67decbb9-1bdb-44a7-8714-c0c7bce2762b")
 		(property "Reference" "D10"
@@ -20322,7 +19774,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 276.86 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -20421,7 +19873,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 138.43 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -20632,7 +20084,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "7cb0f732-316a-4910-94de-45eec22cdcfd")
 		(property "Reference" "D1"
@@ -20690,7 +20142,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 70.485 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -20731,7 +20183,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "81cc0858-152b-448d-b914-256ad931afd9")
 		(property "Reference" "D13"
@@ -20789,7 +20241,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 345.44 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -20980,7 +20432,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 161.29 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -21021,7 +20473,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "8826e5bc-05cc-48b6-855f-322c3e3b8862")
 		(property "Reference" "D6"
@@ -21079,7 +20531,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 185.42 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -21738,7 +21190,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "a9ccb870-d781-423c-a8df-7b8df34220e5")
 		(property "Reference" "D12"
@@ -21796,7 +21248,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 322.58 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -21895,7 +21347,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 115.57 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -22028,7 +21480,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "10uF"
+		(property "Value" "4.7uF"
 			(at 95.25 167.6462 0)
 			(show_name no)
 			(do_not_autoplace no)
@@ -22072,7 +21524,7 @@
 				)
 			)
 		)
-		(property "MPN" "C15850"
+		(property "MPN" "C1779"
 			(at 92.71 166.37 0)
 			(hide yes)
 			(show_name no)
@@ -22107,7 +21559,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "b31a2967-67e6-4373-8e6a-ae5f3812cd32")
 		(property "Reference" "D8"
@@ -22165,7 +21617,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 231.14 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -22297,7 +21749,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "beebb46b-6463-48b8-be22-909ead8fa055")
 		(property "Reference" "D15"
@@ -22355,7 +21807,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 391.16 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -22396,7 +21848,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "c000bfba-1301-4629-8113-88edb598eedf")
 		(property "Reference" "D5"
@@ -22454,7 +21906,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 162.56 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -22588,7 +22040,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "c219d394-401b-4192-a43a-d6cb5ff59c8c")
 		(property "Reference" "D2"
 			(at 104.775 54.7721 0)
@@ -22645,7 +22097,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 93.98 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -22997,7 +22449,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "c2c7e524-e47c-44c5-8ee4-cd0d11d6916b")
 		(property "Reference" "D20"
@@ -23055,7 +22507,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 505.46 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -23189,7 +22641,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "c82b66c3-8ffc-40fc-8e67-96c101152e1d")
 		(property "Reference" "D3"
 			(at 127.635 54.7721 0)
@@ -23246,7 +22698,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 116.84 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -23424,7 +22876,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 184.15 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -23831,7 +23283,7 @@
 				)
 			)
 		)
-		(property "Value" "1uF"
+		(property "Value" "4.7uF"
 			(at 114.3063 180.34 90)
 			(show_name no)
 			(do_not_autoplace no)
@@ -23874,7 +23326,7 @@
 				)
 			)
 		)
-		(property "MPN" "C28323"
+		(property "MPN" "C1779"
 			(at 114.3 184.15 0)
 			(hide yes)
 			(show_name no)
@@ -23909,7 +23361,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(uuid "e1092163-5274-44e4-9068-949f0be4ef22")
 		(property "Reference" "D4"
 			(at 150.495 54.7721 0)
@@ -23966,7 +23418,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 139.7 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -24007,7 +23459,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "e19d9c2d-055b-4fef-93ce-41b6a8e16991")
 		(property "Reference" "D19"
@@ -24065,7 +23517,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 482.6 58.42 0)
 			(hide yes)
 			(show_name no)
@@ -24164,7 +23616,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 92.71 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -24263,7 +23715,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 229.87 102.87 0)
 			(hide yes)
 			(show_name no)
@@ -24382,7 +23834,7 @@
 		(in_bom yes)
 		(on_board yes)
 		(in_pos_files yes)
-		(dnp no)
+		(dnp yes)
 		(fields_autoplaced yes)
 		(uuid "e99858e7-3fce-46d3-8ff1-fe4d18dfce5a")
 		(property "Reference" "D11"
@@ -24440,7 +23892,7 @@
 				)
 			)
 		)
-		(property "MPN" "C2761795"
+		(property "MPN" "C55109525"
 			(at 299.72 58.42 0)
 			(hide yes)
 			(show_name no)
