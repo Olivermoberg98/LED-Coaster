@@ -201,7 +201,7 @@ numbers. Open the schematic editor (the first icon in the project window).
 
   | Ref | Value | Part | Notes |
   |---|---|---|---|
-  | `D1`–`D30` | WS2812B | `C55109525` | Worldsemi WS2812B-V7, SMD5050-4P. **Economic or Standard**, MSL 5a |
+  | `D1`–`D30` | WS2812B | `C26167850` | TUOZHAN TZ-5050S2RGB-5V-I4-H1 (TZ2812), SMD5050-4P. **MSL 3** — the reason it clears Economic |
   | `U1` | ESP32-C3-WROOM-02-H4 | `C2944070` | Espressif, SMD 20×18 mm. Economic *or* Standard |
 
   **The LED pinout decides this part, not the price.** The footprint
@@ -228,21 +228,38 @@ numbers. Open the schematic editor (the first icon in the project window).
   set `FT Rotation Offset` = 180 on all thirty — and note the silkscreen then
   points at the wrong corner for hand-soldering.
 
-  Why not `C2761795` (WS2812B-B/T), which an earlier revision specified: it is
-  **Standard assembly only**, and one Standard-only line forces the whole order
-  onto Standard PCBA at $25.56/side setup instead of Economic's $8.18. Being
-  Standard-only is not a property of genuine parts in general — `C55109525`,
-  `C5380881` and `C26167850` are all offered on Economic. The two JLCPCB
-  house-brand parts (`C9900143998`, `C9900021185`) are Economic-eligible but
-  stock 0 and consign-only, so they cannot be bought, only shipped in.
+  **Why this part and not a Worldsemi one.** Every WS2812B is **MSL 5a** and
+  rated 240 °C peak reflow. Economic PCBA runs a **255 °C** profile and does not
+  bake parts, so JLCPCB rejects them at cart time — *"only available for Standard
+  PCBA"* — regardless of what the part page's **PCBA Type** field claims. That
+  field is catalogue metadata and is **not** what the ordering system enforces;
+  `C55109525`, `C5380881` and the two house-brand parts all advertise "Economic
+  and Standard" and all fail. **Only the cart is authoritative.**
 
-  **Firmware caveat.** Newer WS2812B revisions raise the latch time from 50 µs
-  to **280 µs**. `FastLED.show()` renders both controllers and is called twice
-  per `loop()` iteration, so the outer ring's latch gap is roughly the inner
-  ring's 300 µs transmission — above the requirement, but with little margin.
-  If the outer ring flickers or shifts by a pixel, add `delay(1)` at the end of
-  `loop()`. `pulse` and `chaser` are `millis()`-based so their speed will not
-  change; `rainbow` counts frames and would need its `% 50` constant reduced.
+  The TUOZHAN part clears it because it is **MSL 3**, rated **250 °C** peak for
+  lead-free reflow, and qualified at **260 °C × 10 s, twice, 0/22 failures**
+  (JESD22-B106). Verified accepted as Economic in the cart.
+
+  From its datasheet, everything else lines up:
+
+  | | |
+  |---|---|
+  | Pinout | 1 = VDD, 2 = DOU, 3 = GND, 4 = DIN — classic, drops in at **0°** |
+  | Reset time | **80 µs**, not 280 µs — no `delay(1)` workaround needed |
+  | Bit timing | T0H 0.2–0.35 µs, T1H 0.55–1.2 µs — FastLED's 250/875 ns sits inside both |
+  | Colour order | **GRB**, matching `addLeds<WS2812, ..., GRB>` |
+  | Drive current | **12 mA/channel** vs ~18–20 — full white drops ~1.8 A → **~1.08 A** |
+  | Brightness | green 1300–1800 mcd, blue 500–700 — *brighter* than WS2812B on both |
+  | Supply | 3.5–7.5 V, tolerates a flatter cell than the WS2812B's 3.7 V floor |
+  | Power-up | dark by default, no flash at boot |
+
+  The lower drive current largely retires the MCP73871 1 A system-load concern
+  in CLAUDE.md. Firmware needs **no changes at all**.
+
+  ⚠️ **Hand-soldering limits** (datasheet §2): iron **≤ 315 °C**, **under 3 s**,
+  **once only**, and the tip must not touch the resin. See the note on pad
+  connection in the stage-2 section — the `GND` pour is set to **solid**, which
+  fights those limits.
 
 - [x] **Charger part number corrected — read this one**
 
@@ -1291,25 +1308,36 @@ restriction does not apply.
         is paid once regardless, so boards 3–5 add only ~$20 of parts between
         them. Assembling fewer saves much less than it appears to.
 
-      **Cost expectation**, 5 boards, against the Standard double-sided quote
-      that prompted the re-scope. Confirm against the live quote:
+      **Actual quote**, 5 boards, against the Standard double-sided quote that
+      started the re-scope:
 
-      | | Standard, 2-side | **Economic, front only** |
+      | | Standard, 2-side (first quote) | **Economic, front only (ordered)** |
       |---|---|---|
-      | Setup | $51.12 ($25.56/side) | **$8.18** |
-      | Stencil | $16.42 ($8.21/side) | **$1.53** |
+      | Setup | $51.12 | **$8.18** |
+      | Stencil | $16.42 | **$1.53** |
       | Feeder loading | $35.19 (23 lines × $1.53) | **$21.49** (7 extended × $3.07) |
-      | Components | $66.23 | **~$54.50** |
-      | **Total** | **$172.46** | **~$88** |
+      | Components | $66.23 | **$49.79** |
+      | SMT assembly | $3.00 | $1.47 |
+      | Nitrogen reflow | — | $0.90 |
+      | **PCBA** | **$172.46** | **$83.36** |
+      | Bare PCB | quoted separately | **$2.00** (sub-100 mm special offer) |
+      | Shipping | — | $12.60 |
+      | **Total** | | **$97.96** |
 
-      The fee structure is the whole story. Standard bills the loading fee on
-      **every** line, Basic included; Economic bills it only on extended parts.
-      That one difference is worth $13.70 here, and the setup and stencil
-      another $57.83. Note also that the bare PCB is quoted separately — it is
-      not in the $172.46 above — and that the monthly PCBA coupons ($6/$9/$10,
-      one per order) apply. ENIG is still selected above; lead-free HASL would
-      take another ~$15–20 off the board line if you are willing to solder the
-      QFN on it.
+      About **$19.60 per coaster**, a 55% cut. Three things made it:
+
+      1. **Economic instead of Standard.** Standard bills the loading fee on
+         every line including Basic ones; Economic bills it only on extended
+         parts. Worth $13.70 here, and the setup and stencil another $57.83.
+      2. **Front side only**, which halves setup and stencil.
+      3. **20 BOM lines instead of 23** after merging the caps.
+
+      The $2.00 board price is the sub-100 mm promo tier and implies **HASL, not
+      ENIG** — which is the right call anyway for this board. Monthly PCBA
+      coupons did not materialise on this account; the PCB promo replaced them.
+
+      At ~€85 the order is **under the €150 import threshold**, so it clears via
+      IOSS without the customs handling fee. Budget ~25% Swedish VAT on top.
 
 - [ ] **Upload BOM and CPL** — `production/bom.csv` as the BOM,
       `production/positions.csv` as the CPL (pick-and-place).
@@ -1459,4 +1487,4 @@ for what the columns should look like.
 
 | Date | Order # | Qty PCB | Qty assembled | Notes |
 |---|---|---|---|---|
-| | | | | |
+| 2026-09 | | 5 | 5, front only | Economic, 20 lines / 47 parts. $97.96 all in. `C26167850` LEDs. Outer ring + `C8`-`C15` + `J1` hand-soldered |
