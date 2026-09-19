@@ -4,3 +4,6 @@
 .history/
 __pycache__/
 *.pyc
+
+# KiCad regenerable footprint cache
+fp-info-cache
