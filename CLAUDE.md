@@ -53,7 +53,17 @@ App and firmware agree on a hand-rolled binary protocol over a single writable G
 
 ## Firmware architecture
 
-- Two WS2812 rings driven independently: inner = GPIO0/10 LEDs, outer = GPIO1/20 LEDs (`patterns.h`). Each ring has a `colors_*` source array (the user's chosen color, replicated per pixel) and a `led_output_*` array (what patterns actually write, after brightness modulation). Patterns take `ledsIn`/`ledsOut` for exactly this reason.
+- Two WS2812-protocol rings driven independently: inner = GPIO0/10 LEDs, outer =
+  GPIO1/20 LEDs (`patterns.h`). The fitted part is **not** a WS2812B — it is
+  TUOZHAN **TZ-5050S2RGB-5V-I4-H1** (`C26167850`, TZ2812 die). It was chosen
+  because every WS2812B is MSL 5a and rated 240 °C peak, which JLCPCB's 255 °C
+  Economic reflow rejects; the TZ part is MSL 3 and rated 250 °C. It is a drop-in:
+  same 1=VDD 2=DOUT 3=GND 4=DIN pinout, **GRB** order, 800 kbit/s, and bit timing
+  (T0H 0.2–0.35 µs, T1H 0.55–1.2 µs) that FastLED's 250/875 ns `WS2812` driver sits
+  inside — so `addLeds<WS2812, ..., GRB>` is correct and needs no change. Two
+  differences that matter: **reset is 80 µs** (not the 280 µs of newer WS2812B
+  revisions), so the tight `FastLED.show()` loop needs no added delay; and drive is
+  **12 mA/channel**, not ~20. Each ring has a `colors_*` source array (the user's chosen color, replicated per pixel) and a `led_output_*` array (what patterns actually write, after brightness modulation). Patterns take `ledsIn`/`ledsOut` for exactly this reason.
 - **`inner_needs_update` / `outer_needs_update`** exist because `FIXED` is a static frame — the main loop skips re-rendering it (just `delay(50)`) until something sets the flag: a new packet, a connect transition, or a ring being re-enabled. Any new code path that changes ring colors must set these or the change won't appear.
 - `BLEHandler` runs a `ConnectionState` machine (`DISCONNECTED → CONNECTING → CONNECTED → DISCONNECTING`). Pattern processing only runs while `CONNECTED` (`shouldProcessPatterns()`), so the loop body in `main.cpp` is dead until a phone connects. The `CONNECTING` state exists solely to fire `onConnectPattern` once.
 - Power saving is deliberate and easy to undo by accident: TX power `ESP_PWR_LVL_N0`, slow advertising intervals (800–1600), advertising self-stops after `ADVERTISING_TIMEOUT_MS` (2 min) if nobody connects, and `esp_pm_configure` enables automatic light sleep (10–160 MHz). Note `esp_pm_config_esp32c3_t` is C3-specific — porting to another chip requires changing it.
@@ -107,6 +117,67 @@ stranded* — and answers them without opening the GUI.
 
 Board constants (outline centre and radius) are at the top of the file; update
 them if the outline ever changes.
+
+## Bring-up status of the fabricated board (first boards, 2026-09-30)
+
+The first JLCPCB boards are in hand and partially hand-soldered. What has been
+verified on real hardware, and what is still untested because the parts are not
+fitted yet:
+
+**Working.** The ESP32-C3 boots and enumerates over the USB-C connector alone as
+`USB Serial Device`, VID `303A` / PID `1001` (USB-Serial-JTAG). `pio run -t
+upload --upload-port COMx` flashes and verifies. `Serial` logging over that same
+connector works — automatic light sleep does *not* kill the CDC output, so the
+`esp_pm_configure` call and USB logging coexist fine. BLE advertises, a phone
+connects, and the full `DISCONNECTED → CONNECTING → CONNECTED → DISCONNECTING`
+cycle runs. Both packages arrive and parse with no checksum mismatches. The
+**inner ring (`small_ring`, GPIO0, 10 LEDs)** lights and changes colour and
+pattern from the app — so WS2812 timing, the `GRB` order and the whole app →
+BLE → pattern → LED path are all good.
+
+Because the ESP32 enumerated at all, the power path is also confirmed: `SW1` is
+on, `Q1` (the LED-rail P-FET) conducts, and `U4` (the LDO, whose enable follows
+that rail) is up.
+
+**Untested — parts not fitted.** Nothing on the back side is soldered yet, which
+means the **outer ring (`large_ring`, GPIO1, 20 LEDs)** and the battery
+connector `J1`. So the outer ring, the 470k/470k `BAT_SENSE` divider on GPIO4,
+and the whole charger path (`U3` and its `STAT1`/`STAT2`/`PG` lines on
+GPIO5/6/10) have not been exercised.
+
+Net/pin agreement between the fabricated board and the firmware was checked
+against `LED_Coaster.kicad_sch` and matches: `small_ring` → IO0, `large_ring` →
+IO1, `BAT_SENSE` → IO4, `STAT1`/`STAT2`/`PG` → IO5/IO6/IO10.
+
+Gotchas that cost time during bring-up:
+
+- **Advertising self-stops after 2 minutes** (`ADVERTISING_TIMEOUT_MS`). Miss
+  that window and the coaster is invisible to the app until it is reset.
+- **The boot log is unreachable in practice.** A chip reset re-enumerates the
+  USB CDC device, which invalidates any open port handle, and re-attach takes
+  longer than it takes `setup()` to finish. So `Started Advertising (low power
+  mode)` is already gone by the time a monitor can attach. Diagnose with later
+  prints instead.
+- **Patterns only run while connected** (`shouldProcessPatterns()`), so the
+  rings stay dark on USB power alone. An LED check needs the app connected;
+  there is no boot self-test.
+- **No global brightness limit exists yet, and one is still needed.** Nothing
+  calls `FastLED.setBrightness` or `setMaxPowerInVoltsAndMilliamps`. At
+  12 mA/channel all 30 TZ-5050S2RGB at full white draw **1.08 A** (a WS2812B
+  build would have been 1.8 A), ~1.17 A with the ESP32 on BLE. That still
+  exceeds the <1 A system load the MCP73871 datasheet recommends, and the sag
+  is what bites: 200 mΩ BAT→SYS plus ~65 mΩ through `Q1` drops ~306 mV, so at
+  a 3.6 V cell `+SYS` falls to 3.37 V and **`U4` drops out — the ESP32 resets
+  mid-use**. Capping LED draw at **900 mA**
+  (`FastLED.setMaxPowerInVoltsAndMilliamps(5, 900)`) holds `+SYS` at 3.40 V
+  down to a 3.6 V cell and costs ~17% of peak white, which is barely visible.
+  With only the 10-LED inner ring fitted (0.36 A) none of this applies yet.
+  The better long-term fix is scaling brightness from the `BAT_SENSE` reading
+  once that lands.
+- **`coasterID` is hardcoded** at [main.cpp:12](Software/LED_coaster/src/main.cpp#L12).
+  The first board was flashed as `05`, so it advertises `Coaster-05`; its base
+  MAC is `f8:5b:1b:eb:1a:14`. Give every further board its own ID before
+  flashing.
 
 ## TODO: battery and charger reporting (software not started)
 
@@ -176,9 +247,10 @@ Notes that matter for firmware:
   timer **disabled** (`TE` high) — so a timer fault never occurs and both
   status outputs low means a temperature fault.
 - The MCP73871's internal BAT→SYS path is ~200 mΩ and the datasheet recommends
-  keeping system load under 1 A. All 30 WS2812B at full white is ~1.8 A, which
-  exceeds that and will sag `+SYS`. Global brightness limiting in firmware is the
-  practical mitigation.
+  keeping system load under 1 A. All 30 TZ-5050S2RGB at full white is ~1.08 A,
+  ~1.17 A with the ESP32 — still over, and it sags `+SYS` enough to drop `U4`
+  out below a ~3.7 V cell. Global brightness limiting in firmware is the
+  practical mitigation; see the bring-up note above for the numbers.
 
 ## My working preferences
 
