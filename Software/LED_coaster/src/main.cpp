@@ -17,6 +17,12 @@ void setup() {
   FastLED.addLeds<WS2812, LED_PIN_INNER, GRB>(led_output_inner, NUM_LEDS_INNER);
   FastLED.addLeds<WS2812, LED_PIN_OUTER, GRB>(led_output_outer, NUM_LEDS_OUTER);
 
+  // All 30 TZ-5050S2RGB at full white draw 1.08 A (12 mA per channel), and the
+  // ~265 mOhm from the cell through the charger's BAT->SYS path and Q1 would
+  // then sag +SYS below the LDO's dropout on a half-empty battery, resetting the
+  // ESP32. 900 mA holds +SYS at 3.40 V down to a 3.6 V cell.
+  FastLED.setMaxPowerInVoltsAndMilliamps(5, 900);
+
   // Setup for the LED colors
   updateLEDColors(0, NUM_LEDS_INNER);
   updateLEDColors(1, NUM_LEDS_OUTER);
