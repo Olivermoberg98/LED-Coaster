@@ -56,9 +56,15 @@ private:
 
     unsigned long advertisingStartTime;
     bool isAdvertising;
+    bool slowAdvertising;
     // Set from the NimBLE host task, consumed by the main loop
     volatile bool disconnectAnimationPending;
-    static const unsigned long ADVERTISING_TIMEOUT_MS = 120000; // 2 minutes
+    static const unsigned long ADVERTISING_TIMEOUT_MS = 120000; // fast phase, 2 minutes
+    // Advertising intervals in 0.625 ms units: fast 0.5-1 s, slow 2.0-2.2 s
+    static const uint16_t ADV_FAST_MIN_INTERVAL = 800;
+    static const uint16_t ADV_FAST_MAX_INTERVAL = 1600;
+    static const uint16_t ADV_SLOW_MIN_INTERVAL = 3200;
+    static const uint16_t ADV_SLOW_MAX_INTERVAL = 3520;
 
     // Callbacks for connection and disconnection events
     class ServerCallbacks : public NimBLEServerCallbacks {
