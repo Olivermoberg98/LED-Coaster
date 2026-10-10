@@ -26,9 +26,8 @@ Run from this directory (`Software/App/Coaster_app`). On Windows use `gradlew.ba
   JDK 25, which is that Studio's JBR. Command-line builds use JDK 17:
   `JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"`.
 - Tests: only the stub `ExampleUnitTest` / `ExampleInstrumentedTest` exist.
-- `app/lint-baseline.xml` holds the remaining pre-refactor issues (2 errors,
-  56 warnings), so `lint` reports only new ones. The errors are
-  `MissingPermission` at `MainActivity.kt:88,517`. Regenerate it with
+- `app/lint-baseline.xml` holds the remaining pre-refactor warnings (no
+  errors), so `lint` reports only new issues. Regenerate it with
   `./gradlew updateLintBaseline` only after fixing issues, never to hide new ones.
 - BLE needs a real phone; the emulator has no Bluetooth. A coaster stops
   advertising 2 minutes after reset (see root `CLAUDE.md`, bring-up gotchas).

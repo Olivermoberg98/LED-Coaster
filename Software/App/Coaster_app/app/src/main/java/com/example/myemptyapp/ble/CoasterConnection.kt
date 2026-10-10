@@ -1,7 +1,9 @@
 package com.example.myemptyapp.ble
 
+import android.Manifest
 import android.bluetooth.BluetoothDevice
 import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
 import com.example.myemptyapp.protocol.Packets
 import com.example.myemptyapp.protocol.Pattern
@@ -17,7 +19,7 @@ import no.nordicsemi.android.ble.observer.ConnectionObserver
  * [CoasterRepository]. It stays open until [disconnect] is called.
  */
 class CoasterConnection internal constructor(
-    context: Context,
+    private val context: Context,
     private val device: BluetoothDevice,
     /** Advertised name, e.g. `Coaster-05`. */
     val name: String
@@ -53,16 +55,22 @@ class CoasterConnection internal constructor(
 
     /**
      * Connects and completes once services are discovered and the coaster is
-     * ready for commands. Returns false if the connection could not be made.
+     * ready for commands. Returns false if the connection could not be made,
+     * including when BLUETOOTH_CONNECT has not been granted.
      */
     suspend fun connect(): Boolean {
         if (isReady) return true
+        if (context.checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "BLUETOOTH_CONNECT not granted, not connecting to $name ($address)")
+            return false
+        }
         val request = manager.connect(device)
         if (autoReconnect) {
             request.useAutoConnect(true)
         } else {
-            // Absorbs the transient GATT 133 errors common on a first connect
-            request.retry(3, 100)
+            // Absorbs the transient GATT 133 errors common on a first connect. The
+            // timeout covers a coaster in slow advertising (one packet per ~2 s).
+            request.retry(3, 100).timeout(CONNECT_TIMEOUT_MS)
         }
         return try {
             request.suspend()
@@ -97,5 +105,6 @@ class CoasterConnection internal constructor(
 
     private companion object {
         const val TAG = "CoasterConnection"
+        const val CONNECT_TIMEOUT_MS = 15_000L
     }
 }

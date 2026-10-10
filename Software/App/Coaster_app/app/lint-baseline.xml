@@ -2,39 +2,17 @@
 <issues format="6" by="lint 8.13.2" type="baseline" client="gradle" dependencies="false" name="AGP (8.13.2)" variant="all" version="8.13.2">
 
     <issue
-        id="MissingPermission"
-        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
-        errorLine1="                gatt?.discoverServices()"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="86"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="MissingPermission"
-        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
-        errorLine1="        bluetoothGatt?.close()"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="486"
-            column="9"/>
-    </issue>
-
-    <issue
         id="CutPasteId"
         message="The id `R.id.circleText` has already been looked up in this method; possible cut &amp; paste error?"
         errorLine1="                                circle.findViewById&lt;TextView>(R.id.circleText).visibility = View.GONE"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/myemptyapp/GameActivity.kt"
-            line="327"
+            line="311"
             column="33"/>
         <location
             file="src/main/java/com/example/myemptyapp/GameActivity.kt"
-            line="311"
+            line="295"
             column="48"
             message="First usage here"/>
     </issue>
@@ -145,7 +123,7 @@
         errorLine2="                             ~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="19"
+            line="15"
             column="30"/>
     </issue>
 
@@ -167,74 +145,8 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="11"
+            line="9"
             column="9"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 31"
-        errorLine1="    @RequiresApi(Build.VERSION_CODES.S)"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="113"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 31"
-        errorLine1="    @RequiresApi(Build.VERSION_CODES.S)"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="368"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 31"
-        errorLine1="    @RequiresApi(Build.VERSION_CODES.S)"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="392"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 31"
-        errorLine1="    @RequiresApi(Build.VERSION_CODES.S)"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="405"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 31"
-        errorLine1="            @RequiresApi(Build.VERSION_CODES.S)"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="436"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="ObsoleteSdkInt"
-        message="Unnecessary; `SDK_INT` is always >= 31"
-        errorLine1="    @RequiresApi(Build.VERSION_CODES.S)"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="491"
-            column="5"/>
     </issue>
 
     <issue
@@ -487,28 +399,6 @@
         message="Found bitmap drawable `res/drawable/coaster_image.jpg` in densityless folder">
         <location
             file="src/main/res/drawable/coaster_image.jpg"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SharedPreferences.edit` instead?"
-        errorLine1="            val editor = sharedPreferences.edit()"
-        errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="516"
-            column="26"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        message="Use the KTX extension function `SharedPreferences.edit` instead?"
-        errorLine1="        sharedPreferences.edit().clear().apply()"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="553"
-            column="9"/>
     </issue>
 
     <issue

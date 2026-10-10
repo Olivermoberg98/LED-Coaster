@@ -21,7 +21,11 @@ class DevicesAdapter(
 
     override fun onBindViewHolder(holder: DeviceViewHolder, position: Int) {
         val coasterDevice = devices[position]
-        holder.deviceName.text = coasterDevice.name
+        holder.deviceName.text = when (coasterDevice.state.value) {
+            CoasterConnection.State.READY -> "${coasterDevice.name} · connected"
+            CoasterConnection.State.CONNECTING -> "${coasterDevice.name} · connecting…"
+            else -> coasterDevice.name
+        }
         holder.deviceIcon.setImageResource(R.drawable.coaster_icon)
 
         // Set up long press listener to start drag

@@ -1,157 +1,96 @@
 package com.example.myemptyapp
 
-// Bluetooth imports
-import BluetoothDeviceAdapter
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
-import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothManager
-import android.bluetooth.BluetoothProfile
-import android.bluetooth.BluetoothSocket
-import android.content.BroadcastReceiver
-import android.content.ContentValues.TAG
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
-import java.io.OutputStream
-import java.io.IOException
-
-// More general imports
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.LinearLayout
-import android.widget.RelativeLayout
 import android.widget.Spinner
-import androidx.annotation.RequiresApi
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.flask.colorpicker.ColorPickerView
-//import com.flask.colorpicker.OnColorSelectedListener
-import com.flask.colorpicker.builder.ColorPickerDialogBuilder
-import com.example.myemptyapp.protocol.CoasterUuids
-import com.example.myemptyapp.protocol.Packets
+import com.example.myemptyapp.ble.CoasterConnection
+import com.example.myemptyapp.ble.ScannedCoaster
+import com.example.myemptyapp.data.SavedDevice
 import com.example.myemptyapp.protocol.Pattern
 import com.example.myemptyapp.protocol.Rgb
-import kotlinx.coroutines.delay
+import com.flask.colorpicker.ColorPickerView
+import com.flask.colorpicker.builder.ColorPickerDialogBuilder
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
-// Define command bytes for each package
-class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickListener {
+class MainActivity : AppCompatActivity() {
 
-    // Bluetooth variable initialization
-    private val REQUEST_BLUETOOTH_PERMISSIONS = 1
-    private val REQUEST_ENABLE_BT = 2
-    private lateinit var selectedDevice: BluetoothDevice
-    private lateinit var receiver: BroadcastReceiver
-    private var bluetoothSocket: BluetoothSocket? = null // Member variable to hold Bluetooth socket
+    private val app by lazy { application as CoasterApp }
+
     private lateinit var spinner: Spinner
-
-    // RecyclerView and Adapter
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var deviceAdapter: BluetoothDeviceAdapter
-    private lateinit var previousDeviceAdapter: BluetoothDeviceAdapter
-
-    // Define a boolean flag to track the discovery state
-    private var isDiscoveryInProgress = false
+    private lateinit var savedDeviceNames: ArrayAdapter<String>
+    private val savedDevices = mutableListOf<SavedDevice>()
     private var isFirstSelection = true
 
-    // Define buttons and spinners for sending data
+    private lateinit var deviceAdapter: BluetoothDeviceAdapter
+    private var scanJob: Job? = null
+
     private lateinit var outerCheckbox: CheckBox
     private lateinit var innerCheckbox: CheckBox
 
-    private var bluetoothGatt: BluetoothGatt? = null
-    private var targetCharacteristic: BluetoothGattCharacteristic? = null
-    private val gattCallback = object : BluetoothGattCallback() {
-        override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
-                // GATT connected, now you can interact with the GATT server
-                Log.d(TAG, "GATT connected, discovering services...")
-                gatt?.discoverServices()
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                Log.d(TAG, "GATT disconnected (status=$status)")
-                targetCharacteristic = null
-                runOnUiThread { this@MainActivity.showToast("Disconnected from device") }
+    /** The coaster this screen controls. */
+    private var current: CoasterConnection? = null
+    private var currentStateJob: Job? = null
+
+    private var pendingPermissionAction: (() -> Unit)? = null
+    private val permissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
+            val action = pendingPermissionAction
+            pendingPermissionAction = null
+            if (results.values.all { it }) {
+                action?.invoke()
+            } else {
+                showToast("Bluetooth permission is needed to find and control coasters")
             }
         }
 
-        override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
-            if (status != BluetoothGatt.GATT_SUCCESS) {
-                Log.e(TAG, "Service discovery failed with status $status")
-                runOnUiThread { this@MainActivity.showToast("Error: could not read services from device") }
-                return
-            }
-
-            val characteristic = gatt?.getService(CoasterUuids.SERVICE)?.getCharacteristic(CoasterUuids.COMMAND)
-            if (characteristic == null) {
-                Log.e(TAG, "Coaster characteristic not found on this device")
-                runOnUiThread { this@MainActivity.showToast("Error: this device is not a coaster") }
-                return
-            }
-
-            targetCharacteristic = characteristic
-            runOnUiThread { enableSendDataUI() }
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Initialize RecyclerView and its adapter
-        recyclerView = findViewById(R.id.recyclerViewBluetoothDevices)
+        val recyclerView: RecyclerView = findViewById(R.id.recyclerViewBluetoothDevices)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        val emptyDeviceList = mutableListOf<BluetoothDevice>()
-        deviceAdapter = BluetoothDeviceAdapter(applicationContext,emptyDeviceList,this) {
-            requestBluetoothPermissions()
-        }
+        deviceAdapter = BluetoothDeviceAdapter { device -> connectTo(device.address, device.name) }
         recyclerView.adapter = deviceAdapter
 
-        // Button click listener
         val btnConnectNewDevice: Button = findViewById(R.id.btnConnectNewDevice)
         btnConnectNewDevice.setOnClickListener {
-            if (!isDiscoveryInProgress) {
-                checkAndStartBluetoothOperations()
-            }
+            withBluetoothPermissions { startScan() }
         }
 
-        // Register BroadcastReceiver
-        registerBluetoothReceiver()
-
-        // Load previously connected devices
-        val previouslyConnectedDevices = loadPreviouslyConnectedDevices().toMutableList()
-        // Initialize the adapter with previously connected devices
-        previousDeviceAdapter = BluetoothDeviceAdapter(applicationContext, previouslyConnectedDevices, this) {
-            requestBluetoothPermissions()
-        }
-
-        // Spinner for bluetooth
+        // Spinner of previously connected coasters; position 0 is the prompt
         spinner = findViewById(R.id.spinnerPreviouslyConnectedDevices)
-        val connectedDevices: MutableList<String> = mutableListOf("Select a device")
-        connectedDevices.addAll(getPreviouslyConnectedDevices())
-        val bluetoothadapter: ArrayAdapter<String> =
-            ArrayAdapter<String>(this, R.layout.color_spinner_layout, connectedDevices)
-        bluetoothadapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
-        spinner.adapter = bluetoothadapter
+        savedDevices.addAll(app.savedDevices.all())
+        savedDeviceNames = ArrayAdapter(
+            this,
+            R.layout.color_spinner_layout,
+            (listOf(SELECT_PROMPT) + savedDevices.map { it.name }).toMutableList()
+        )
+        savedDeviceNames.setDropDownViewResource(R.layout.spinner_dropdown_item)
+        spinner.adapter = savedDeviceNames
 
-        // Set the onItemSelectedListener
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
                 parent: AdapterView<*>,
@@ -163,42 +102,12 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                     isFirstSelection = false
                     return  // Ignore the initial selection
                 }
-
-                val selectedDeviceName = parent.getItemAtPosition(position).toString()
-                if (selectedDeviceName == "Select a device") return
-
-                // Check if the permission is granted
-                if (ContextCompat.checkSelfPermission(
-                        applicationContext,
-                        Manifest.permission.BLUETOOTH_CONNECT
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    // Find the BluetoothDevice object by its name
-                    val selectedDevice =
-                        previousDeviceAdapter.deviceList.firstOrNull { it.name == selectedDeviceName }
-                    selectedDevice?.let {
-                        connectToDevice(it)
-                    }
-                } else {
-                    requestBluetoothPermissions()
-                }
+                if (position == 0) return
+                val device = savedDevices[position - 1]
+                connectTo(device.address, device.name)
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                // Handle the case where nothing is selected (optional)
-            }
-        }
-
-        val gamesButton: Button = findViewById(R.id.gamesButton)
-        gamesButton.setOnClickListener {
-            navigateToGameActivity()
-        }
-
-        // Get the device address from the Intent
-        val deviceAddress = intent.getStringExtra("device_address")
-        if (!deviceAddress.isNullOrEmpty()) {
-            val device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(deviceAddress)
-            connectToDevice(device)
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
         spinner.setOnTouchListener { view, event ->
@@ -209,17 +118,22 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
             false // Allow other touch events to proceed
         }
 
+        val gamesButton: Button = findViewById(R.id.gamesButton)
+        gamesButton.setOnClickListener {
+            withBluetoothPermissions { startActivity(Intent(this, GameActivity::class.java)) }
+        }
+
         // Find the checkboxes by their IDs
         outerCheckbox = findViewById(R.id.text_outer)
         innerCheckbox = findViewById(R.id.text_inner)
 
         // Set listeners for each checkbox to handle their state changes
         outerCheckbox.setOnCheckedChangeListener { _, _ ->
-            sendPackage1(outerCheckbox.isChecked, innerCheckbox.isChecked)
+            current?.sendPackage1(outerCheckbox.isChecked, innerCheckbox.isChecked)
         }
 
         innerCheckbox.setOnCheckedChangeListener { _, _ ->
-            sendPackage1(outerCheckbox.isChecked, innerCheckbox.isChecked)
+            current?.sendPackage1(outerCheckbox.isChecked, innerCheckbox.isChecked)
         }
 
         // Spinner for different modes
@@ -227,10 +141,10 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
         val adapter: ArrayAdapter<String> =
             ArrayAdapter<String>(this, R.layout.color_spinner_layout, dropdownItems)
         adapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
-        val spinner = findViewById<Spinner>(R.id.dropdown_menu)
-        spinner.adapter = adapter
+        val modeSpinner = findViewById<Spinner>(R.id.dropdown_menu)
+        modeSpinner.adapter = adapter
 
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        modeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
                 parent: AdapterView<*>,
                 view: View?,
@@ -253,7 +167,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
 
                     "RAINBOW" -> {
                         showColorPickerButton(0)
-                        sendPackage2(Pattern.RAINBOW, Rgb(0, 255, 0))
+                        current?.sendPackage2(Pattern.RAINBOW, Rgb(0, 255, 0))
                     }
 
                     else -> {
@@ -267,32 +181,114 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
 
         val btnDisconnectDevice: Button = findViewById(R.id.btnDisconnectDevice)
         btnDisconnectDevice.setOnClickListener {
-            disconnectFromDevice()
-        }
-    }
-
-    override fun onDeviceClicked(device: BluetoothDevice) {
-        connectToDevice(device)
-    }
-
-    // Get the previously connected devices
-    private fun getPreviouslyConnectedDevices(): List<String> {
-        val sharedPreferences = getSharedPreferences("BluetoothDevices", Context.MODE_PRIVATE)
-        val deviceAddresses = sharedPreferences.all.keys.toList()
-        val deviceNames = mutableListOf<String>()
-        for (address in deviceAddresses) {
-            // Fetch the device name for each device address
-            val deviceName = sharedPreferences.getString(address, null)
-            if (deviceName != null) {
-                deviceNames.add(deviceName)
+            val connection = current
+            if (connection == null || connection.state.value == CoasterConnection.State.DISCONNECTED) {
+                showToast("No device is currently connected")
+            } else {
+                connection.disconnect()
             }
         }
-        return deviceNames
+
+        setControlsEnabled(false)
     }
 
-    // Show error message
-    private fun Context.showToast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) {
+    override fun onStop() {
+        super.onStop()
+        stopScan()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Leaving the app closes every coaster link; screens within it share them
+        if (isFinishing) app.repository.disconnectAll()
+    }
+
+    private fun showToast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) {
         Toast.makeText(this, message, duration).show()
+    }
+
+    /** Runs [action] once BLUETOOTH_SCAN and BLUETOOTH_CONNECT are granted, asking first if needed. */
+    private fun withBluetoothPermissions(action: () -> Unit) {
+        val missing = BLUETOOTH_PERMISSIONS.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+        }
+        if (missing.isEmpty()) {
+            action()
+        } else {
+            pendingPermissionAction = action
+            permissionLauncher.launch(missing.toTypedArray())
+        }
+    }
+
+    private fun startScan() {
+        if (scanJob?.isActive == true) return
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) return
+        if (!app.scanner.isBluetoothEnabled) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+                startActivity(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+            }
+            return
+        }
+        val scan = app.scanner.scan()
+        scanJob = lifecycleScope.launch {
+            withTimeoutOrNull(SCAN_DURATION_MS) {
+                scan
+                    .catch { e ->
+                        Log.w(TAG, "Scan ended with error", e)
+                        showToast("Could not scan for coasters")
+                    }
+                    .collect { device -> onDeviceScanned(device) }
+            }
+        }
+    }
+
+    private fun stopScan() {
+        scanJob?.cancel()
+        scanJob = null
+    }
+
+    private fun onDeviceScanned(device: ScannedCoaster) {
+        if (!app.savedDevices.contains(device.address)) {
+            deviceAdapter.addDevice(device)
+        }
+    }
+
+    private fun connectTo(address: String, name: String) {
+        withBluetoothPermissions {
+            // An active scan slows connection setup
+            stopScan()
+
+            if (!app.savedDevices.contains(address)) {
+                val device = SavedDevice(address, name)
+                app.savedDevices.save(device)
+                savedDevices.add(device)
+                savedDeviceNames.add(name)
+            }
+
+            val connection = app.repository.connection(address, name)
+            current = connection
+            observe(connection)
+            lifecycleScope.launch {
+                if (!connection.connect() && current == connection) {
+                    showToast("Could not connect to ${connection.name}")
+                }
+            }
+        }
+    }
+
+    /** Follows [connection]'s state: unlocks the controls while ready and reports changes. */
+    private fun observe(connection: CoasterConnection) {
+        currentStateJob?.cancel()
+        currentStateJob = lifecycleScope.launch {
+            var wasReady = false
+            connection.state.collect { state ->
+                val ready = state == CoasterConnection.State.READY
+                setControlsEnabled(ready)
+                if (ready && !wasReady) showToast("Connected to ${connection.name}")
+                if (!ready && wasReady) showToast("Disconnected from ${connection.name}")
+                wasReady = ready
+            }
+        }
     }
 
     // Show color picker buttons based on selected option
@@ -307,6 +303,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                 // Maybe add some if statement here to see if i >= 1 and then send a corresponding
                 // color button index
             }
+            button.isEnabled = current?.isReady == true
             layout.addView(button)
         }
     }
@@ -327,7 +324,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                 val selectedMode = (findViewById<Spinner>(R.id.dropdown_menu)).selectedItem.toString()
 
                 // Send data to the BLE module
-                sendPackage2(Pattern.fromWireName(selectedMode) ?: Pattern.FIXED, Rgb.fromArgb(color))
+                current?.sendPackage2(Pattern.fromWireName(selectedMode) ?: Pattern.FIXED, Rgb.fromArgb(color))
             }
             .setPositiveButton("OK") { dialog, selectedColor, allColors ->
                 // Handle OK button click if needed
@@ -339,198 +336,10 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
             .show()
     }
 
-    // Package 1: Send two Boolean values
-    private fun sendPackage1(isOuterChecked: Boolean, isInnerChecked: Boolean) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            requestBluetoothPermissions()
-            return
-        }
-        try {
-            val finalDataBytes = Packets.encodePackage1(isOuterChecked, isInnerChecked)
-
-            targetCharacteristic?.let { characteristic ->
-                characteristic.value = finalDataBytes
-                val success = bluetoothGatt?.writeCharacteristic(characteristic) ?: false
-                if (success) {
-                    Log.d(TAG, "Data written to characteristic successfully")
-                } else {
-                    Log.e(TAG, "Failed to write data to characteristic")
-                }
-            } ?: Log.e(TAG, "Characteristic not initialized")
-        } catch (e: IOException) {
-            Log.e(TAG, "Error occurred during Bluetooth communication: ${e.message}", e)
-            showToast("Error: Failed to communicate with Bluetooth device")
-        }
-    }
-
-
-    // Package 2: Send mode and list of colors
-    @RequiresApi(Build.VERSION_CODES.S)
-    private fun sendPackage2(pattern: Pattern, color: Rgb) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            requestBluetoothPermissions()
-            return
-        }
-        try {
-            val finalDataBytes = Packets.encodePackage2(pattern, color)
-
-            targetCharacteristic?.let { characteristic ->
-                characteristic.value = finalDataBytes
-                val success = bluetoothGatt?.writeCharacteristic(characteristic) ?: false
-                if (success) {
-                    Log.d(TAG, "Data written to characteristic successfully")
-                } else {
-                    Log.e(TAG, "Failed to write data to characteristic")
-                }
-            } ?: Log.e(TAG, "Characteristic not initialized")
-        } catch (e: IOException) {
-            Log.e(TAG, "Error occurred during Bluetooth communication: ${e.message}", e)
-            showToast("Error: Failed to communicate with Bluetooth device")
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.S)
-    private fun requestBluetoothPermissions() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(
-                Manifest.permission.BLUETOOTH_SCAN,
-                Manifest.permission.BLUETOOTH_ADMIN,
-                Manifest.permission.BLUETOOTH_CONNECT,
-                ),
-            REQUEST_BLUETOOTH_PERMISSIONS
-        )
-    }
-
-    @RequiresApi(Build.VERSION_CODES.S)
-    private fun checkAndStartBluetoothOperations() {
-        // Check if Bluetooth permissions are granted
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.BLUETOOTH_SCAN
-            ) != PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.BLUETOOTH_ADMIN
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            requestBluetoothPermissions()
-        } else {
-            // Check if Bluetooth is available and enabled
-            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-            if (bluetoothAdapter == null || !bluetoothAdapter.isEnabled) {
-                // Bluetooth is not available or not enabled, prompt user to enable it using Intent
-                val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT, null)
-            } else {
-                // Bluetooth is enabled, start device discovery
-                isDiscoveryInProgress = false
-                bluetoothAdapter.startDiscovery()
-            }
-        }
-    }
-
-    private fun registerBluetoothReceiver() {
-        // Register a BroadcastReceiver to receive device discovery results
-        receiver = object : BroadcastReceiver() {
-            @RequiresApi(Build.VERSION_CODES.S)
-            override fun onReceive(context: Context?, intent: Intent?) {
-                val action: String? = intent?.action
-                if (BluetoothDevice.ACTION_FOUND == action) {
-                    val device: BluetoothDevice? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
-                    } else
-                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-
-                    // Add the device to your list or RecyclerView to display it in your UI
-                    device?.let {
-                        selectedDevice = it // Initialize selectedDevice
-                        if (!isPreviouslyConnected(it)) {
-                            deviceAdapter.addDevice(selectedDevice)
-                        }
-                    }
-                } else if (BluetoothDevice.ACTION_ACL_CONNECTED == action) {
-                    // Connection successful, show toast message indicating successful connection
-                    val device: BluetoothDevice? = intent?.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                    device?.let {
-                        showToast("Successfully connected")
-                    }
-                }
-            }
-        }
-        val filter = IntentFilter().apply {
-            addAction(BluetoothDevice.ACTION_FOUND)
-            addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
-        }
-        registerReceiver(receiver, filter)
-    }
-
-    // Unregister the BroadcastReceiver when the activity stops or destroys
-    override fun onStop() {
-        super.onStop()
-        try {
-            unregisterReceiver(receiver)
-        } catch (e: IllegalArgumentException) {
-            // Log the exception or handle it if the receiver was not registered
-            Log.w("MainActivity", "Receiver not registered: ${e.message}")
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        try {
-            unregisterReceiver(receiver)
-        } catch (e: IllegalArgumentException) {
-            Log.w("MainActivity", "Receiver not registered: ${e.message}")
-        }
-        bluetoothGatt?.close()
-        bluetoothGatt = null
-        targetCharacteristic = null
-    }
-
-    @RequiresApi(Build.VERSION_CODES.S)
-    private fun connectToDevice(device: BluetoothDevice) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            requestBluetoothPermissions()
-            return
-        }
-
-        // Android caps the number of live GATT clients per app
-        bluetoothGatt?.close()
-        bluetoothGatt = null
-        targetCharacteristic = null
-
-        // Initiate pairing process if not already paired
-        if (device.bondState != BluetoothDevice.BOND_BONDED) {
-            device.createBond()
-        }
-
-        // Asynchronous; the result arrives on gattCallback
-        bluetoothGatt = device.connectGatt(this, false, gattCallback)
-
-        // Check if the device is new or previously connected
-        if (!isPreviouslyConnected(device)) {
-            // Save the bluetooth module name if it's a new device
-            val sharedPreferences =
-                getSharedPreferences("BluetoothDevices", Context.MODE_PRIVATE)
-            val editor = sharedPreferences.edit()
-            editor.putString(device.address, device.name)
-            editor.apply()
-
-            // Update the Spinner with the newly connected device name
-            runOnUiThread {
-                (spinner.adapter as? ArrayAdapter<String>)?.apply {
-                    add(device.name)
-                    notifyDataSetChanged()
-                }
-            }
-        }
-    }
-
-    // Function to enable UI elements for sending data
-    private fun enableSendDataUI() {
-        val layoutforCheckboxes = findViewById<LinearLayout>(R.id.unlockAfterBluetooth)
-        setViewAndChildrenEnabled(layoutforCheckboxes, true)
+    /** Locks the light and effect controls while no coaster is ready. Games stay reachable. */
+    private fun setControlsEnabled(enabled: Boolean) {
+        setViewAndChildrenEnabled(findViewById(R.id.layout_checkboxes), enabled)
+        setViewAndChildrenEnabled(findViewById(R.id.ColorContainer), enabled)
     }
 
     private fun setViewAndChildrenEnabled(view: View, enabled: Boolean) {
@@ -543,60 +352,13 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
         }
     }
 
-    private fun isPreviouslyConnected(device: BluetoothDevice): Boolean {
-        val sharedPreferences = getSharedPreferences("BluetoothDevices", Context.MODE_PRIVATE)
-        return sharedPreferences.contains(device.address)
-    }
-
-    private fun clearPreviouslyConnectedDevices() {
-        val sharedPreferences = getSharedPreferences("BluetoothDevices", Context.MODE_PRIVATE)
-        sharedPreferences.edit().clear().apply()
-    }
-
-    private fun loadPreviouslyConnectedDevices(): List<BluetoothDevice> {
-        val sharedPreferences = getSharedPreferences("BluetoothDevices", Context.MODE_PRIVATE)
-        val deviceAddresses = sharedPreferences.all.keys
-        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-        val deviceList = mutableListOf<BluetoothDevice>()
-
-        for (address in deviceAddresses) {
-            val device = bluetoothAdapter.getRemoteDevice(address)
-            deviceList.add(device)
-        }
-        return deviceList
-    }
-
-    private fun disconnectFromDevice() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            requestBluetoothPermissions()
-            return
-        }
-        if (bluetoothGatt != null) {
-            try {
-                // Disconnect from the GATT server
-                bluetoothGatt!!.disconnect()
-                bluetoothGatt!!.close()
-                bluetoothGatt = null
-                targetCharacteristic = null
-                Toast.makeText(this, "Disconnected from device", Toast.LENGTH_SHORT).show()
-            } catch (e: Exception) {
-                Toast.makeText(this, "Failed to disconnect: ${e.message}", Toast.LENGTH_LONG).show()
-            }
-        } else {
-            Toast.makeText(this, "No device is currently connected", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun navigateToGameActivity() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            requestBluetoothPermissions()
-            return
-        }
-        val previouslyConnectedDevices = loadPreviouslyConnectedDevices()
-        val deviceData = previouslyConnectedDevices.map { "${it.name}|${it.address}" }
-
-        val intent = Intent(this, GameActivity::class.java)
-        intent.putStringArrayListExtra("connectedDevices", ArrayList(deviceData))
-        startActivity(intent)
+    private companion object {
+        const val TAG = "MainActivity"
+        const val SELECT_PROMPT = "Select a device"
+        const val SCAN_DURATION_MS = 10_000L
+        val BLUETOOTH_PERMISSIONS = arrayOf(
+            Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.BLUETOOTH_CONNECT
+        )
     }
 }

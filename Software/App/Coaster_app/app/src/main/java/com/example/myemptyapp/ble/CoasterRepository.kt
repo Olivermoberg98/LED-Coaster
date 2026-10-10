@@ -24,4 +24,8 @@ class CoasterRepository(context: Context) {
     fun connectionOrNull(address: String): CoasterConnection? = connections[address]
 
     val all: Collection<CoasterConnection> get() = connections.values
+
+    fun disconnectAll() {
+        connections.values.forEach { it.disconnect() }
+    }
 }

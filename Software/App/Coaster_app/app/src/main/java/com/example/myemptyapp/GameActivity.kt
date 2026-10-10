@@ -1,9 +1,5 @@
 package com.example.myemptyapp
 
-import android.Manifest
-import android.bluetooth.BluetoothProfile
-import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -21,7 +17,6 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -114,30 +109,19 @@ class GameActivity : AppCompatActivity() {
 
             // Set up RecyclerView
             recyclerViewDevices = findViewById(R.id.recyclerViewDevices)
-            val deviceData = intent.getStringArrayListExtra("connectedDevices") ?: emptyList<String>()
-            val coasterDevices = deviceData.mapNotNull { data ->
-                try {
-                    val parts = data.split("|")
-                    if (parts.size == 2) {
-                        val name = parts[0]
-                        val address = parts[1]
-                        // CHECK IF DEVICE IS ACTUALLY CONNECTED
-                        if (isDeviceConnected(address)) {
-                            repository.connection(address, name)
-                        } else {
-                            Log.d("GameActivity", "Device $name is not currently connected, skipping")
-                            null
-                        }
-                    } else null
-                } catch (e: Exception) {
-                    Log.e("GameActivity", "Invalid device data: $data", e)
-                    null
-                }
-            }
+            // Every saved coaster; one dropped on a circle is connected there
+            val app = application as CoasterApp
+            val coasterDevices = app.savedDevices.all().map { repository.connection(it.address, it.name) }
 
             recyclerViewDevices.layoutManager = LinearLayoutManager(this)
-            recyclerViewDevices.adapter = DevicesAdapter(coasterDevices) { coasterDevice ->
+            val devicesAdapter = DevicesAdapter(coasterDevices) { coasterDevice ->
                 startDrag(coasterDevice)
+            }
+            recyclerViewDevices.adapter = devicesAdapter
+            coasterDevices.forEachIndexed { index, coaster ->
+                lifecycleScope.launch {
+                    coaster.state.collect { devicesAdapter.notifyItemChanged(index) }
+                }
             }
 
             // Game spinner
@@ -508,31 +492,10 @@ class GameActivity : AppCompatActivity() {
     private fun generateRandomColor(): Rgb =
         Rgb((0..255).random(), (0..255).random(), (0..255).random())
 
-    private fun isDeviceConnected(address: String): Boolean {
-        return try {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
-                != PackageManager.PERMISSION_GRANTED) {
-                return false
-            }
-
-            // Check if device is in the list of connected devices
-            val bluetoothManager =
-                getSystemService(Context.BLUETOOTH_SERVICE) as android.bluetooth.BluetoothManager
-            bluetoothManager.getConnectedDevices(BluetoothProfile.GATT)
-                .any { it.address == address }
-        } catch (e: Exception) {
-            Log.e("GameActivity", "Error checking device connection status", e)
-            false
-        }
-    }
-
     override fun onDestroy() {
         super.onDestroy()
         cancelCurrentGame()
-        // Clean up all connected devices
-        ringDeviceMap.values.forEach { coasterDevice ->
-            coasterDevice?.disconnect()
-        }
+        // Coasters stay connected so the user can come back without reconnecting
         ringDeviceMap.clear()
         assignedDevices.clear()
         handler.removeCallbacksAndMessages(null)
