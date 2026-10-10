@@ -1,7 +1,6 @@
 # App refactor plan (Stage A)
 
-Status: **proposal, awaiting Oliver's review.** Nothing here is approved except
-the Nordic Android-BLE-Library. Line references are to `refactor/app` at
+Status: **approved 2026-10-10**, see §8 for the decisions. Stage B in progress. Line references are to `refactor/app` at
 `e6c6b7b`. Paths are relative to `app/src/main/java/com/example/myemptyapp/`
 unless stated. Versions were checked against Maven Central / Google Maven on
 2026-10-10.
@@ -289,18 +288,32 @@ current errors all disappear with B2/B3.
   (§3.1) is what makes this possible.
 - "Hidden toggle": a long-press on the status line, or a debug-only menu item.
 
-## 8. Questions for Oliver
+## 8. Decisions (2026-10-10)
 
-1. **Android Studio update + toolchain (§5.1):** OK to move to AGP 8.13.2 /
-   Kotlin 2.4.21 / compileSdk 36? You'd need to update Android Studio first.
-2. **Dependencies (§5.2):** approve `ble-ktx`, coroutines, lifecycle,
-   activity-ktx, coroutines-test?
-3. **Connection lifetime:** should leaving GameActivity keep coasters connected
-   (so you can return without reconnecting) or disconnect them as today? My
-   default is to keep today's behaviour.
-4. **GameActivity device list (#1):** list all saved coasters and connect on
-   drop (my proposal), rather than only already-connected ones? This is a
-   behaviour change, but the current behaviour looks like a bug.
-5. **Rename (§3.4):** rename `applicationId` too, and to what?
-6. **Compose (§4):** decide before the Phase 3 display.
-7. **Lint baseline (§6.1):** acceptable?
+1. **Toolchain (§5.1):** approved. Oliver updates Android Studio to current
+   stable. B0 moves to AGP 8.13.2, Kotlin 2.4.21, the matching Gradle wrapper
+   and compileSdk 36. targetSdk stays 34. No AGP 9 for now.
+2. **Dependencies (§5.2):** all approved: `ble-ktx`, `kotlinx-coroutines-android`,
+   lifecycle (`viewmodel-ktx`, `runtime-ktx`), `activity-ktx`,
+   `kotlinx-coroutines-test`. Exact versions pinned in `libs.versions.toml` at B0.
+3. **Connection lifetime:** coasters **stay connected** when GameActivity
+   closes. A coaster disconnects only when it's unassigned from a circle, when
+   the user disconnects it, or when the process ends.
+4. **GameActivity device list:** every saved coaster with its live connection
+   state, and the coaster connects when it's dropped onto a circle.
+5. **Rename:** `applicationId` and namespace both become
+   `com.olivermoberg.ledcoaster` (B6), along with `rootProject.name` and
+   `Theme.MyEmptyApp`. Oliver uninstalls the old app.
+6. **Compose:** yes, after Stage B and before the Phase 3 display,
+   MainActivity first. Compose dependencies are approved for that step. Not
+   mixed into B0–B7.
+7. **Lint baseline (§6.1):** approved.
+
+**Order:** B0–B7 as in §6, then C1–C3.
+
+**Firmware dependency (owned by the firmware session):** after
+`ADVERTISING_TIMEOUT_MS` the coaster switches to very slow advertising instead
+of stopping, so a saved coaster can always be reached. Auto-reconnect and
+connect-on-drop rely on this. A connect can take several seconds while the
+coaster advertises slowly, so the UI shows a "connecting" state and doesn't
+treat a slow connect as a failure too early.
