@@ -12,6 +12,10 @@ import com.olivermoberg.ledcoaster.ble.ScannedCoaster
 import com.olivermoberg.ledcoaster.data.SavedDevice
 import com.olivermoberg.ledcoaster.protocol.Pattern
 import com.olivermoberg.ledcoaster.protocol.Rgb
+import com.olivermoberg.ledcoaster.ui.BatteryView
+import com.olivermoberg.ledcoaster.ui.lowBatteryMessage
+import com.olivermoberg.ledcoaster.ui.monotonicTicker
+import com.olivermoberg.ledcoaster.ui.toView
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
@@ -22,6 +26,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -56,6 +62,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val currentName: StateFlow<String?> = current
         .map { it?.name }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    /** Battery of the current coaster, or null before its first status packet. */
+    val battery: StateFlow<BatteryView?> = combine(
+        current.flatMapLatest { it?.batteryStatus ?: flowOf(null) },
+        monotonicTicker()
+    ) { status, now -> status?.toView(now) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /** Low-battery warnings for the current coaster; collect only while the screen is visible. */
+    val lowBatteryWarnings: Flow<String> = current.flatMapLatest { connection ->
+        connection?.lowBatteryWarnings?.map { lowBatteryMessage(connection.name, it) } ?: emptyFlow()
+    }
 
     private val _outerEnabled = MutableStateFlow(true)
     val outerEnabled: StateFlow<Boolean> = _outerEnabled.asStateFlow()

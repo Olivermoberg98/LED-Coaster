@@ -13,9 +13,13 @@ import com.olivermoberg.ledcoaster.protocol.Packets
 import com.olivermoberg.ledcoaster.protocol.Pattern
 import com.olivermoberg.ledcoaster.protocol.Rgb
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.onEach
 import no.nordicsemi.android.ble.ktx.suspend
 import no.nordicsemi.android.ble.observer.ConnectionObserver
 
@@ -57,6 +61,19 @@ class CoasterConnection internal constructor(
      */
     val batteryStatus: StateFlow<BatteryStatus?> = _batteryStatus.asStateFlow()
 
+    /** True once the current low-battery spell has been warned about; cleared when the flag clears or the link drops. */
+    private var lowWarned = false
+
+    /**
+     * Emits the status that turned the battery low, once per low spell and
+     * connection, whichever screen collects it first. Screens collect it only
+     * while visible, so the warning appears where the user is looking.
+     */
+    val lowBatteryWarnings: Flow<BatteryStatus> = batteryStatus
+        .filterNotNull()
+        .filter { it.isLowBattery && !lowWarned }
+        .onEach { lowWarned = true }
+
     private val manager = CoasterBleManager(context).apply {
         connectionObserver = object : ConnectionObserver {
             override fun onDeviceConnecting(device: BluetoothDevice) { _state.value = State.CONNECTING }
@@ -64,12 +81,14 @@ class CoasterConnection internal constructor(
             override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
                 _state.value = State.DISCONNECTED
                 _batteryStatus.value = null
+                lowWarned = false
             }
             override fun onDeviceReady(device: BluetoothDevice) { _state.value = State.READY }
             override fun onDeviceDisconnecting(device: BluetoothDevice) { _state.value = State.DISCONNECTING }
             override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
                 _state.value = State.DISCONNECTED
                 _batteryStatus.value = null
+                lowWarned = false
             }
         }
         onStatusPacket = ::onStatusPacket
@@ -85,6 +104,7 @@ class CoasterConnection internal constructor(
                         "${status.chargerState}, flags 0x%02X, pins 0x%02X, up ${status.uptimeSeconds} s"
                             .format(status.flags, status.pins)
                 )
+                if (!status.isLowBattery) lowWarned = false
                 _batteryStatus.value = status
             }
             is BatteryStatusDecoder.Result.Rejected ->

@@ -45,9 +45,15 @@ import com.olivermoberg.ledcoaster.R
 import com.olivermoberg.ledcoaster.ble.ScannedCoaster
 import com.olivermoberg.ledcoaster.data.SavedDevice
 import com.olivermoberg.ledcoaster.protocol.Pattern
+import com.olivermoberg.ledcoaster.protocol.BatteryStatus
+import com.olivermoberg.ledcoaster.protocol.ChargerState
+import com.olivermoberg.ledcoaster.ui.BatteryView
+import com.olivermoberg.ledcoaster.ui.BatteryWarningHost
 import com.olivermoberg.ledcoaster.ui.CardBackground
 import com.olivermoberg.ledcoaster.ui.CoasterTheme
+import com.olivermoberg.ledcoaster.ui.LowBattery
 import com.olivermoberg.ledcoaster.ui.ScreenBackground
+import com.olivermoberg.ledcoaster.ui.statusLine
 
 /** The single-coaster control screen, wired to [viewModel]. Actions that need the activity go out as callbacks. */
 @Composable
@@ -66,25 +72,30 @@ fun MainScreen(
     val innerEnabled by viewModel.innerEnabled.collectAsStateWithLifecycle()
     val pattern by viewModel.pattern.collectAsStateWithLifecycle()
     val pickedColor by viewModel.pickedColor.collectAsStateWithLifecycle()
+    val battery by viewModel.battery.collectAsStateWithLifecycle()
 
-    MainContent(
-        savedDevices = savedDevices,
-        currentName = currentName,
-        scanResults = scanResults,
-        isReady = isReady,
-        outerEnabled = outerEnabled,
-        innerEnabled = innerEnabled,
-        pattern = pattern,
-        pickedColor = pickedColor?.let { Color(it) },
-        onNewDevice = onNewDevice,
-        onConnect = onConnect,
-        onDisconnect = viewModel::disconnect,
-        onOuterChange = viewModel::setOuterEnabled,
-        onInnerChange = viewModel::setInnerEnabled,
-        onPatternSelected = viewModel::selectPattern,
-        onChooseColor = onChooseColor,
-        onGames = onGames,
-    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        MainContent(
+            savedDevices = savedDevices,
+            currentName = currentName,
+            scanResults = scanResults,
+            isReady = isReady,
+            battery = battery,
+            outerEnabled = outerEnabled,
+            innerEnabled = innerEnabled,
+            pattern = pattern,
+            pickedColor = pickedColor?.let { Color(it) },
+            onNewDevice = onNewDevice,
+            onConnect = onConnect,
+            onDisconnect = viewModel::disconnect,
+            onOuterChange = viewModel::setOuterEnabled,
+            onInnerChange = viewModel::setInnerEnabled,
+            onPatternSelected = viewModel::selectPattern,
+            onChooseColor = onChooseColor,
+            onGames = onGames,
+        )
+        BatteryWarningHost(viewModel.lowBatteryWarnings, Modifier.align(Alignment.BottomCenter))
+    }
 }
 
 /**
@@ -97,6 +108,7 @@ private fun MainContent(
     currentName: String?,
     scanResults: List<ScannedCoaster>,
     isReady: Boolean,
+    battery: BatteryView?,
     outerEnabled: Boolean,
     innerEnabled: Boolean,
     pattern: Pattern,
@@ -149,6 +161,18 @@ private fun MainContent(
                         }
                     }
                 }
+            }
+            if (isReady && currentName != null) {
+                Text(
+                    statusLine(currentName, battery?.status),
+                    fontSize = 16.sp,
+                    color = when {
+                        battery == null || battery.stale -> Color.Gray
+                        battery.status.isLowBattery -> LowBattery
+                        else -> Color.White
+                    },
+                    modifier = Modifier.padding(top = 12.dp),
+                )
             }
         }
 
@@ -262,6 +286,10 @@ private fun MainContentPreview() {
             currentName = "Coaster-05",
             scanResults = listOf(ScannedCoaster("F8:5B:1B:EB:1A:2E", "Coaster-06")),
             isReady = true,
+            battery = BatteryView(
+                BatteryStatus(3794, 82, ChargerState.CHARGING, 0x02, 0x02, 600, 0),
+                stale = false,
+            ),
             outerEnabled = true,
             innerEnabled = false,
             pattern = Pattern.PULSE,

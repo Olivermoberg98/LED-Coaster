@@ -1,8 +1,8 @@
 # App refactor plan (Stage A)
 
 Status: **approved 2026-10-10**, see §8 for the decisions. B0–B7 and C1–C3 done
-(C3 verified on hardware 2026-10-10); both screens are on Compose; next is
-the Phase 3 display. Line numbers and
+(C3 verified on hardware 2026-10-10); both screens are on Compose, and the Phase 3 display is
+built; next is the Phase 4 run-down logger. Line numbers and
 paths below refer to the code before the refactor. Line references are to `refactor/app` at
 `e6c6b7b`. Paths are relative to `app/src/main/java/com/example/myemptyapp/`
 unless stated. Versions were checked against Maven Central / Google Maven on

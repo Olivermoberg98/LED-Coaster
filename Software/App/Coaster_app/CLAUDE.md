@@ -46,6 +46,7 @@ is `Theme.LedCoaster`. Paths below are relative to
 | `ui/main/` | `MainActivity`, `MainViewModel`, `MainScreen` (Compose). |
 | `ui/game/` | `GameActivity`, `GameViewModel`, `GameScreen` (Compose). |
 | `ui/CoasterTheme.kt` | Compose theme (dark, app green) and the shared screen colours. |
+| `ui/BatteryDisplay.kt` | Battery text, staleness, the 1 s monotonic ticker and the low-battery Snackbar host, shared by both screens. |
 | `CoasterApp.kt` | `Application`; holds `repository`, `scanner`, `savedDevices` (manual DI). |
 
 Both screens are Jetpack Compose (Material 3); there are no XML layouts.
@@ -101,6 +102,15 @@ a change on one side without the other is silently dropped by the firmware.
   null on disconnect. Every decoded packet is logged at INFO under tag
   `CoasterConnection`; rejected ones at WARN with the reason. "Low battery"
   in the app means only `flags` bit 0, which the firmware sets.
+- **Battery display.** The main screen shows `Coaster-05 · 82% · Charging`
+  under the device controls while the current coaster is ready; each game
+  circle shows the percent (`?` if unknown, `⚡` while charging) and turns red
+  when low. Status older than 90 s (`STALE_AFTER_MS`, three missed 30 s pushes)
+  is greyed; the ViewModels compute it against `SystemClock.elapsedRealtime`
+  from a 1 s ticker. `CoasterConnection.lowBatteryWarnings` emits once per
+  low spell and connection (reset when the flag clears or the link drops),
+  and each screen collects it only while started, so the Snackbar appears on
+  the visible screen and a screen change doesn't repeat it.
 
 ## Connection lifetime
 
@@ -154,6 +164,8 @@ Leaving the games screen does **not** disconnect anything.
 - `protocol/BatteryStatusDecoderTest`: golden Package 3 bytes, unsigned
   u16/u32 at the high-bit boundaries, every charger state, percent, flags,
   and each rejection reason.
+- `ui/BatteryDisplayTest`: staleness boundary, percent and circle text,
+  status line, charger-state labels.
 - `games/GamesTest`: virtual-time tests (`runTest`, `testScheduler.timeSource`)
   with fake coasters: timing, no-repeat, write ordering, cancellation.
 - Only the stub `ExampleInstrumentedTest` exists for device tests.

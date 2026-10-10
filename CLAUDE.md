@@ -134,7 +134,9 @@ Details are in `Software/App/Coaster_app/CLAUDE.md`. What matters across the BLE
 - **Games** (`games/NattDuellen`, `games/RandomDrink`) are coroutines in
   `GameViewModel`. They turn a coaster "off" with `FIXED` + `"0,0,0"`, not
   Package 1, and each colour write waits for the coaster's acknowledgement.
-- Package 3 is not decoded by the app yet (refactor steps C1–C3).
+- Package 3 is decoded into `CoasterConnection.batteryStatus` and shown as a
+  status line on the main screen and a percent on each game circle, with a
+  low-battery Snackbar.
 
 ## PCB analysis tooling — use this before answering questions about the board
 
@@ -252,7 +254,7 @@ Gotchas that cost time during bring-up:
   MAC is `f8:5b:1b:eb:1a:14`. Give every further board its own ID before
   flashing.
 
-## Battery and charger reporting (firmware reads it; app cannot see it yet)
+## Battery and charger reporting (firmware reads it; app shows it)
 
 **Hardware — done and verified.** A 470k/470k divider runs from `+BATT` to
 **GPIO4** (`ADC1_CH4`), buffered by C21 100nF, halving the cell so 3.0–4.2 V
@@ -325,12 +327,11 @@ Still to do:
   afterwards.
 - **BLE status path — firmware side done.** The coaster publishes Package 3;
   see "Coaster → app: battery status" under "The BLE contract".
-- **App** (`Software/App/Coaster_app/`): surface level and charger state per
-  coaster. Decoding goes in `protocol/` and is exposed as
+- **App — done.** `protocol/` decodes Package 3 into
   `CoasterConnection.batteryStatus` (a StateFlow, null until the first valid
-  packet). The display is an indicator on each game circle plus a status line
-  on the main screen. Planned as steps C1–C3 and Phase 3 in
-  `Software/App/Coaster_app/REFACTOR_PLAN.md`.
+  packet). The main screen shows a status line, each game circle a percent,
+  and a low battery raises a Snackbar; see `Software/App/Coaster_app/CLAUDE.md`.
+  The Phase 4 run-down logger in `REFACTOR_PLAN.md` is still to do.
 
 Notes that matter for firmware:
 

@@ -51,8 +51,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.olivermoberg.ledcoaster.R
 import com.olivermoberg.ledcoaster.ble.CoasterConnection
+import com.olivermoberg.ledcoaster.protocol.BatteryStatus
+import com.olivermoberg.ledcoaster.protocol.ChargerState
+import com.olivermoberg.ledcoaster.ui.BatteryView
+import com.olivermoberg.ledcoaster.ui.BatteryWarningHost
 import com.olivermoberg.ledcoaster.ui.CoasterTheme
+import com.olivermoberg.ledcoaster.ui.LowBattery
 import com.olivermoberg.ledcoaster.ui.ScreenBackground
+import com.olivermoberg.ledcoaster.ui.circleText
 import com.olivermoberg.ledcoaster.ui.main.Dropdown
 import com.olivermoberg.ledcoaster.ui.main.Section
 
@@ -69,32 +75,38 @@ fun GameScreen(viewModel: GameViewModel) {
     val circleCount by viewModel.circleCount.collectAsStateWithLifecycle()
     val assignments by viewModel.assignments.collectAsStateWithLifecycle()
     val gameStatus by viewModel.gameStatus.collectAsStateWithLifecycle()
+    val batteries by viewModel.batteries.collectAsStateWithLifecycle()
     val coasters = viewModel.coasters.map { coaster ->
         CoasterItem(coaster.address, coaster.name, coaster.state.collectAsStateWithLifecycle().value)
     }
 
-    GameContent(
-        coasters = coasters,
-        circles = List(circleCount) { assignments[it]?.coasterId },
-        gameStatus = gameStatus,
-        onCircleCountSelected = viewModel::setCircleCount,
-        onDrop = { position, address ->
-            viewModel.coasters.find { it.address == address }?.let { viewModel.assign(position, it) }
-        },
-        onUnassign = viewModel::unassign,
-        onStartGame = viewModel::startGame,
-    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        GameContent(
+            coasters = coasters,
+            circles = List(circleCount) { assignments[it]?.coasterId },
+            batteries = batteries,
+            gameStatus = gameStatus,
+            onCircleCountSelected = viewModel::setCircleCount,
+            onDrop = { position, address ->
+                viewModel.coasters.find { it.address == address }?.let { viewModel.assign(position, it) }
+            },
+            onUnassign = viewModel::unassign,
+            onStartGame = viewModel::startGame,
+        )
+        BatteryWarningHost(viewModel.lowBatteryWarnings, Modifier.align(Alignment.BottomCenter))
+    }
 }
 
 /**
  * The screen as plain state. [circles] holds the coaster ID on each circle,
- * or null for an empty one. A coaster is long-pressed and dragged onto a
+ * or null for an empty one, and [batteries] the battery by circle position. A coaster is long-pressed and dragged onto a
  * circle; a circle is long-pressed to empty it.
  */
 @Composable
 private fun GameContent(
     coasters: List<CoasterItem>,
     circles: List<String?>,
+    batteries: Map<Int, BatteryView>,
     gameStatus: GameViewModel.GameStatus,
     onCircleCountSelected: (Int) -> Unit,
     onDrop: (position: Int, address: String) -> Unit,
@@ -132,6 +144,7 @@ private fun GameContent(
                         for (position in start until start + rowSize) {
                             Circle(
                                 coasterId = circles[position],
+                                battery = batteries[position],
                                 onDrop = { address -> onDrop(position, address) },
                                 onLongPress = { onUnassign(position) },
                             )
@@ -215,9 +228,12 @@ private fun CoasterRow(coaster: CoasterItem) {
     }
 }
 
-/** A drop target for a coaster address, outlined while a drag hovers over it. */
+/**
+ * A drop target for a coaster address, outlined while a drag hovers over it.
+ * A placed coaster shows its battery: red when low, the percent greyed when stale.
+ */
 @Composable
-private fun Circle(coasterId: String?, onDrop: (address: String) -> Unit, onLongPress: () -> Unit) {
+private fun Circle(coasterId: String?, battery: BatteryView?, onDrop: (address: String) -> Unit, onLongPress: () -> Unit) {
     var hovered by remember { mutableStateOf(false) }
     val currentOnDrop by rememberUpdatedState(onDrop)
     val currentOnLongPress by rememberUpdatedState(onLongPress)
@@ -240,7 +256,13 @@ private fun Circle(coasterId: String?, onDrop: (address: String) -> Unit, onLong
             .padding(8.dp)
             .size(60.dp)
             .clip(CircleShape)
-            .background(if (coasterId != null) AssignedCircle else EmptyCircle)
+            .background(
+                when {
+                    coasterId == null -> EmptyCircle
+                    battery?.status?.isLowBattery == true -> LowBattery
+                    else -> AssignedCircle
+                }
+            )
             .then(if (coasterId != null || hovered) Modifier.border(2.dp, Color.White, CircleShape) else Modifier)
             .dragAndDropTarget(
                 shouldStartDragAndDrop = { it.mimeTypes().contains(ClipDescription.MIMETYPE_TEXT_PLAIN) },
@@ -248,7 +270,18 @@ private fun Circle(coasterId: String?, onDrop: (address: String) -> Unit, onLong
             )
             .pointerInput(Unit) { detectTapGestures(onLongPress = { currentOnLongPress() }) },
     ) {
-        if (coasterId != null) Text(coasterId, color = Color.White, fontSize = 12.sp)
+        if (coasterId != null) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(coasterId, color = Color.White, fontSize = 12.sp)
+                if (battery != null) {
+                    Text(
+                        battery.status.circleText(),
+                        color = if (battery.stale) Color.DarkGray else Color.White,
+                        fontSize = 10.sp,
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -278,7 +311,11 @@ private fun GameContentPreview() {
                 CoasterItem("F8:5B:1B:EB:1A:16", "Coaster-05", CoasterConnection.State.READY),
                 CoasterItem("F8:5B:1B:EB:1A:2E", "Coaster-06", CoasterConnection.State.DISCONNECTED),
             ),
-            circles = listOf("05", null, null, null, null),
+            circles = listOf("05", "06", null, null, null),
+            batteries = mapOf(
+                0 to BatteryView(BatteryStatus(3794, 82, ChargerState.CHARGING, 0x02, 0x02, 600, 0), stale = false),
+                1 to BatteryView(BatteryStatus(3420, 4, ChargerState.LOW_BATTERY, 0x01, 0x03, 9000, 0), stale = false),
+            ),
             gameStatus = GameViewModel.GameStatus.Waiting,
             onCircleCountSelected = {},
             onDrop = { _, _ -> },

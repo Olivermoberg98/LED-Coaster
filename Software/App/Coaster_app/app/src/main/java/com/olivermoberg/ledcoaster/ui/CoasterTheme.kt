@@ -9,6 +9,8 @@ import androidx.compose.ui.graphics.Color
 val CoasterGreen = Color(0xFF44D62C)
 val ScreenBackground = Color(0xFF222222)
 val CardBackground = Color(0xFF111111)
+/** Low-battery tint. */
+val LowBattery = Color(0xFFE53935)
 
 private val CoasterColors = darkColorScheme(
     primary = CoasterGreen,

@@ -8,17 +8,30 @@ import com.olivermoberg.ledcoaster.ble.CoasterConnection
 import com.olivermoberg.ledcoaster.games.Game
 import com.olivermoberg.ledcoaster.games.NattDuellen
 import com.olivermoberg.ledcoaster.games.RandomDrink
+import com.olivermoberg.ledcoaster.ui.BatteryView
+import com.olivermoberg.ledcoaster.ui.lowBatteryMessage
+import com.olivermoberg.ledcoaster.ui.monotonicTicker
+import com.olivermoberg.ledcoaster.ui.toView
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /** State of the games screen: the circles and which coaster sits on each. */
+@OptIn(ExperimentalCoroutinesApi::class)
 class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     private val app = application as CoasterApp
@@ -33,6 +46,25 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     /** Circle position → the coaster placed on it. */
     private val _assignments = MutableStateFlow<Map<Int, CoasterConnection>>(emptyMap())
     val assignments: StateFlow<Map<Int, CoasterConnection>> = _assignments.asStateFlow()
+
+    /** Circle position → battery of the coaster on it; circles without data are absent. */
+    val batteries: StateFlow<Map<Int, BatteryView>> = combine(
+        _assignments.flatMapLatest { placed ->
+            if (placed.isEmpty()) return@flatMapLatest flowOf(emptyMap())
+            combine(placed.map { (position, coaster) -> coaster.batteryStatus.map { position to it } }) { pairs ->
+                pairs.mapNotNull { (position, status) -> status?.let { position to it } }.toMap()
+            }
+        },
+        monotonicTicker()
+    ) { statuses, now -> statuses.mapValues { it.value.toView(now) } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
+
+    /** Low-battery warnings for the placed coasters; collect only while the screen is visible. */
+    val lowBatteryWarnings: Flow<String> = _assignments.flatMapLatest { placed ->
+        placed.values.map { coaster ->
+            coaster.lowBatteryWarnings.map { lowBatteryMessage(coaster.name, it) }
+        }.merge()
+    }
 
     enum class GameMode { NATT_DUELLEN, RANDOM_DRINK }
 
