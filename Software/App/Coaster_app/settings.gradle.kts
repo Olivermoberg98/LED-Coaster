@@ -21,5 +21,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MyEmptyApp"
+rootProject.name = "LedCoaster"
 include(":app")

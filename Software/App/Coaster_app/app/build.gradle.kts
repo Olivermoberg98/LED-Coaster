@@ -5,11 +5,11 @@ plugins {
 
 
 android {
-    namespace = "com.example.myemptyapp"
+    namespace = "com.olivermoberg.ledcoaster"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.myemptyapp"
+        applicationId = "com.olivermoberg.ledcoaster"
         minSdk = 31
         targetSdk = 34
         versionCode = 1
