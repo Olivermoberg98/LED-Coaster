@@ -107,7 +107,7 @@ bit 2 set — for testing the app's battery UI without real charger events.
   **12 mA/channel**, not ~20. Each ring has a `colors_*` source array (the user's chosen color, replicated per pixel) and a `led_output_*` array (what patterns actually write, after brightness modulation). Patterns take `ledsIn`/`ledsOut` for exactly this reason.
 - **`inner_needs_update` / `outer_needs_update`** exist because `FIXED` is a static frame — the main loop skips re-rendering it (just `delay(50)`) until something sets the flag: a new packet, a connect transition, or a ring being re-enabled. Any new code path that changes ring colors must set these or the change won't appear.
 - `BLEHandler` runs a `ConnectionState` machine (`DISCONNECTED → CONNECTING → CONNECTED → DISCONNECTING`). Pattern processing only runs while `CONNECTED` (`shouldProcessPatterns()`), so the loop body in `main.cpp` is dead until a phone connects. The `CONNECTING` state exists solely to fire `onConnectPattern` once.
-- Power saving is deliberate and easy to undo by accident: TX power `ESP_PWR_LVL_N0`, slow advertising intervals (800–1600), advertising self-stops after `ADVERTISING_TIMEOUT_MS` (2 min) if nobody connects, and `esp_pm_configure` enables automatic light sleep (10–160 MHz). Note `esp_pm_config_esp32c3_t` is C3-specific — porting to another chip requires changing it.
+- Power saving is deliberate and easy to undo by accident: TX power `ESP_PWR_LVL_N0`, advertising at 0.5–1 s (800–1600 units) for `ADVERTISING_TIMEOUT_MS` (2 min) after boot or a disconnect, then at 2.0–2.2 s (3200–3520) until a central connects — it never stops while unconnected, because the app reconnects to known coasters by address, and `esp_pm_configure` enables automatic light sleep (10–160 MHz). Note `esp_pm_config_esp32c3_t` is C3-specific — porting to another chip requires changing it.
 - **Each physical coaster needs a unique `coasterID`**, hardcoded at [main.cpp:12](Software/LED_coaster/src/main.cpp#L12). It becomes the advertised name `Coaster-<id>`, and `GameActivity` recovers the ID with `substringAfterLast('-')` to label the circles.
 
 ## Android app architecture
@@ -209,8 +209,10 @@ IO1, `BAT_SENSE` → IO4, `STAT1`/`STAT2`/`PG` → IO5/IO6/IO10.
 
 Gotchas that cost time during bring-up:
 
-- **Advertising self-stops after 2 minutes** (`ADVERTISING_TIMEOUT_MS`). Miss
-  that window and the coaster is invisible to the app until it is reset.
+- **Advertising slows down after 2 minutes** (`ADVERTISING_TIMEOUT_MS`), from
+  0.5–1 s to 2.0–2.2 s, but never stops while unconnected. BLEHandler owns every
+  restart: NimBLE's own advertise-on-disconnect is turned off, and the
+  advertising data is set once in `begin()`.
 - **The boot log is unreachable in practice.** A chip reset re-enumerates the
   USB CDC device, which invalidates any open port handle, and re-attach takes
   longer than it takes `setup()` to finish. So `Started Advertising (low power
