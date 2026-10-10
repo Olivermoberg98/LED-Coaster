@@ -2,22 +2,6 @@
 <issues format="6" by="lint 8.13.2" type="baseline" client="gradle" dependencies="false" name="AGP (8.13.2)" variant="all" version="8.13.2">
 
     <issue
-        id="CutPasteId"
-        message="The id `R.id.circleText` has already been looked up in this method; possible cut &amp; paste error?"
-        errorLine1="                                circle.findViewById&lt;TextView>(R.id.circleText).visibility = View.GONE"
-        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/myemptyapp/GameActivity.kt"
-            line="311"
-            column="33"/>
-        <location
-            file="src/main/java/com/example/myemptyapp/GameActivity.kt"
-            line="295"
-            column="48"
-            message="First usage here"/>
-    </issue>
-
-    <issue
         id="OldTargetApi"
         message="Not targeting the latest versions of Android; compatibility modes apply. Consider testing and updating this version. Consult the `android.os.Build.VERSION_CODES` javadoc for details."
         errorLine1="        targetSdk = 34"

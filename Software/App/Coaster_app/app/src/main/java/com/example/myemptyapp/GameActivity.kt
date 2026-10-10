@@ -7,7 +7,6 @@ import android.util.Log
 import android.view.DragEvent
 import android.view.Gravity
 import android.view.View
-import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -16,8 +15,11 @@ import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myemptyapp.ble.CoasterConnection
@@ -29,14 +31,13 @@ class GameActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper()) // For managing delayed tasks or callbacks
     private lateinit var recyclerViewDevices: RecyclerView
 
-    private val repository by lazy { (application as CoasterApp).repository }
-
-    private val ringDeviceMap = mutableMapOf<Int, CoasterConnection?>()
-    private val assignedDevices = mutableSetOf<CoasterConnection>()
+    private val viewModel: GameViewModel by viewModels()
 
     private lateinit var spinner: Spinner
     private lateinit var linearLayout: LinearLayout
-    private var selectedCircleCount = 0  // Default value
+
+    /** Circle views by position, rebuilt when the circle count changes. */
+    private val circleViews = mutableListOf<View>()
 
     private lateinit var spinnerGameMode: Spinner
     private lateinit var buttonStartGame: Button
@@ -57,6 +58,8 @@ class GameActivity : AppCompatActivity() {
             spinnerAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
             spinner.adapter = spinnerAdapter
 
+            spinner.setSelection(viewModel.circleCount.value - 1, false)
+
             // Listener for when the user selects an option
             spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(
@@ -65,43 +68,7 @@ class GameActivity : AppCompatActivity() {
                     position: Int,
                     id: Long
                 ) {
-                    try {
-                        val newCircleCount = circleCounts[position]
-
-                        // If reducing circle count, disconnect devices in circles beyond the new count
-                        if (newCircleCount < selectedCircleCount) {
-                            val devicesToRemove = mutableListOf<CoasterConnection>()
-
-                            // Find devices in positions >= newCircleCount
-                            for (pos in newCircleCount until selectedCircleCount) {
-                                val device = ringDeviceMap[pos]
-                                if (device != null) {
-                                    devicesToRemove.add(device)
-                                    ringDeviceMap.remove(pos)
-                                }
-                            }
-
-                            // Disconnect and remove them
-                            devicesToRemove.forEach { device ->
-                                assignedDevices.remove(device)
-                                device.disconnect()
-                                Log.d("GameActivity", "Disconnected ${device.name} - circle removed")
-                            }
-
-                            if (devicesToRemove.isNotEmpty()) {
-                                Toast.makeText(
-                                    this@GameActivity,
-                                    "${devicesToRemove.size} device(s) disconnected",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
-
-                        selectedCircleCount = newCircleCount
-                        updateCircleLayout()
-                    } catch (e: Exception) {
-                        Log.e("GameActivity", "Error updating circle layout", e)
-                    }
+                    viewModel.setCircleCount(circleCounts[position])
                 }
 
                 override fun onNothingSelected(parentView: AdapterView<*>?) {}
@@ -110,8 +77,7 @@ class GameActivity : AppCompatActivity() {
             // Set up RecyclerView
             recyclerViewDevices = findViewById(R.id.recyclerViewDevices)
             // Every saved coaster; one dropped on a circle is connected there
-            val app = application as CoasterApp
-            val coasterDevices = app.savedDevices.all().map { repository.connection(it.address, it.name) }
+            val coasterDevices = viewModel.coasters
 
             recyclerViewDevices.layoutManager = LinearLayoutManager(this)
             val devicesAdapter = DevicesAdapter(coasterDevices) { coasterDevice ->
@@ -138,15 +104,15 @@ class GameActivity : AppCompatActivity() {
                 val selectedMode = spinnerGameMode.selectedItem.toString()
 
                 // Check if all circles are connected
-                if (!areAllCirclesConnected()) {
+                if (!viewModel.allCirclesReady()) {
                     Toast.makeText(this, "Please connect devices to all circles before starting!", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
 
                 // Handle game mode
                 when (selectedMode) {
-                    gameModes[0] -> nattDuellen(assignedDevices)
-                    gameModes[1] -> drinkGame(assignedDevices)
+                    gameModes[0] -> nattDuellen(viewModel.assignedCoasters.toMutableSet())
+                    gameModes[1] -> drinkGame(viewModel.assignedCoasters.toMutableSet())
                     else -> {
                         Toast.makeText(this, "Invalid game mode selected!", Toast.LENGTH_SHORT).show()
                     }
@@ -154,6 +120,18 @@ class GameActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             Log.e("GameActivity", "Error during onCreate initialization", e)
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch { viewModel.circleCount.collect { updateCircleLayout() } }
+                launch { viewModel.assignments.collect { bindCircles() } }
+                launch {
+                    viewModel.messages.collect {
+                        Toast.makeText(this@GameActivity, it, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
         }
     }
 
@@ -185,29 +163,7 @@ class GameActivity : AppCompatActivity() {
                 DragEvent.ACTION_DROP -> {
                     val coasterDevice = event.localState as? CoasterConnection
                     if (coasterDevice != null) {
-                        // Check if the device is already assigned to a circle
-                        if (assignedDevices.contains(coasterDevice)) {
-                            Toast.makeText(
-                                this,
-                                "${coasterDevice.name} is already placed in another circle!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            return@OnDragListener true
-                        }
-
-                        val deviceId = coasterDevice.coasterId
-
-                        // Find the TextView within the circle and set the device ID (e.g., "00X")
-                        val ringTextView = (v as ViewGroup).findViewById<TextView>(R.id.circleText)
-                        ringTextView.text = deviceId
-                        ringTextView.visibility = View.VISIBLE
-
-                        // Update UI and mappings using position instead of view ID
-                        v.setBackgroundResource(R.drawable.circle_active_background)
-                        ringDeviceMap[circlePosition] = coasterDevice
-                        assignedDevices.add(coasterDevice)
-
-                        connectToCircle(coasterDevice, circlePosition)
+                        viewModel.assign(circlePosition, coasterDevice)
                     }
                     true
                 }
@@ -223,15 +179,16 @@ class GameActivity : AppCompatActivity() {
     }
 
     // Dynamically add circles to the layout based on selected count
-    fun updateCircleLayout() {
+    private fun updateCircleLayout() {
         runOnUiThread {
             try {
                 // Clear all existing views in the container
                 linearLayout.removeAllViews()
+                circleViews.clear()
 
                 // Divide circles into rows
                 val rows = mutableListOf<List<Int>>()
-                var remainingCircles = selectedCircleCount
+                var remainingCircles = viewModel.circleCount.value
 
                 while (remainingCircles > 0) {
                     when {
@@ -287,35 +244,14 @@ class GameActivity : AppCompatActivity() {
                         circle.id = View.generateViewId()
                         rowLayout.addView(circle)
 
-                        // Check if this position had a device assigned
-                        val assignedDevice = ringDeviceMap[currentPosition]
-                        if (assignedDevice != null) {
-                            // Restore the device to this circle
-                            val deviceId = assignedDevice.coasterId
-                            val ringTextView = circle.findViewById<TextView>(R.id.circleText)
-                            ringTextView.text = deviceId
-                            ringTextView.visibility = View.VISIBLE
-                            circle.setBackgroundResource(R.drawable.circle_active_background)
-                        }
+                        circleViews.add(circle)
 
                         // Set up drag listener for the circle with position
                         circle.setOnDragListener(createDragListener(currentPosition))
 
                         // Set up long click listener for the circle
                         circle.setOnLongClickListener {
-                            val device = ringDeviceMap[currentPosition]
-                            if (device != null) {
-                                assignedDevices.remove(device)
-                                ringDeviceMap.remove(currentPosition)
-                                circle.setBackgroundResource(R.drawable.circle_background)
-                                circle.findViewById<TextView>(R.id.circleText).visibility = View.GONE
-                                Toast.makeText(
-                                    this,
-                                    "${device.name} removed",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                device.disconnect()
-                            }
+                            viewModel.unassign(currentPosition)
                             true
                         }
 
@@ -323,27 +259,28 @@ class GameActivity : AppCompatActivity() {
                     }
                     linearLayout.addView(rowLayout)
                 }
+                bindCircles()
             } catch (e: Exception) {
                 Log.e("GameActivity", "Error updating circle layout", e)
             }
         }
     }
 
-    /** Connects a coaster just dropped on a circle, and clears the circle again if that fails. */
-    private fun connectToCircle(coaster: CoasterConnection, circlePosition: Int) {
-        lifecycleScope.launch {
-            if (coaster.connect()) return@launch
-            Toast.makeText(this@GameActivity, "Could not connect to ${coaster.name}", Toast.LENGTH_SHORT).show()
-            if (ringDeviceMap[circlePosition] == coaster) {
-                ringDeviceMap.remove(circlePosition)
-                assignedDevices.remove(coaster)
-                updateCircleLayout()
+    /** Shows each circle's assigned coaster ID, or an empty circle. */
+    private fun bindCircles() {
+        val assignments = viewModel.assignments.value
+        circleViews.forEachIndexed { position, circle ->
+            val coaster = assignments[position]
+            val ringTextView = circle.findViewById<TextView>(R.id.circleText)
+            if (coaster != null) {
+                ringTextView.text = coaster.coasterId
+                ringTextView.visibility = View.VISIBLE
+                circle.setBackgroundResource(R.drawable.circle_active_background)
+            } else {
+                ringTextView.visibility = View.GONE
+                circle.setBackgroundResource(R.drawable.circle_background)
             }
         }
-    }
-
-    private fun areAllCirclesConnected(): Boolean {
-        return assignedDevices.size == selectedCircleCount && assignedDevices.all { it.isReady }
     }
 
     private fun nattDuellen(coasterDevices: MutableSet<CoasterConnection>) {
@@ -495,9 +432,6 @@ class GameActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         cancelCurrentGame()
-        // Coasters stay connected so the user can come back without reconnecting
-        ringDeviceMap.clear()
-        assignedDevices.clear()
         handler.removeCallbacksAndMessages(null)
         Log.d("GameActivity", "All resources released")
     }

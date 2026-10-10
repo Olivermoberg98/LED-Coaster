@@ -4,15 +4,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myemptyapp.ble.ScannedCoaster
 
-/** Scan results on the main screen, kept sorted by name and unique by address. */
+/** Scan results on the main screen. */
 class BluetoothDeviceAdapter(
     private val onDeviceClicked: (ScannedCoaster) -> Unit
-) : RecyclerView.Adapter<BluetoothDeviceAdapter.DeviceViewHolder>() {
-
-    private val devices = mutableListOf<ScannedCoaster>()
+) : ListAdapter<ScannedCoaster, BluetoothDeviceAdapter.DeviceViewHolder>(DIFF) {
 
     class DeviceViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val nameTextView: TextView = itemView.findViewById(R.id.text_device_name)
@@ -26,19 +26,19 @@ class BluetoothDeviceAdapter(
     }
 
     override fun onBindViewHolder(holder: DeviceViewHolder, position: Int) {
-        val device = devices[position]
+        val device = getItem(position)
         holder.nameTextView.text = device.name
         holder.addressTextView.text = device.address
         holder.itemView.setOnClickListener { onDeviceClicked(device) }
     }
 
-    override fun getItemCount(): Int = devices.size
+    private companion object {
+        val DIFF = object : DiffUtil.ItemCallback<ScannedCoaster>() {
+            override fun areItemsTheSame(oldItem: ScannedCoaster, newItem: ScannedCoaster) =
+                oldItem.address == newItem.address
 
-    /** Adds [device] in name order. A device already listed is ignored. */
-    fun addDevice(device: ScannedCoaster) {
-        if (devices.any { it.address == device.address }) return
-        val index = devices.indexOfFirst { it.name > device.name }.let { if (it == -1) devices.size else it }
-        devices.add(index, device)
-        notifyItemInserted(index)
+            override fun areContentsTheSame(oldItem: ScannedCoaster, newItem: ScannedCoaster) =
+                oldItem == newItem
+        }
     }
 }

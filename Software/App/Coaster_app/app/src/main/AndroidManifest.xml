@@ -20,15 +20,13 @@
         android:theme="@style/Theme.MyEmptyApp">
         <activity
             android:name=".MainActivity"
-            android:exported="true"
-            android:configChanges="orientation|screenSize|keyboardHidden">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".GameActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"/>
+            android:name=".GameActivity" />
     </application>
 </manifest>
