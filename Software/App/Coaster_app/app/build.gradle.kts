@@ -51,8 +51,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
-    implementation(libs.androidx.cardview)
-    implementation(libs.androidx.recyclerview)
     implementation(libs.nordic.ble)
     implementation(libs.nordic.ble.ktx)
     implementation(libs.kotlinx.coroutines.android)

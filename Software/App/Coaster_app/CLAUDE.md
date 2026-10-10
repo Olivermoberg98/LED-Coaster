@@ -51,9 +51,8 @@ is `Theme.LedCoaster`. Paths below are relative to
 Both screens are Jetpack Compose (Material 3); there are no XML layouts.
 `MainScreen` exposes `Section` and `Dropdown` to `GameScreen`. Both activities stay
 `AppCompatActivity` under the XML theme `Theme.LedCoaster`, which still
-provides the action bar. Dependencies: appcompat, material, cardview,
-recyclerview, core-ktx, activity-ktx, lifecycle (viewmodel, runtime,
-runtime-compose), kotlinx-coroutines, Nordic `ble` + `ble-ktx` 2.11.0, the
+provides the action bar. Dependencies: appcompat, material, core-ktx,
+activity-ktx, lifecycle (viewmodel, runtime, runtime-compose), kotlinx-coroutines, Nordic `ble` + `ble-ktx` 2.11.0, the
 Compose BOM (ui, material3, tooling-preview, activity-compose), and
 `com.github.QuadFlask:colorpicker:0.0.15` from JitPack (the colour wheel dialog).
 
