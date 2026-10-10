@@ -43,15 +43,23 @@ is `Theme.LedCoaster`. Paths below are relative to
 | `ble/` | `CoasterBleManager` (Nordic `BleManager`, one per coaster), `CoasterConnection` (state flow, sends, `connect()`), `CoasterRepository` (one connection per MAC address), `CoasterScanner` (BLE scan filtered on the service UUID). |
 | `data/` | `SavedDevicesStore`: saved coasters, address → name in the `BluetoothDevices` SharedPreferences. |
 | `games/` | `Game`, `CoasterController`, `NattDuellen`, `RandomDrink`. Pure Kotlin over `CoasterController`, so they run in JVM tests with fakes. |
-| `ui/main/` | `MainActivity`, `MainViewModel`, `BluetoothDeviceAdapter` (scan results). |
+| `ui/main/` | `MainActivity`, `MainViewModel`, `MainScreen` (Compose). |
 | `ui/game/` | `GameActivity`, `GameViewModel`, `DevicesAdapter` (saved coasters to drag). |
+| `ui/CoasterTheme.kt` | Compose theme (dark, app green) and the shared screen colours. |
 | `CoasterApp.kt` | `Application`; holds `repository`, `scanner`, `savedDevices` (manual DI). |
 
-UI is classic Views + XML layouts. A Compose migration is approved for after
-Stage B (see REFACTOR_PLAN.md §8). Dependencies: appcompat, material,
-cardview, recyclerview, core-ktx, activity-ktx, lifecycle (viewmodel,
-runtime), kotlinx-coroutines, Nordic `ble` + `ble-ktx` 2.11.0, and
+MainActivity is Jetpack Compose (Material 3); GameActivity is still Views +
+XML layouts until its own migration step. Both activities stay
+`AppCompatActivity` under the XML theme `Theme.LedCoaster`, which still
+provides the action bar. Dependencies: appcompat, material, cardview,
+recyclerview, core-ktx, activity-ktx, lifecycle (viewmodel, runtime,
+runtime-compose), kotlinx-coroutines, Nordic `ble` + `ble-ktx` 2.11.0, the
+Compose BOM (ui, material3, tooling-preview, activity-compose), and
 `com.github.QuadFlask:colorpicker:0.0.15` from JitPack (the colour wheel dialog).
+
+lifecycle is pinned at 2.10.0 and the Compose BOM at 2026.06.01: lifecycle
+2.11 and BOM 2026.09.00 need AGP 9.1 and compileSdk 37, and this project
+stays on AGP 8.13.2. Lint flags both as outdated; that is expected.
 
 ## How the app talks to the coaster
 
@@ -112,12 +120,16 @@ Leaving the games screen does **not** disconnect anything.
 
 - **MainActivity.** "New device" asks for `BLUETOOTH_SCAN`/`BLUETOOTH_CONNECT`
   once, then scans for 10 s and lists coasters not already saved. Tapping one
-  saves it and connects; the spinner lists saved coasters by name and connects
-  by address. The Outer/Inner checkboxes and the effect controls are locked
-  until the current coaster is ready ("Go to Games" stays usable). Checkboxes
+  saves it and connects; the saved-device dropdown shows the current coaster's
+  name, lists saved coasters by name and connects by address. The
+  Outer/Inner checkboxes and the effect controls are locked until the
+  current coaster is ready ("Go to Games" stays usable). Checkboxes
   send Package 1 on every change; FIXED/PULSE/CHASER show one colour button
   and picking a colour sends Package 2; RAINBOW immediately sends `RAINBOW`
-  with `0,255,0`. Toasts report the current coaster's connect and disconnect.
+  with `0,255,0`. Ring, pattern and colour selections live in
+  `MainViewModel`, so they survive rotation. The colour wheel is the
+  QuadFlask dialog, opened from the activity. Toasts report the current
+  coaster's connect and disconnect.
 - **GameActivity.** Lists every saved coaster with its live state. A spinner
   picks 1–10 circles, laid out in rows by `updateCircleLayout`. Long-press a
   coaster and drag it onto a circle to place and connect it; the circle shows
@@ -148,9 +160,6 @@ Leaving the games screen does **not** disconnect anything.
 
 ## Gotchas
 
-- `isFirstSelection` in `MainActivity` swallows the saved-device spinner's
-  initial callback; the touch listener resets the selection so the same entry
-  can be chosen again.
 - ViewModel messages are a `Channel` collected while STARTED, so a toast
   raised in the background shows when the screen returns.
 - `ScannedCoaster.name` falls back to the MAC address when the scan response

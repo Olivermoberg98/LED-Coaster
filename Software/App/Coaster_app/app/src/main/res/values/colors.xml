@@ -10,7 +10,6 @@
     <color name="background_color">#222222</color>
     <color name="square_color">#111111</color>
     <color name="statusbar_color">#44D62C</color>
-    <color name="checkbox_text_color">#FFFFFFFF</color>
     <color name="checkbox_inner_checked_color">#44D62C</color>
     <color name="checkbox_inner_unchecked_color">#222222</color>
     <color name="spinner_text_color">#FFFFFFFF</color>

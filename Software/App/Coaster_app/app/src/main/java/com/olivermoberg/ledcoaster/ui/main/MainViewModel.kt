@@ -52,8 +52,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         .map { it == CoasterConnection.State.READY }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    /** Last colour picked on the colour wheel, so the button keeps it across recreation. */
-    var lastPickedColor: Int? = null
+    /** Name of the coaster this screen controls, or null before one is chosen. */
+    val currentName: StateFlow<String?> = current
+        .map { it?.name }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val _outerEnabled = MutableStateFlow(true)
+    val outerEnabled: StateFlow<Boolean> = _outerEnabled.asStateFlow()
+    private val _innerEnabled = MutableStateFlow(true)
+    val innerEnabled: StateFlow<Boolean> = _innerEnabled.asStateFlow()
+
+    private val _pattern = MutableStateFlow(Pattern.FIXED)
+    val pattern: StateFlow<Pattern> = _pattern.asStateFlow()
+
+    /** Last colour picked on the colour wheel as ARGB, or null before the first pick. */
+    private val _pickedColor = MutableStateFlow<Int?>(null)
+    val pickedColor: StateFlow<Int?> = _pickedColor.asStateFlow()
 
     private val _messages = Channel<String>(Channel.BUFFERED)
     /** One-off messages for the user, shown as toasts. */
@@ -133,12 +147,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun setRings(outerEnabled: Boolean, innerEnabled: Boolean) {
-        current.value?.sendPackage1(outerEnabled, innerEnabled)
+    fun setOuterEnabled(enabled: Boolean) {
+        _outerEnabled.value = enabled
+        sendRings()
     }
 
-    fun setPattern(pattern: Pattern, color: Rgb) {
-        current.value?.sendPackage2(pattern, color)
+    fun setInnerEnabled(enabled: Boolean) {
+        _innerEnabled.value = enabled
+        sendRings()
+    }
+
+    private fun sendRings() {
+        current.value?.sendPackage1(_outerEnabled.value, _innerEnabled.value)
+    }
+
+    /** RAINBOW is sent at once; the other patterns wait for a colour to be picked. */
+    fun selectPattern(pattern: Pattern) {
+        _pattern.value = pattern
+        if (pattern == Pattern.RAINBOW) {
+            current.value?.sendPackage2(Pattern.RAINBOW, RAINBOW_COLOR)
+        }
+    }
+
+    /** Sends the selected pattern with [argb], a colour from the colour wheel. */
+    fun pickColor(argb: Int) {
+        _pickedColor.value = argb
+        current.value?.sendPackage2(_pattern.value, Rgb.fromArgb(argb))
     }
 
     /** Runs when the main screen finishes, i.e. the user leaves the app. */
@@ -149,5 +183,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private companion object {
         const val TAG = "MainViewModel"
         const val SCAN_DURATION_MS = 10_000L
+        val RAINBOW_COLOR = Rgb(0, 255, 0)
     }
 }

@@ -1,8 +1,8 @@
 # App refactor plan (Stage A)
 
 Status: **approved 2026-10-10**, see §8 for the decisions. B0–B7 and C1–C3 done
-(C3 verified on hardware 2026-10-10); next is the Compose migration, MainActivity
-first, then the Phase 3 display. Line numbers and
+(C3 verified on hardware 2026-10-10); MainActivity is on Compose; next is GameActivity,
+then the Phase 3 display. Line numbers and
 paths below refer to the code before the refactor. Line references are to `refactor/app` at
 `e6c6b7b`. Paths are relative to `app/src/main/java/com/example/myemptyapp/`
 unless stated. Versions were checked against Maven Central / Google Maven on
@@ -227,7 +227,7 @@ hand-written `suspendCancellableCoroutine` wrappers.
 | `androidx.lifecycle:lifecycle-viewmodel-ktx` + `lifecycle-runtime-ktx` | ViewModel, `viewModelScope`, `repeatOnLifecycle` | 2.11.0 (latest stable) | Needs approval |
 | `androidx.activity:activity-ktx` | `by viewModels()`, `registerForActivityResult` for permissions | latest stable, pinned at B0 | Needs approval |
 | `org.jetbrains.kotlinx:kotlinx-coroutines-test` (testImplementation) | Virtual time for game and connection tests | matches coroutines | Needs approval |
-| Compose: `androidx.compose:compose-bom`, `ui`, `material3`, `ui-tooling-preview`, `activity-compose`, `lifecycle-runtime-compose`, plus the `org.jetbrains.kotlin.plugin.compose` Gradle plugin | Only if Compose is chosen (§4) | BOM **2026.09.00** | Needs approval; later |
+| Compose: `androidx.compose:compose-bom`, `ui`, `material3`, `ui-tooling-preview`, `activity-compose`, `lifecycle-runtime-compose`, plus the `org.jetbrains.kotlin.plugin.compose` Gradle plugin | Only if Compose is chosen (§4) | BOM **2026.06.01** (2026.09.00 needs AGP 9.1) | Approved; in use |
 
 No DI framework, no Room/DataStore (SharedPreferences is enough for the saved
 list), no mocking library (games and decoder are tested with hand-written fakes).
