@@ -1,7 +1,7 @@
 # App refactor plan (Stage A)
 
-Status: **approved 2026-10-10**, see §8 for the decisions. B0–B6 done; the
-root `CLAUDE.md` app sections (part of B7) are still to update. Line numbers and
+Status: **approved 2026-10-10**, see §8 for the decisions. B0–B7 done; next is
+C1. Line numbers and
 paths below refer to the code before the refactor. Line references are to `refactor/app` at
 `e6c6b7b`. Paths are relative to `app/src/main/java/com/example/myemptyapp/`
 unless stated. Versions were checked against Maven Central / Google Maven on
