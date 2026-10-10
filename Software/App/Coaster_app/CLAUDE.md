@@ -1,8 +1,8 @@
 # CLAUDE.md — Android app
 
 App-only guide. The repository-wide `CLAUDE.md` two levels up is the authority
-for the BLE protocol and the firmware; this file covers the app. Design
-decisions and remaining work are in [REFACTOR_PLAN.md](REFACTOR_PLAN.md).
+for the BLE protocol and the firmware; this file covers the app. Standing
+decisions and open work are at the end.
 
 ## Build, run, test
 
@@ -25,10 +25,18 @@ Run from this directory (`Software/App/Coaster_app`). On Windows use `gradlew.ba
   (`C:\Program Files\Android\Android Studio1`). Gradle 8.x cannot run on
   JDK 25, which is that Studio's JBR. Command-line builds use JDK 17:
   `JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"`.
-- `app/lint-baseline.xml` holds the remaining pre-refactor warnings (no
-  errors), so `lint` reports only new issues. Regenerate it with
+- `app/lint-baseline.xml` holds 13 accepted warnings (no errors): versions
+  held back by staying on AGP 8, targetSdk 34, launcher-icon hints and
+  `DataExtractionRules`. `lint` reports only new issues, plus four expected
+  `GradleDependency` warnings for the pinned lifecycle and Compose BOM. Regenerate it with
   `./gradlew updateLintBaseline` only after fixing issues, never to hide new ones.
-- BLE needs a real phone; the emulator has no Bluetooth.
+- BLE needs a real phone; the emulator has no Bluetooth. With wireless
+  debugging paired, the phone shows in
+  `D:\Programvaror\AppSDK\platform-toolsdb.exe devices` and
+  `installDebug` installs over the air. A code change only reaches the phone
+  after `installDebug` (or Studio's Run).
+- `.idea/` is gitignored and untracked: Android Studio regenerates it on every
+  sync.
 
 ## Layout
 
@@ -43,7 +51,7 @@ is `Theme.LedCoaster`. Paths below are relative to
 | `ble/` | `CoasterBleManager` (Nordic `BleManager`, one per coaster), `CoasterConnection` (state flow, sends, `connect()`), `CoasterRepository` (one connection per MAC address), `CoasterScanner` (BLE scan filtered on the service UUID). |
 | `data/` | `SavedDevicesStore`: saved coasters, address → name in the `BluetoothDevices` SharedPreferences. |
 | `games/` | `Game`, `CoasterController`, `NattDuellen`, `RandomDrink`. Pure Kotlin over `CoasterController`, so they run in JVM tests with fakes. |
-| `ui/main/` | `MainActivity`, `MainViewModel`, `MainScreen` (Compose). |
+| `ui/main/` | `MainActivity`, `MainViewModel`, `MainScreen`, `ColorPickerDialog` (Compose). |
 | `ui/game/` | `GameActivity`, `GameViewModel`, `GameScreen` (Compose). |
 | `ui/CoasterTheme.kt` | Compose theme (dark, app green) and the shared screen colours. |
 | `ui/BatteryDisplay.kt` | Battery text, staleness, the 1 s monotonic ticker and the low-battery Snackbar host, shared by both screens. |
@@ -54,8 +62,8 @@ Both screens are Jetpack Compose (Material 3); there are no XML layouts.
 `AppCompatActivity` under the XML theme `Theme.LedCoaster`, which still
 provides the action bar. Dependencies: appcompat, material, core-ktx,
 activity-ktx, lifecycle (viewmodel, runtime, runtime-compose), kotlinx-coroutines, Nordic `ble` + `ble-ktx` 2.11.0, the
-Compose BOM (ui, material3, tooling-preview, activity-compose), and
-`com.github.QuadFlask:colorpicker:0.0.15` from JitPack (the colour wheel dialog).
+and the Compose BOM (ui, material3, tooling-preview, activity-compose). Every
+dependency comes from Google Maven or Maven Central; there is no JitPack.
 
 lifecycle is pinned at 2.10.0 and the Compose BOM at 2026.06.01: lifecycle
 2.11 and BOM 2026.09.00 need AGP 9.1 and compileSdk 37, and this project
@@ -92,8 +100,7 @@ a change on one side without the other is silently dropped by the firmware.
   length, so a future version of another size reports as `UNKNOWN_VERSION`),
   exactly 13 bytes, checksum. A charger code outside 0–6 decodes as
   `UNKNOWN` and the packet is kept; percent `0xFF` or above 100 is `null`.
-  Reserved flag bits are ignored, and `flags`/`pins` stay raw for the
-  run-down logger.
+  Reserved flag bits are ignored, and `flags`/`pins` stay raw.
 - **Battery status on the connection.** The status characteristic is
   optional: firmware without it still connects, and `batteryStatus` stays
   null. When present, `CoasterBleManager.initialize` enables notifications
@@ -136,8 +143,10 @@ Leaving the games screen does **not** disconnect anything.
   send Package 1 on every change; FIXED/PULSE/CHASER show one colour button
   and picking a colour sends Package 2; RAINBOW immediately sends `RAINBOW`
   with `0,255,0`. Ring, pattern and colour selections live in
-  `MainViewModel`, so they survive rotation. The colour wheel is the
-  QuadFlask dialog, opened from the activity. Toasts report the current
+  `MainViewModel`, so they survive rotation. `ColorPickerDialog` is a
+  hue/saturation wheel plus a brightness slider; it sends the colour each time
+  a finger lifts off the wheel or slider (one packet per drag, not per move),
+  and OK only closes it. Toasts report the current
   coaster's connect and disconnect.
 - **GameActivity.** Lists every saved coaster with its live state. A dropdown
   picks 1–10 circles, laid out in rows of at most four by `circleRows`. Long-press a
@@ -182,9 +191,27 @@ Leaving the games screen does **not** disconnect anything.
 - Phones commonly cap concurrent BLE links at about 7; the games screen offers
   up to 10 circles.
 
+## Standing decisions and open work
+
+The refactor (merged to `main` on 2026-10-10) settled these; change them only
+with Oliver's approval:
+
+- **AGP 8.13.2, not 9.x.** AGP 9 drops the `kotlin-android` plugin for built-in
+  Kotlin and changes the DSL; bump it as its own step. That bump also unblocks
+  lifecycle 2.11 and the newer Compose BOM.
+- **targetSdk stays 34.** Raising it changes runtime behaviour, so it is a
+  separate decision.
+- **Manual DI** through `CoasterApp`; no Hilt/Koin, Room or DataStore.
+- **Battery run-down logging** (data for fitting the firmware's
+  `batteryPercent()` curve) is expected on the firmware side, buffered in NVS
+  and dumped over USB, so the app would need nothing for it. An in-app CSV logger
+  would need a foreground service (`connectedDevice` type) and was not built.
+
+Open: device tests beyond the stub; nothing else is pending in the app.
+
 ## Working rules for this app
 
-- Work happens in the `LED-Coaster-app` worktree on branch `refactor/app`.
+- App work happens in the `LED-Coaster-app` worktree, on a branch off `main`.
   Never edit the firmware (`Software/LED_coaster/`) or `Hardware/`.
 - Keep Package 1/2 byte-for-byte identical; pattern names must match
   `stringToPatternType` in the firmware.

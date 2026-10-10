@@ -331,7 +331,8 @@ Still to do:
   `CoasterConnection.batteryStatus` (a StateFlow, null until the first valid
   packet). The main screen shows a status line, each game circle a percent,
   and a low battery raises a Snackbar; see `Software/App/Coaster_app/CLAUDE.md`.
-  The Phase 4 run-down logger in `REFACTOR_PLAN.md` is still to do.
+  Run-down logging for the percentage fit is expected on the firmware side
+  (see "Percentage curve" above); the app has no logger.
 
 Notes that matter for firmware:
 
