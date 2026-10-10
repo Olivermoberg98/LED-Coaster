@@ -39,7 +39,7 @@ is `Theme.LedCoaster`. Paths below are relative to
 
 | Package | What it holds |
 |---|---|
-| `protocol/` | Pure Kotlin, no `android.*`. `CoasterUuids` (the app's only copy of the UUIDs), `Pattern` (wire names), `Rgb`, `Packets.encodePackage1/2`. |
+| `protocol/` | Pure Kotlin, no `android.*`. `CoasterUuids` (the app's only copy of the UUIDs), `Pattern` (wire names), `Rgb`, `Packets.encodePackage1/2`, `BatteryStatus` + `ChargerState`, `BatteryStatusDecoder` (Package 3). |
 | `ble/` | `CoasterBleManager` (Nordic `BleManager`, one per coaster), `CoasterConnection` (state flow, sends, `connect()`), `CoasterRepository` (one connection per MAC address), `CoasterScanner` (BLE scan filtered on the service UUID). |
 | `data/` | `SavedDevicesStore`: saved coasters, address → name in the `BluetoothDevices` SharedPreferences. |
 | `games/` | `Game`, `CoasterController`, `NattDuellen`, `RandomDrink`. Pure Kotlin over `CoasterController`, so they run in JVM tests with fakes. |
@@ -78,7 +78,14 @@ a change on one side without the other is silently dropped by the firmware.
   advertising packet; the name `Coaster-<id>` comes from the scan response.
   The firmware never stops advertising while unconnected (slow, ~2 s, after
   2 minutes), so a saved coaster is always reachable, if slowly.
-- Package 3 is not decoded yet (step C1/C2).
+- **Package 3** is decoded by `BatteryStatusDecoder.decode(bytes, receivedAtMs)`,
+  which returns `Ok(BatteryStatus)` or `Rejected(reason, detail)`. Checks run
+  in order: at least 2 bytes, type `0x03`, version `0x01` (checked before the
+  length, so a future version of another size reports as `UNKNOWN_VERSION`),
+  exactly 13 bytes, checksum. A charger code outside 0–6 decodes as
+  `UNKNOWN` and the packet is kept; percent `0xFF` or above 100 is `null`.
+  Reserved flag bits are ignored, and `flags`/`pins` stay raw for the
+  run-down logger. Not yet wired to the connection (step C2).
 
 ## Connection lifetime
 
@@ -124,6 +131,9 @@ Leaving the games screen does **not** disconnect anything.
 
 - `protocol/PacketsTest`: golden bytes for Package 1/2, legacy-encoder
   equivalence over many colours, pattern names vs `arrays.xml`.
+- `protocol/BatteryStatusDecoderTest`: golden Package 3 bytes, unsigned
+  u16/u32 at the high-bit boundaries, every charger state, percent, flags,
+  and each rejection reason.
 - `games/GamesTest`: virtual-time tests (`runTest`, `testScheduler.timeSource`)
   with fake coasters: timing, no-repeat, write ordering, cancellation.
 - Only the stub `ExampleInstrumentedTest` exists for device tests.
