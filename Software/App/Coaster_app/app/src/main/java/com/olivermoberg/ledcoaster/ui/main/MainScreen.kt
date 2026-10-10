@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,9 +62,9 @@ fun MainScreen(
     viewModel: MainViewModel,
     onNewDevice: () -> Unit,
     onConnect: (address: String, name: String) -> Unit,
-    onChooseColor: () -> Unit,
     onGames: () -> Unit,
 ) {
+    var showColorPicker by rememberSaveable { mutableStateOf(false) }
     val savedDevices by viewModel.savedDevices.collectAsStateWithLifecycle()
     val currentName by viewModel.currentName.collectAsStateWithLifecycle()
     val scanResults by viewModel.scanResults.collectAsStateWithLifecycle()
@@ -91,9 +92,16 @@ fun MainScreen(
             onOuterChange = viewModel::setOuterEnabled,
             onInnerChange = viewModel::setInnerEnabled,
             onPatternSelected = viewModel::selectPattern,
-            onChooseColor = onChooseColor,
+            onChooseColor = { showColorPicker = true },
             onGames = onGames,
         )
+        if (showColorPicker) {
+            ColorPickerDialog(
+                initialColor = pickedColor ?: android.graphics.Color.RED,
+                onColorSelected = viewModel::pickColor,
+                onDismiss = { showColorPicker = false },
+            )
+        }
         BatteryWarningHost(viewModel.lowBatteryWarnings, Modifier.align(Alignment.BottomCenter))
     }
 }

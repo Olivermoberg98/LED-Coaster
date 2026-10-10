@@ -4,7 +4,6 @@ import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
@@ -15,8 +14,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.flask.colorpicker.ColorPickerView
-import com.flask.colorpicker.builder.ColorPickerDialogBuilder
 import com.olivermoberg.ledcoaster.ui.CoasterTheme
 import com.olivermoberg.ledcoaster.ui.game.GameActivity
 import kotlinx.coroutines.launch
@@ -45,7 +42,6 @@ class MainActivity : AppCompatActivity() {
                     viewModel = viewModel,
                     onNewDevice = { withBluetoothPermissions { startScan() } },
                     onConnect = ::connectTo,
-                    onChooseColor = ::showColorPicker,
                     onGames = {
                         withBluetoothPermissions { startActivity(Intent(this, GameActivity::class.java)) }
                     },
@@ -95,21 +91,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun connectTo(address: String, name: String) {
         withBluetoothPermissions { viewModel.connect(address, name) }
-    }
-
-    /** Colour wheel dialog; every colour it reports is sent with the selected pattern. */
-    private fun showColorPicker() {
-        ColorPickerDialogBuilder
-            .with(this)
-            .setTitle("Color 1")
-            .initialColor(viewModel.pickedColor.value ?: Color.RED)
-            .wheelType(ColorPickerView.WHEEL_TYPE.CIRCLE)
-            .density(12)
-            .setOnColorSelectedListener { color -> viewModel.pickColor(color) }
-            .setPositiveButton("OK") { _, _, _ -> }
-            .setNegativeButton("Cancel") { _, _ -> }
-            .build()
-            .show()
     }
 
     private companion object {

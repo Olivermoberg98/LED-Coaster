@@ -1,6 +1,5 @@
 [versions]
 agp = "8.13.2"
-colorpicker = "0.0.15"
 kotlin = "2.4.21"
 coreKtx = "1.13.1"
 junit = "4.13.2"
@@ -17,7 +16,6 @@ composeBom = "2026.06.01"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-colorpicker = { module = "com.github.QuadFlask:colorpicker", version.ref = "colorpicker" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
