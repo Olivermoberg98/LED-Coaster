@@ -1,17 +1,9 @@
 package com.example.myemptyapp
 
 import android.Manifest
-import android.app.Activity
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
-import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothProfile
-import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -29,27 +21,23 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.myemptyapp.protocol.CoasterUuids
-import com.example.myemptyapp.protocol.Packets
+import com.example.myemptyapp.ble.CoasterConnection
 import com.example.myemptyapp.protocol.Pattern
 import com.example.myemptyapp.protocol.Rgb
-import java.io.IOException
+import kotlinx.coroutines.launch
 
 class GameActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper()) // For managing delayed tasks or callbacks
     private lateinit var recyclerViewDevices: RecyclerView
 
-    private val ringDeviceMap = mutableMapOf<Int, CoasterDevice?>()
-    private val assignedDevices = mutableSetOf<CoasterDevice>()
+    private val repository by lazy { (application as CoasterApp).repository }
 
-    private val bluetoothAdapter: BluetoothAdapter? by lazy {
-        val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as android.bluetooth.BluetoothManager
-        bluetoothManager.adapter
-    }
+    private val ringDeviceMap = mutableMapOf<Int, CoasterConnection?>()
+    private val assignedDevices = mutableSetOf<CoasterConnection>()
 
     private lateinit var spinner: Spinner
     private lateinit var linearLayout: LinearLayout
@@ -87,7 +75,7 @@ class GameActivity : AppCompatActivity() {
 
                         // If reducing circle count, disconnect devices in circles beyond the new count
                         if (newCircleCount < selectedCircleCount) {
-                            val devicesToRemove = mutableListOf<CoasterDevice>()
+                            val devicesToRemove = mutableListOf<CoasterConnection>()
 
                             // Find devices in positions >= newCircleCount
                             for (pos in newCircleCount until selectedCircleCount) {
@@ -102,7 +90,7 @@ class GameActivity : AppCompatActivity() {
                             devicesToRemove.forEach { device ->
                                 assignedDevices.remove(device)
                                 device.disconnect()
-                                Log.d("GameActivity", "Disconnected ${device.getDeviceName()} - circle removed")
+                                Log.d("GameActivity", "Disconnected ${device.name} - circle removed")
                             }
 
                             if (devicesToRemove.isNotEmpty()) {
@@ -133,11 +121,9 @@ class GameActivity : AppCompatActivity() {
                     if (parts.size == 2) {
                         val name = parts[0]
                         val address = parts[1]
-                        val device = bluetoothAdapter?.getRemoteDevice(address) ?: return@mapNotNull null
-
                         // CHECK IF DEVICE IS ACTUALLY CONNECTED
-                        if (isDeviceConnected(device)) {
-                            CoasterDevice(this, device) // Create CoasterDevice only if connected
+                        if (isDeviceConnected(address)) {
+                            repository.connection(address, name)
                         } else {
                             Log.d("GameActivity", "Device $name is not currently connected, skipping")
                             null
@@ -187,7 +173,7 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    private fun startDrag(coasterDevice: CoasterDevice) {
+    private fun startDrag(coasterDevice: CoasterConnection) {
         try {
             // Create a shadow for the drag action
             val view = recyclerViewDevices.findViewById<View>(R.id.deviceIcon)
@@ -196,7 +182,7 @@ class GameActivity : AppCompatActivity() {
 
                 // Pass the device object as local state
                 recyclerViewDevices.startDragAndDrop(null, shadow, coasterDevice, 0)
-                Log.d("GameActivity", "Drag started for ${coasterDevice.getDevice().address}")
+                Log.d("GameActivity", "Drag started for ${coasterDevice.address}")
             } else {
                 Log.e(
                     "GameActivity",
@@ -213,20 +199,19 @@ class GameActivity : AppCompatActivity() {
             when (event.action) {
                 DragEvent.ACTION_DRAG_STARTED -> true
                 DragEvent.ACTION_DROP -> {
-                    val coasterDevice = event.localState as? CoasterDevice
+                    val coasterDevice = event.localState as? CoasterConnection
                     if (coasterDevice != null) {
                         // Check if the device is already assigned to a circle
                         if (assignedDevices.contains(coasterDevice)) {
                             Toast.makeText(
                                 this,
-                                "${coasterDevice.getDeviceName()} is already placed in another circle!",
+                                "${coasterDevice.name} is already placed in another circle!",
                                 Toast.LENGTH_SHORT
                             ).show()
                             return@OnDragListener true
                         }
 
-                        // Extract just the "00X" part of the device name
-                        val deviceId = coasterDevice.getDeviceName().substringAfterLast('-')
+                        val deviceId = coasterDevice.coasterId
 
                         // Find the TextView within the circle and set the device ID (e.g., "00X")
                         val ringTextView = (v as ViewGroup).findViewById<TextView>(R.id.circleText)
@@ -238,8 +223,7 @@ class GameActivity : AppCompatActivity() {
                         ringDeviceMap[circlePosition] = coasterDevice
                         assignedDevices.add(coasterDevice)
 
-                        // Connect to the device
-                        coasterDevice.connect()
+                        connectToCircle(coasterDevice, circlePosition)
                     }
                     true
                 }
@@ -323,7 +307,7 @@ class GameActivity : AppCompatActivity() {
                         val assignedDevice = ringDeviceMap[currentPosition]
                         if (assignedDevice != null) {
                             // Restore the device to this circle
-                            val deviceId = assignedDevice.getDeviceName().substringAfterLast('-')
+                            val deviceId = assignedDevice.coasterId
                             val ringTextView = circle.findViewById<TextView>(R.id.circleText)
                             ringTextView.text = deviceId
                             ringTextView.visibility = View.VISIBLE
@@ -343,7 +327,7 @@ class GameActivity : AppCompatActivity() {
                                 circle.findViewById<TextView>(R.id.circleText).visibility = View.GONE
                                 Toast.makeText(
                                     this,
-                                    "${device.getDeviceName()} removed",
+                                    "${device.name} removed",
                                     Toast.LENGTH_SHORT
                                 ).show()
                                 device.disconnect()
@@ -361,11 +345,24 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    private fun areAllCirclesConnected(): Boolean {
-        return assignedDevices.size == selectedCircleCount
+    /** Connects a coaster just dropped on a circle, and clears the circle again if that fails. */
+    private fun connectToCircle(coaster: CoasterConnection, circlePosition: Int) {
+        lifecycleScope.launch {
+            if (coaster.connect()) return@launch
+            Toast.makeText(this@GameActivity, "Could not connect to ${coaster.name}", Toast.LENGTH_SHORT).show()
+            if (ringDeviceMap[circlePosition] == coaster) {
+                ringDeviceMap.remove(circlePosition)
+                assignedDevices.remove(coaster)
+                updateCircleLayout()
+            }
+        }
     }
 
-    private fun nattDuellen(coasterDevices: MutableSet<CoasterDevice>) {
+    private fun areAllCirclesConnected(): Boolean {
+        return assignedDevices.size == selectedCircleCount && assignedDevices.all { it.isReady }
+    }
+
+    private fun nattDuellen(coasterDevices: MutableSet<CoasterConnection>) {
         // Cancel any previous game that might still be running
         cancelCurrentGame()
 
@@ -388,7 +385,7 @@ class GameActivity : AppCompatActivity() {
             val randomCoaster = coasterDevices.random()
             // Turn off by sending black color instead of disabling rings
             randomCoaster.sendPackage2(Pattern.FIXED, Rgb.OFF) // Black = off
-            Log.d("Nattduellen", "Random coaster turned off: ${randomCoaster.getDeviceName()}")
+            Log.d("Nattduellen", "Random coaster turned off: ${randomCoaster.name}")
 
             // Nested delayed task for cleanup
             handler.postDelayed({
@@ -408,7 +405,7 @@ class GameActivity : AppCompatActivity() {
         handler.postDelayed(currentGameRunnable!!, randomDelay)
     }
 
-    private fun drinkGame(coasterDevices: MutableSet<CoasterDevice>) {
+    private fun drinkGame(coasterDevices: MutableSet<CoasterConnection>) {
         // Cancel any previous game that might still be running
         cancelCurrentGame()
 
@@ -416,7 +413,7 @@ class GameActivity : AppCompatActivity() {
         val startTime = System.currentTimeMillis()
         val initialBounceInterval = 1600L // Start slow
         val finalBounceInterval = 200L // End fast
-        var previousCoaster: CoasterDevice? = null // Track the last lit coaster
+        var previousCoaster: CoasterConnection? = null // Track the last lit coaster
 
         buttonStartGame.visibility = View.GONE
         val gameStatusText = findViewById<TextView>(R.id.gameStatusText)
@@ -454,7 +451,7 @@ class GameActivity : AppCompatActivity() {
                     handler.postDelayed({
                         finalCoaster.sendPackage2(Pattern.FIXED, finalColor)
 
-                        Toast.makeText(this, "Game Over! ${finalCoaster.getDeviceName()} loses!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Game Over! ${finalCoaster.name} loses!", Toast.LENGTH_SHORT).show()
                         gameStatusText.text = getString(R.string.game_status_game_over)
                         buttonStartGame.visibility = View.VISIBLE
                         gameProgressBar.visibility = View.GONE
@@ -511,7 +508,7 @@ class GameActivity : AppCompatActivity() {
     private fun generateRandomColor(): Rgb =
         Rgb((0..255).random(), (0..255).random(), (0..255).random())
 
-    private fun isDeviceConnected(device: BluetoothDevice): Boolean {
+    private fun isDeviceConnected(address: String): Boolean {
         return try {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -522,7 +519,7 @@ class GameActivity : AppCompatActivity() {
             val bluetoothManager =
                 getSystemService(Context.BLUETOOTH_SERVICE) as android.bluetooth.BluetoothManager
             bluetoothManager.getConnectedDevices(BluetoothProfile.GATT)
-                .any { it.address == device.address }
+                .any { it.address == address }
         } catch (e: Exception) {
             Log.e("GameActivity", "Error checking device connection status", e)
             false
@@ -540,135 +537,5 @@ class GameActivity : AppCompatActivity() {
         assignedDevices.clear()
         handler.removeCallbacksAndMessages(null)
         Log.d("GameActivity", "All resources released")
-    }
-}
-
-class CoasterDevice(
-    private val context: Context,
-    private val device: BluetoothDevice
-) {
-    fun getDeviceName(): String = device.name ?: "Unknown Device"
-    fun getDevice(): BluetoothDevice = device
-    private var bluetoothGatt: BluetoothGatt? = null
-    private var targetCharacteristic: BluetoothGattCharacteristic? = null
-    private val REQUEST_BLUETOOTH_PERMISSIONS = 1
-
-    fun connect() {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            requestBluetoothPermissions(context)
-            return
-        }
-
-        // Android caps the number of live GATT clients per app
-        bluetoothGatt?.close()
-        bluetoothGatt = null
-        targetCharacteristic = null
-
-        bluetoothGatt = device.connectGatt(context, false, object : BluetoothGattCallback() {
-            override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-                super.onConnectionStateChange(gatt, status, newState)
-                when (newState) {
-                    BluetoothProfile.STATE_CONNECTED -> {
-                        Log.d("CoasterDevice", "Connected to ${device.address}")
-                        gatt.discoverServices()
-                    }
-                    BluetoothProfile.STATE_DISCONNECTED -> {
-                        Log.d("CoasterDevice", "Disconnected from ${device.address}")
-                        targetCharacteristic = null
-                    }
-                }
-            }
-
-            override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-                super.onServicesDiscovered(gatt, status)
-                if (status == BluetoothGatt.GATT_SUCCESS) {
-                    // Assume the service and characteristic UUIDs are known
-                    val service = gatt.getService(CoasterUuids.SERVICE)
-                    targetCharacteristic = service?.getCharacteristic(CoasterUuids.COMMAND)
-                    Log.d("CoasterDevice", "Service and characteristic discovered for ${device.address}")
-                }
-            }
-        })
-    }
-
-    fun sendPackage1(isOuterChecked: Boolean, isInnerChecked: Boolean) {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            requestBluetoothPermissions(context)
-            return
-        }
-        try {
-            val finalDataBytes = Packets.encodePackage1(isOuterChecked, isInnerChecked)
-
-            targetCharacteristic?.let { characteristic ->
-                val success = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    bluetoothGatt?.writeCharacteristic(characteristic, finalDataBytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) == BluetoothGatt.GATT_SUCCESS
-                } else {
-                    @Suppress("DEPRECATION")
-                    characteristic.value = finalDataBytes
-                    @Suppress("DEPRECATION")
-                    bluetoothGatt?.writeCharacteristic(characteristic) ?: false
-                }
-                if (success) {
-                    Log.d(ContentValues.TAG, "Data written to characteristic successfully")
-                } else {
-                    Log.e(ContentValues.TAG, "Failed to write data to characteristic")
-                }
-            } ?: Log.e(ContentValues.TAG, "Characteristic not initialized")
-        } catch (e: IOException) {
-            Log.e(ContentValues.TAG, "Error occurred during Bluetooth communication: ${e.message}", e)
-        }
-    }
-
-    fun sendPackage2(pattern: Pattern, color: Rgb) {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            requestBluetoothPermissions(context)
-            return
-        }
-        try {
-            val finalDataBytes = Packets.encodePackage2(pattern, color)
-
-            targetCharacteristic?.let { characteristic ->
-                val success = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    bluetoothGatt?.writeCharacteristic(characteristic, finalDataBytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) == BluetoothGatt.GATT_SUCCESS
-                } else {
-                    @Suppress("DEPRECATION")
-                    characteristic.value = finalDataBytes
-                    @Suppress("DEPRECATION")
-                    bluetoothGatt?.writeCharacteristic(characteristic) ?: false
-                }
-                if (success) {
-                    Log.d(ContentValues.TAG, "Data written to characteristic successfully")
-                } else {
-                    Log.e(ContentValues.TAG, "Failed to write data to characteristic")
-                }
-            } ?: Log.e(ContentValues.TAG, "Characteristic not initialized")
-        } catch (e: IOException) {
-            Log.e(ContentValues.TAG, "Error occurred during Bluetooth communication: ${e.message}", e)
-        }
-    }
-
-    fun disconnect() {
-        val gatt = bluetoothGatt ?: return
-        bluetoothGatt = null
-        targetCharacteristic = null
-
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-            gatt.disconnect()
-        }
-        gatt.close()
-    }
-
-    fun requestBluetoothPermissions(context: Context) {
-        if (context is Activity) {
-            ActivityCompat.requestPermissions(
-                context,
-                arrayOf(
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_ADMIN,
-                    Manifest.permission.BLUETOOTH_CONNECT
-                ),
-                REQUEST_BLUETOOTH_PERMISSIONS
-            )
-        }
     }
 }

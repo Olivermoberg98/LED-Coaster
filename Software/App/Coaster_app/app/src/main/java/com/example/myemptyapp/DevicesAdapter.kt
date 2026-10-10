@@ -6,10 +6,11 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.myemptyapp.ble.CoasterConnection
 
 class DevicesAdapter(
-    private val devices: List<CoasterDevice>, // Change type to CoasterDevice
-    private val onItemLongPress: (CoasterDevice) -> Unit // Update the callback type
+    private val devices: List<CoasterConnection>,
+    private val onItemLongPress: (CoasterConnection) -> Unit
 ) : RecyclerView.Adapter<DevicesAdapter.DeviceViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DeviceViewHolder {
@@ -19,13 +20,13 @@ class DevicesAdapter(
     }
 
     override fun onBindViewHolder(holder: DeviceViewHolder, position: Int) {
-        val coasterDevice = devices[position] // Use CoasterDevice
-        holder.deviceName.text = coasterDevice.getDeviceName()
+        val coasterDevice = devices[position]
+        holder.deviceName.text = coasterDevice.name
         holder.deviceIcon.setImageResource(R.drawable.coaster_icon)
 
         // Set up long press listener to start drag
         holder.itemView.setOnLongClickListener {
-            onItemLongPress(coasterDevice) // Pass CoasterDevice to the callback
+            onItemLongPress(coasterDevice)
             true
         }
     }

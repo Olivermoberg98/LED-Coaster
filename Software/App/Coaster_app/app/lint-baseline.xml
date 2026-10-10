@@ -4,33 +4,11 @@
     <issue
         id="MissingPermission"
         message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
-        errorLine1="    fun getDeviceName(): String = device.name ?: &quot;Unknown Device&quot;"
-        errorLine2="                                  ~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/myemptyapp/GameActivity.kt"
-            line="556"
-            column="35"/>
-    </issue>
-
-    <issue
-        id="MissingPermission"
-        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
-        errorLine1="                        gatt.discoverServices()"
-        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/myemptyapp/GameActivity.kt"
-            line="581"
-            column="25"/>
-    </issue>
-
-    <issue
-        id="MissingPermission"
-        message="Call requires permission which may be rejected by user: code should explicitly check to see if permission is available (with `checkPermission`) or explicitly handle a potential `SecurityException`"
         errorLine1="                gatt?.discoverServices()"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="88"
+            line="86"
             column="17"/>
     </issue>
 
@@ -41,7 +19,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="517"
+            line="486"
             column="9"/>
     </issue>
 
@@ -52,11 +30,11 @@
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/myemptyapp/GameActivity.kt"
-            line="343"
+            line="327"
             column="33"/>
         <location
             file="src/main/java/com/example/myemptyapp/GameActivity.kt"
-            line="327"
+            line="311"
             column="48"
             message="First usage here"/>
     </issue>
@@ -70,28 +48,6 @@
             file="build.gradle.kts"
             line="14"
             column="9"/>
-    </issue>
-
-    <issue
-        id="WrongConstant"
-        message="Must be one of: BluetoothStatusCodes.SUCCESS, BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION, BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND, BluetoothStatusCodes.ERROR_GATT_WRITE_NOT_ALLOWED, BluetoothStatusCodes.ERROR_GATT_WRITE_REQUEST_BUSY, BluetoothStatusCodes.ERROR_UNKNOWN"
-        errorLine1="                    bluetoothGatt?.writeCharacteristic(characteristic, finalDataBytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) == BluetoothGatt.GATT_SUCCESS"
-        errorLine2="                                                                                                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/myemptyapp/GameActivity.kt"
-            line="623"
-            column="139"/>
-    </issue>
-
-    <issue
-        id="WrongConstant"
-        message="Must be one of: BluetoothStatusCodes.SUCCESS, BluetoothStatusCodes.ERROR_MISSING_BLUETOOTH_CONNECT_PERMISSION, BluetoothStatusCodes.ERROR_PROFILE_SERVICE_NOT_BOUND, BluetoothStatusCodes.ERROR_GATT_WRITE_NOT_ALLOWED, BluetoothStatusCodes.ERROR_GATT_WRITE_REQUEST_BUSY, BluetoothStatusCodes.ERROR_UNKNOWN"
-        errorLine1="                    bluetoothGatt?.writeCharacteristic(characteristic, finalDataBytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) == BluetoothGatt.GATT_SUCCESS"
-        errorLine2="                                                                                                                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/java/com/example/myemptyapp/GameActivity.kt"
-            line="660"
-            column="139"/>
     </issue>
 
     <issue
@@ -189,7 +145,7 @@
         errorLine2="                             ~~~~">
         <location
             file="src/main/AndroidManifest.xml"
-            line="18"
+            line="19"
             column="30"/>
     </issue>
 
@@ -222,7 +178,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="115"
+            line="113"
             column="5"/>
     </issue>
 
@@ -233,7 +189,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="390"
+            line="368"
             column="5"/>
     </issue>
 
@@ -244,7 +200,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="423"
+            line="392"
             column="5"/>
     </issue>
 
@@ -255,7 +211,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="436"
+            line="405"
             column="5"/>
     </issue>
 
@@ -266,7 +222,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="467"
+            line="436"
             column="13"/>
     </issue>
 
@@ -277,7 +233,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="522"
+            line="491"
             column="5"/>
     </issue>
 
@@ -540,7 +496,7 @@
         errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="547"
+            line="516"
             column="26"/>
     </issue>
 
@@ -551,7 +507,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/java/com/example/myemptyapp/MainActivity.kt"
-            line="584"
+            line="553"
             column="9"/>
     </issue>
 
