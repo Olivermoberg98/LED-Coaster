@@ -139,11 +139,28 @@ Because the ESP32 enumerated at all, the power path is also confirmed: `SW1` is
 on, `Q1` (the LED-rail P-FET) conducts, and `U4` (the LDO, whose enable follows
 that rail) is up.
 
-**Untested — parts not fitted.** Nothing on the back side is soldered yet, which
-means the **outer ring (`large_ring`, GPIO1, 20 LEDs)** and the battery
-connector `J1`. So the outer ring, the 470k/470k `BAT_SENSE` divider on GPIO4,
-and the whole charger path (`U3` and its `STAT1`/`STAT2`/`PG` lines on
-GPIO5/6/10) have not been exercised.
+**Battery and charger — verified 2026-10-08.** `J1` is the only back-side part
+fitted (JST-EH 2.5 mm, **pin 1 = GND, pin 2 = `+BATT`**; `U3` has no
+reverse-polarity protection, so check a new battery lead with a meter first).
+With a protected 1S LiPo:
+
+- Battery only, SW1 off: `+BATT`/`+SYS` at cell voltage, `+LED_PWR` and `+3V3`
+  at 0 V. SW1 on: the ESP32 boots on battery, the app connects, the inner ring
+  lights.
+- USB in: the cell voltage jumps ~110 mV and charging starts with SW1 on or off
+  (`U3` sits upstream of the switch). `U3` gets very hot to the touch — expected,
+  it dissipates (5 V − V_bat) × 0.5 A ≈ 0.75 W at a low cell — but it never
+  thermally faulted or dropped out of `charging`.
+- The full `charging` → `charge complete` sequence was observed on
+  `STAT1`/`STAT2`/`PG`, decoded by the firmware (see the TODO section).
+- Pulling USB while connected with the ring lit: the coaster carried on, on
+  battery, with no reset.
+
+**Untested — parts not fitted.** The rest of the back side, including the
+**outer ring (`large_ring`, GPIO1, 20 LEDs)** and its decoupling caps. The
+`low battery` (LBO) and `temperature fault` states have not been seen, and no
+run-down on battery has been done. The plan is to finish battery reporting
+before soldering the back side.
 
 Net/pin agreement between the fabricated board and the firmware was checked
 against `LED_Coaster.kicad_sch` and matches: `small_ring` → IO0, `large_ring` →
@@ -161,49 +178,45 @@ Gotchas that cost time during bring-up:
 - **Patterns only run while connected** (`shouldProcessPatterns()`), so the
   rings stay dark on USB power alone. An LED check needs the app connected;
   there is no boot self-test.
-- **No global brightness limit exists yet, and one is still needed.** Nothing
-  calls `FastLED.setBrightness` or `setMaxPowerInVoltsAndMilliamps`. At
-  12 mA/channel all 30 TZ-5050S2RGB at full white draw **1.08 A** (a WS2812B
+- **LED draw is capped at 900 mA** in `setup()`
+  (`setMaxPowerInVoltsAndMilliamps`), and the cap must stay. At 12 mA/channel all 30 TZ-5050S2RGB at full white draw **1.08 A** (a WS2812B
   build would have been 1.8 A), ~1.17 A with the ESP32 on BLE. That still
   exceeds the <1 A system load the MCP73871 datasheet recommends, and the sag
   is what bites: 200 mΩ BAT→SYS plus ~65 mΩ through `Q1` drops ~306 mV, so at
   a 3.6 V cell `+SYS` falls to 3.37 V and **`U4` drops out — the ESP32 resets
-  mid-use**. Capping LED draw at **900 mA**
-  (`FastLED.setMaxPowerInVoltsAndMilliamps(5, 900)`) holds `+SYS` at 3.40 V
-  down to a 3.6 V cell and costs ~17% of peak white, which is barely visible.
-  With only the 10-LED inner ring fitted (0.36 A) none of this applies yet.
-  The better long-term fix is scaling brightness from the `BAT_SENSE` reading
-  once that lands.
+  mid-use**. The 900 mA cap holds `+SYS` at 3.40 V down to a 3.6 V cell and
+  costs ~17% of peak white, which is barely visible. It is untested under load:
+  with only the 10-LED inner ring fitted (0.36 A) it never engages. The better
+  long-term fix is scaling brightness from the `BAT_SENSE` reading.
 - **`coasterID` is hardcoded** at [main.cpp:12](Software/LED_coaster/src/main.cpp#L12).
   The first board was flashed as `05`, so it advertises `Coaster-05`; its base
   MAC is `f8:5b:1b:eb:1a:14`. Give every further board its own ID before
   flashing.
 
-## TODO: battery and charger reporting (software not started)
+## Battery and charger reporting (firmware reads it; app cannot see it yet)
 
-Two hardware paths feed this and **neither is implemented in firmware or app**.
-
-**Battery level — hardware done.** A 470k/470k divider runs from `+BATT` to
+**Hardware — done and verified.** A 470k/470k divider runs from `+BATT` to
 **GPIO4** (`ADC1_CH4`), buffered by C21 100nF, halving the cell so 3.0–4.2 V
-arrives as 1.5–2.1 V.
+arrives as 1.5–2.1 V. `U3`'s three open-drain status outputs go to the ESP32 —
+`STAT1`/`LBO` → **GPIO5**, `STAT2` → **GPIO6**, `PG` → **GPIO10**. The status
+LEDs `D33`/`D35` and `R5`/`R16` are gone from the board; they must never come
+back, because they pulled `STAT1`/`STAT2` to `+5V`, which would destroy a 3.6 V-max
+ESP32 pin. So the board has **no visible charge indicator** — charger state is
+only readable through the firmware.
 
-**Charger status — hardware specified, not yet routed.** `Hardware/PCB/ORDERING.md`
-Phase 5 §10 is the spec: `U3`'s three open-drain status outputs go to the ESP32 —
-`STAT1`/`LBO` → **GPIO5**, `STAT2` → **GPIO6**, `PG` → **GPIO10** — and the status
-LEDs `D33`/`D35` with `R5`/`R16` are deleted. Deleting them is required, not
-cosmetic: they pull `STAT1`/`STAT2` to `+5V`, which would destroy a 3.6 V-max
-ESP32 pin.
+**Firmware — done, serial output only.** `main.cpp` prints a line every 2 s
+from `loop()`, whether or not a phone is connected:
+`Battery: 3794 mV, 37%, charger: charging (PG=0 STAT1=0 STAT2=1)`.
 
-Still to do:
-
-- **Firmware** (`Software/LED_coaster/`): read GPIO4 on ADC1 with
-  `ADC_ATTEN_DB_12`. The ESP32-C3's ADC has a real offset error — use the
-  `esp_adc_cal` / calibration API, not raw counts, or readings will be off by
-  tens of mV. Multiply by 2 to recover cell voltage. Average several samples;
-  the LED rail is noisy while patterns run. Map voltage to a percentage with a
-  Li-Po curve, not a linear 3.0–4.2 V ramp — the curve is very flat from 3.7–4.0 V.
-- **Firmware — charger status**: read the three pins as `INPUT_PULLUP`
-  (High-Z reads HIGH) and decode per the MCP73871 datasheet Table 5-1:
+- `readBatteryMillivolts()` averages 16 `analogReadMilliVolts(4)` readings and
+  doubles them. In this Arduino core (2.0.17) that call already applies the
+  `esp_adc_cal` calibration; attenuation is set to `ADC_11db` in `setup()`.
+  Readings are stable to ±2 mV.
+- `batteryPercent()` interpolates a generic Li-Po resting-voltage table. It
+  reads high while charging (the charge current raises the terminal voltage)
+  and has not been fitted to this cell.
+- `chargerState()` reads the three pins as `INPUT_PULLUP` (High-Z reads HIGH)
+  and decodes per the MCP73871 datasheet Table 5-1:
 
   | `PG` | `STAT1` | `STAT2` | State |
   |---|---|---|---|
@@ -219,7 +232,38 @@ Still to do:
   open-drain with a diode path back to `IN`, so the internal pull-up
   back-feeds ~58 µA into `+5V` when USB is unplugged; harmless, see
   ORDERING.md §10.
-- **BLE contract — the blocker for both.** Every package today is
+
+**First full charge, 2026-10-08** (firmware readings, SW1 on, phone not
+connected, ESP32 idle on `+SYS`). This is a *charging* curve — terminal voltage
+under ~0.5 A — so it cannot be used directly as a state-of-charge table:
+
+| min | mV | min | mV | min | mV |
+|---|---|---|---|---|---|
+| 0 | 3798 | 50 | 3994 | 100 | 4142 |
+| 10 | 3884 | 60 | 4028 | 110 | 4172 |
+| 20 | 3922 | 70 | 4074 | 120 | 4180 |
+| 30 | 3946 | 80 | 4110 | ~130 | 4192 |
+| 40 | 3970 | 90 | 4126 | end | 4180, `charge complete` |
+
+The cell started at 3.49 V resting. It was ~3.6 V once USB was in, before the
+firmware was flashed; the first logged reading is 3798 mV.
+
+Still to do:
+
+- **Voltage accuracy — unresolved.** At `charge complete` the firmware read
+  4180 mV but a multimeter at `C7` pad 1 read **4.09 V**. The two readings may
+  not have been taken at the same moment. The cell relaxes after termination,
+  but 90 mV is a lot. Possible causes: the multimeter itself, ADC calibration
+  error, or the 235 kΩ divider source impedance. Re-measure simultaneously at a
+  few points before trusting the numbers; if the firmware is consistently off,
+  add a correction.
+- **Percentage curve.** Fit `batteryPercent()` to this cell from a **discharge**
+  run-down log (resting or light-load voltage against time on battery, ending
+  at `low battery`), not from the charge log above. Logging needs USB, which
+  powers the board, so a run-down must be recorded another way — over BLE once
+  the status path exists, or as samples buffered in RAM/NVS and dumped
+  afterwards.
+- **BLE contract — the blocker for the app.** Every package today is
   app→coaster; there is no coaster→app path at all. Adding one means a new
   package type (`0x03`?) on the existing characteristic for the app to read, or
   a second notify-capable characteristic so the coaster can push. Notify suits
@@ -237,6 +281,10 @@ Notes that matter for firmware:
 - SW1 no longer cuts power on its own — it gates a P-FET that switches the LED
   rail, and the LDO's enable pin follows that rail, so the ESP32 does lose power
   when the switch is off. There is no graceful-shutdown hook; power just goes.
+- The board has no low-battery cut-off. `LBO` only reports; nothing switches
+  off at 3.1 V, so with SW1 on the cell discharges until its own protection
+  circuit trips. Always use a protected cell. A firmware cut-off (LEDs off plus
+  deep sleep below ~3.3 V) is still to do.
 - The divider draws ~4.5 µA continuously from the cell even when switched off,
   because it sits on `+BATT` upstream of the switch. That is small next to the
   charger IC's own ~30 µA quiescent draw, but it means the battery does slowly

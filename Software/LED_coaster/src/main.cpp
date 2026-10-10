@@ -12,6 +12,60 @@ PatternType outer_pattern = FIXED;
 std::string coasterID = "05";
 BLEHandler blehandler(coasterID);
 
+// Battery sense: +BATT through a 470k/470k divider, so the pin sees half the cell.
+const int BAT_SENSE_PIN = 4;
+// MCP73871 status outputs, all open-drain (High-Z reads HIGH with the pull-ups).
+const int STAT1_PIN = 5;
+const int STAT2_PIN = 6;
+const int PG_PIN = 10;
+const unsigned long BATTERY_REPORT_INTERVAL_MS = 2000;
+unsigned long lastBatteryReport = 0;
+
+// Averages several calibrated readings; the LED rail is noisy while patterns run.
+uint32_t readBatteryMillivolts() {
+  const int samples = 16;
+  uint32_t sum = 0;
+  for (int i = 0; i < samples; i++) {
+    sum += analogReadMilliVolts(BAT_SENSE_PIN);
+  }
+  return (sum / samples) * 2;
+}
+
+// Li-Po resting-voltage curve, linearly interpolated between points.
+int batteryPercent(uint32_t mv) {
+  static const uint16_t curve[][2] = {
+    {4200, 100}, {4150, 95}, {4110, 90}, {4080, 85}, {4020, 80}, {3980, 75},
+    {3950, 70},  {3910, 65}, {3870, 60}, {3850, 55}, {3840, 50}, {3820, 45},
+    {3800, 40},  {3790, 35}, {3770, 30}, {3750, 25}, {3730, 20}, {3710, 15},
+    {3690, 10},  {3610, 5},  {3270, 0}
+  };
+  const int points = sizeof(curve) / sizeof(curve[0]);
+  if (mv >= curve[0][0]) return 100;
+  if (mv <= curve[points - 1][0]) return 0;
+  for (int i = 1; i < points; i++) {
+    if (mv >= curve[i][0]) {
+      uint32_t vHigh = curve[i - 1][0], vLow = curve[i][0];
+      uint32_t pHigh = curve[i - 1][1], pLow = curve[i][1];
+      return pLow + (mv - vLow) * (pHigh - pLow) / (vHigh - vLow);
+    }
+  }
+  return 0;
+}
+
+// Decodes the status outputs per MCP73871 datasheet Table 5-1.
+const char* chargerState() {
+  bool pg = digitalRead(PG_PIN);
+  bool stat1 = digitalRead(STAT1_PIN);
+  bool stat2 = digitalRead(STAT2_PIN);
+  if (!pg && !stat1 && stat2)  return "charging";
+  if (!pg && stat1 && !stat2)  return "charge complete";
+  if (!pg && !stat1 && !stat2) return "temperature fault";
+  if (!pg && stat1 && stat2)   return "no battery present";
+  if (pg && !stat1 && stat2)   return "low battery";
+  if (pg && stat1 && stat2)    return "on battery";
+  return "unknown";
+}
+
 void setup() {
   // Setup for the LEDs
   FastLED.addLeds<WS2812, LED_PIN_INNER, GRB>(led_output_inner, NUM_LEDS_INNER);
@@ -29,6 +83,11 @@ void setup() {
 
   Serial.begin(9600);
 
+  analogSetPinAttenuation(BAT_SENSE_PIN, ADC_11db);
+  pinMode(STAT1_PIN, INPUT_PULLUP);
+  pinMode(STAT2_PIN, INPUT_PULLUP);
+  pinMode(PG_PIN, INPUT_PULLUP);
+
   // Setup Bluetooth
   blehandler.begin();
 }
@@ -37,6 +96,14 @@ void loop() {
   // Update connection state machine
   blehandler.updateConnectionState();
   blehandler.updateAdvertising();
+
+  if (millis() - lastBatteryReport >= BATTERY_REPORT_INTERVAL_MS) {
+    lastBatteryReport = millis();
+    uint32_t mv = readBatteryMillivolts();
+    Serial.printf("Battery: %u mV, %d%%, charger: %s (PG=%d STAT1=%d STAT2=%d)\n",
+                  mv, batteryPercent(mv), chargerState(),
+                  digitalRead(PG_PIN), digitalRead(STAT1_PIN), digitalRead(STAT2_PIN));
+  }
 
   // Only process patterns when fully connected
   if (blehandler.shouldProcessPatterns()) {
