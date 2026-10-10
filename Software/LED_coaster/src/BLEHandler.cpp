@@ -9,8 +9,8 @@ extern bool outer_needs_update;
 
 // Constructor that sets up the unique coaster ID
 BLEHandler::BLEHandler(const std::string& coasterID) 
-    : coasterID(coasterID), deviceConnected(false), connectionState(DISCONNECTED),
-      isAdvertising(false), advertisingStartTime(0), disconnectAnimationPending(false) {}
+    : coasterID(coasterID), deviceConnected(false), statusSubscribePending(false), connectionState(DISCONNECTED),
+      isAdvertising(false), slowAdvertising(false), advertisingStartTime(0), disconnectAnimationPending(false) {}
 
 void BLEHandler::begin() {
     // Configure BLE power settings for lower energy consumption
@@ -28,9 +28,26 @@ void BLEHandler::begin() {
         NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::WRITE
     );
 
+    // Battery status (Package 3), read or pushed to the app
+    pStatusCharacteristic = pService->createCharacteristic(
+        "00001235-0000-1000-8000-001122334455",
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
+    );
+
     // Start the service
-    pCharacteristic->setCallbacks(new CharacteristicCallbacks(this));  
+    pCharacteristic->setCallbacks(new CharacteristicCallbacks(this));
     pService->start();
+
+    // Standard Battery Service, so generic BLE tools show the level without a decoder
+    NimBLEService* pBatteryService = pServer->createService("180F");
+    pBatteryLevelCharacteristic = pBatteryService->createCharacteristic(
+        "2A19",
+        NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY
+    );
+    StatusCallbacks* statusCallbacks = new StatusCallbacks(this);
+    pStatusCharacteristic->setCallbacks(statusCallbacks);
+    pBatteryLevelCharacteristic->setCallbacks(statusCallbacks);
+    pBatteryService->start();
     
     // Configure light sleep mode for power saving when idle (ESP32-C3 specific)
     esp_pm_config_esp32c3_t pm_config;
@@ -39,6 +56,12 @@ void BLEHandler::begin() {
     pm_config.light_sleep_enable = true; // Enable automatic light sleep
     esp_pm_configure(&pm_config);
     
+    // Advertising data is set once; NimBLE appends a duplicate UUID on every addServiceUUID call.
+    // BLEHandler owns all advertising restarts, so NimBLE's own restart on disconnect is off.
+    NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
+    pAdvertising->addServiceUUID("00001801-0000-1000-8000-008051234567");
+    pAdvertising->setScanResponse(true);
+    pServer->advertiseOnDisconnect(false);
     startAdvertising();
 
     // Initialize true for outer and inner checked
@@ -46,17 +69,17 @@ void BLEHandler::begin() {
     outerChecked = true;
 }
 
+// Starts the fast phase; updateAdvertising() drops to the slow phase after ADVERTISING_TIMEOUT_MS
 void BLEHandler::startAdvertising() {
     if (!isAdvertising) {
         NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
-        pAdvertising->addServiceUUID("00001801-0000-1000-8000-008051234567");
-        pAdvertising->setScanResponse(true);
-        pAdvertising->setMinInterval(800);
-        pAdvertising->setMaxInterval(1600);
+        pAdvertising->setMinInterval(ADV_FAST_MIN_INTERVAL);
+        pAdvertising->setMaxInterval(ADV_FAST_MAX_INTERVAL);
         pAdvertising->start();
         isAdvertising = true;
+        slowAdvertising = false;
         advertisingStartTime = millis();
-        Serial.println("Started Advertising (low power mode)");
+        Serial.println("Advertising: fast");
     }
 }
 
@@ -69,11 +92,17 @@ void BLEHandler::stopAdvertising() {
 }
 
 void BLEHandler::updateAdvertising() {
-    // If advertising and timeout reached, stop advertising to save power
-    if (isAdvertising && !deviceConnected) {
+    // After the fast phase, keep advertising at a slower interval until a central connects.
+    // NimBLE only applies new intervals on a stop/start.
+    if (isAdvertising && !slowAdvertising && !deviceConnected) {
         if (millis() - advertisingStartTime > ADVERTISING_TIMEOUT_MS) {
-            stopAdvertising();
-            Serial.println("Advertising timeout - stopped to conserve power");
+            NimBLEAdvertising* pAdvertising = NimBLEDevice::getAdvertising();
+            pAdvertising->stop();
+            pAdvertising->setMinInterval(ADV_SLOW_MIN_INTERVAL);
+            pAdvertising->setMaxInterval(ADV_SLOW_MAX_INTERVAL);
+            pAdvertising->start();
+            slowAdvertising = true;
+            Serial.println("Advertising: slow (2 s)");
         }
     }
 }
@@ -130,6 +159,22 @@ void BLEHandler::resetConnectionState() {
     inner_needs_update = true;
     outer_needs_update = true;
     Serial.println("Connection state reset");
+}
+
+void BLEHandler::setStatus(const uint8_t* package3, size_t length, uint8_t percent) {
+    pStatusCharacteristic->setValue(package3, length);
+    pBatteryLevelCharacteristic->setValue(&percent, 1);
+}
+
+void BLEHandler::notifyStatus() {
+    pStatusCharacteristic->notify();
+    pBatteryLevelCharacteristic->notify();
+}
+
+void BLEHandler::StatusCallbacks::onSubscribe(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc, uint16_t subValue) {
+    if (subValue != 0) {
+        handler->statusSubscribePending = true;
+    }
 }
 
 void BLEHandler::ServerCallbacks::onConnect(NimBLEServer* pServer) {

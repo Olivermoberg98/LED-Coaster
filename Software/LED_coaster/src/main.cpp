@@ -20,6 +20,24 @@ const int STAT2_PIN = 6;
 const int PG_PIN = 10;
 const unsigned long BATTERY_REPORT_INTERVAL_MS = 2000;
 unsigned long lastBatteryReport = 0;
+const unsigned long STATUS_PUSH_INTERVAL_MS = 30000;
+unsigned long lastStatusPush = 0;
+// Below this the low-battery flag is set even before the charger raises LBO (3.1 V).
+const uint32_t LOW_BATTERY_WARN_MV = 3500;
+
+// Charger state as carried in Package 3; values are part of the BLE contract.
+enum ChargerState : uint8_t {
+  CHARGER_UNKNOWN = 0,
+  CHARGER_ON_BATTERY = 1,
+  CHARGER_CHARGING = 2,
+  CHARGER_COMPLETE = 3,
+  CHARGER_LOW_BATTERY = 4,
+  CHARGER_TEMP_FAULT = 5,
+  CHARGER_NO_BATTERY = 6
+};
+// Reported state only changes once a new reading has held for two reads in a row.
+ChargerState reportedChargerState = CHARGER_UNKNOWN;
+ChargerState pendingChargerState = CHARGER_UNKNOWN;
 
 // Averages several calibrated readings; the LED rail is noisy while patterns run.
 uint32_t readBatteryMillivolts() {
@@ -53,17 +71,79 @@ int batteryPercent(uint32_t mv) {
 }
 
 // Decodes the status outputs per MCP73871 datasheet Table 5-1.
-const char* chargerState() {
+ChargerState chargerState() {
   bool pg = digitalRead(PG_PIN);
   bool stat1 = digitalRead(STAT1_PIN);
   bool stat2 = digitalRead(STAT2_PIN);
-  if (!pg && !stat1 && stat2)  return "charging";
-  if (!pg && stat1 && !stat2)  return "charge complete";
-  if (!pg && !stat1 && !stat2) return "temperature fault";
-  if (!pg && stat1 && stat2)   return "no battery present";
-  if (pg && !stat1 && stat2)   return "low battery";
-  if (pg && stat1 && stat2)    return "on battery";
-  return "unknown";
+  if (!pg && !stat1 && stat2)  return CHARGER_CHARGING;
+  if (!pg && stat1 && !stat2)  return CHARGER_COMPLETE;
+  if (!pg && !stat1 && !stat2) return CHARGER_TEMP_FAULT;
+  if (!pg && stat1 && stat2)   return CHARGER_NO_BATTERY;
+  if (pg && !stat1 && stat2)   return CHARGER_LOW_BATTERY;
+  if (pg && stat1 && stat2)    return CHARGER_ON_BATTERY;
+  return CHARGER_UNKNOWN;
+}
+
+const char* chargerStateName(ChargerState state) {
+  switch (state) {
+    case CHARGER_ON_BATTERY:  return "on battery";
+    case CHARGER_CHARGING:    return "charging";
+    case CHARGER_COMPLETE:    return "charge complete";
+    case CHARGER_LOW_BATTERY: return "low battery";
+    case CHARGER_TEMP_FAULT:  return "temperature fault";
+    case CHARGER_NO_BATTERY:  return "no battery present";
+    default:                  return "unknown";
+  }
+}
+
+// Reads the battery and charger, logs them, and loads Package 3 into the status
+// characteristics. Returns true when the reported charger state changed.
+bool updateBatteryStatus() {
+  uint8_t pins = digitalRead(PG_PIN) | (digitalRead(STAT1_PIN) << 1) | (digitalRead(STAT2_PIN) << 2);
+#ifdef BATTERY_STATUS_FAKE
+  // Steps through every charger state and a falling voltage, one step per 5 s.
+  uint32_t step = millis() / 5000;
+  ChargerState state = (ChargerState)(step % 7);
+  uint32_t mv = 4200 - (step % 20) * 50;
+  bool usbPower = state == CHARGER_CHARGING || state == CHARGER_COMPLETE ||
+                  state == CHARGER_TEMP_FAULT || state == CHARGER_NO_BATTERY;
+#else
+  ChargerState state = chargerState();
+  uint32_t mv = readBatteryMillivolts();
+  bool usbPower = !(pins & 0x01);
+#endif
+
+  bool changed = false;
+  if (state != reportedChargerState && state == pendingChargerState) {
+    reportedChargerState = state;
+    changed = true;
+  }
+  pendingChargerState = state;
+
+  uint8_t percent = batteryPercent(mv);
+  uint8_t flags = 0;
+  if (reportedChargerState == CHARGER_LOW_BATTERY || mv < LOW_BATTERY_WARN_MV) flags |= 0x01;
+  if (usbPower) flags |= 0x02;
+#ifdef BATTERY_STATUS_FAKE
+  flags |= 0x04;
+#endif
+  uint32_t uptime = millis() / 1000;
+
+  // Package 3: see "The BLE contract" in CLAUDE.md
+  uint8_t package3[13] = {
+    0x03, 0x01,
+    (uint8_t)(mv & 0xFF), (uint8_t)(mv >> 8),
+    percent, reportedChargerState, flags, pins,
+    (uint8_t)(uptime & 0xFF), (uint8_t)(uptime >> 8), (uint8_t)(uptime >> 16), (uint8_t)(uptime >> 24),
+    0
+  };
+  for (int i = 0; i < 12; i++) package3[12] += package3[i];
+  blehandler.setStatus(package3, sizeof(package3), percent);
+
+  Serial.printf("Battery: %u mV, %d%%, charger: %s (PG=%d STAT1=%d STAT2=%d)\n",
+                mv, percent, chargerStateName(state),
+                pins & 0x01, (pins >> 1) & 0x01, (pins >> 2) & 0x01);
+  return changed;
 }
 
 void setup() {
@@ -90,6 +170,11 @@ void setup() {
 
   // Setup Bluetooth
   blehandler.begin();
+
+  // Starts the charger state settled, so the first push is not "unknown"
+  reportedChargerState = pendingChargerState = chargerState();
+  updateBatteryStatus();
+  lastBatteryReport = millis();
 }
 
 void loop() {
@@ -97,12 +182,21 @@ void loop() {
   blehandler.updateConnectionState();
   blehandler.updateAdvertising();
 
+  bool pushStatus = false;
   if (millis() - lastBatteryReport >= BATTERY_REPORT_INTERVAL_MS) {
     lastBatteryReport = millis();
-    uint32_t mv = readBatteryMillivolts();
-    Serial.printf("Battery: %u mV, %d%%, charger: %s (PG=%d STAT1=%d STAT2=%d)\n",
-                  mv, batteryPercent(mv), chargerState(),
-                  digitalRead(PG_PIN), digitalRead(STAT1_PIN), digitalRead(STAT2_PIN));
+    pushStatus = updateBatteryStatus();
+  }
+  if (blehandler.statusSubscribePending) {
+    blehandler.statusSubscribePending = false;
+    pushStatus = true;
+  }
+  if (blehandler.isConnected() && millis() - lastStatusPush >= STATUS_PUSH_INTERVAL_MS) {
+    pushStatus = true;
+  }
+  if (pushStatus) {
+    blehandler.notifyStatus();
+    lastStatusPush = millis();
   }
 
   // Only process patterns when fully connected

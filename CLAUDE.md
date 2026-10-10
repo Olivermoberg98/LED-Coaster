@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Three loosely-coupled parts, no shared build:
 
 - `Software/LED_coaster/` — ESP32-C3 firmware (PlatformIO + Arduino framework, FastLED, NimBLE-Arduino). The coaster itself.
-- `Software/App/Coaster_app/` — Android app (Kotlin, classic Views + XML layouts, **no Compose**) that drives coasters over BLE GATT.
+- `Software/App/Coaster_app/` — Android app (Kotlin, Jetpack Compose) that drives coasters over BLE GATT. Its own guide is `Software/App/Coaster_app/CLAUDE.md`.
 - `Hardware/PCB/` — KiCad project for the coaster board. `Hardware/PCB/ORDERING.md` is the live checklist for taking the board through layout to a JLCPCB order — check it for current progress before doing PCB work.
 
 `Software/LED_coaster/.pio/` is gitignored build output containing full copies of FastLED and NimBLE-Arduino. Exclude it when searching — it dwarfs the actual source (5 files).
@@ -35,21 +35,62 @@ Android app (from `Software/App/Coaster_app/`, use `gradlew.bat` on Windows):
 ./gradlew assembleDebug
 ./gradlew installDebug
 ./gradlew test                                             # JVM unit tests
-./gradlew test --tests "com.example.myemptyapp.ExampleUnitTest"   # single test
+./gradlew test --tests "com.olivermoberg.ledcoaster.games.GamesTest"   # single test class
 ./gradlew connectedAndroidTest                             # instrumented, needs a device
 ./gradlew lint
 ```
-Only the stub `Example*Test` files exist; there is no real test suite. minSdk 31 / targetSdk 34.
+JVM tests: `PacketsTest` freezes the exact Package 1/2 bytes and `GamesTest` runs the games in virtual time. `lint` passes against `app/lint-baseline.xml`. minSdk 31 / targetSdk 34, applicationId `com.olivermoberg.ledcoaster`.
 
 ## The BLE contract (the thing that spans both halves)
 
-App and firmware agree on a hand-rolled binary protocol over a single writable GATT characteristic. Changing either side without the other silently breaks things — the firmware just logs "Checksum mismatch" and drops the packet.
+App and firmware agree on a hand-rolled binary protocol: app → coaster over a writable GATT characteristic, coaster → app over a notify characteristic (Package 3, below). Changing either side without the other silently breaks things — the firmware just logs "Checksum mismatch" and drops the packet.
 
-- Service UUID `00001801-0000-1000-8000-008051234567`, characteristic `00001234-0000-1000-8000-001122334455`. Hardcoded in **three** places: [BLEHandler.cpp](Software/LED_coaster/src/BLEHandler.cpp#L24-L28), [MainActivity.kt](Software/App/Coaster_app/app/src/main/java/com/example/myemptyapp/MainActivity.kt#L63-L64), and `CoasterDevice` in [GameActivity.kt](Software/App/Coaster_app/app/src/main/java/com/example/myemptyapp/GameActivity.kt#L559-L560).
+- Service UUID `00001801-0000-1000-8000-008051234567`, characteristic `00001234-0000-1000-8000-001122334455`. Hardcoded in **two** places: [BLEHandler.cpp](Software/LED_coaster/src/BLEHandler.cpp#L24-L28) and [CoasterUuids.kt](Software/App/Coaster_app/app/src/main/java/com/olivermoberg/ledcoaster/protocol/CoasterUuids.kt), the app's only copy, which also holds the Package 3 status UUID.
 - **Package 1** (ring enable): `[0x01, outerChecked, innerChecked, checksum]`, checksum = sum of the *first three* bytes % 256.
 - **Package 2** (pattern + color): `[0x02] + "PATTERN" + 0x2C(',') + "R,G,B" + checksum`, checksum = sum of *all preceding* bytes % 256. Pattern and color arrive as ASCII, parsed with `find(',')`/`stoi`.
 - `CharacteristicCallbacks::onWrite` calls both `handlePackage1` and `handlePackage2` on every write; each returns early if the command byte doesn't match. Neither validates length before indexing.
-- Pattern name strings must match on both sides: `stringToPatternType` in [patterns.cpp](Software/LED_coaster/src/patterns.cpp#L12-L24) vs the `dropdown_items` array in [arrays.xml](Software/App/Coaster_app/app/src/main/res/values/arrays.xml). Unknown names fall back to `FIXED` rather than erroring.
+- Pattern name strings must match on both sides: `stringToPatternType` in [patterns.cpp](Software/LED_coaster/src/patterns.cpp#L12-L24) vs the `dropdown_items` array in [arrays.xml](Software/App/Coaster_app/app/src/main/res/values/arrays.xml) and the app's `Pattern` enum (a unit test checks that the two agree). Unknown names fall back to `FIXED` rather than erroring.
+
+### Coaster → app: battery status (Package 3)
+
+The coaster pushes battery status on a second characteristic of the same
+service, `00001235-0000-1000-8000-001122334455`, READ | NOTIFY. READ always
+returns the latest packet. The packet is 13 bytes, multi-byte fields
+little-endian, built in `updateBatteryStatus()` in [main.cpp](Software/LED_coaster/src/main.cpp):
+
+| Byte | Field | Type | Values |
+|---|---|---|---|
+| 0 | Type | u8 | `0x03` |
+| 1 | Version | u8 | `0x01`; the app ignores unknown versions |
+| 2–3 | Battery voltage | u16 | mV |
+| 4 | Percent | u8 | 0–100; `0xFF` = unknown |
+| 5 | Charger state | u8 | enum below |
+| 6 | Flags | u8 | bit 0 low battery, bit 1 USB power present, bit 2 fake data, bits 3–7 = 0 |
+| 7 | Raw status pins | u8 | bit 0 `PG`, bit 1 `STAT1`, bit 2 `STAT2` (pin levels) |
+| 8–11 | Uptime | u32 | seconds since boot; a drop means the coaster reset |
+| 12 | Checksum | u8 | sum of bytes 0–11 % 256 |
+
+Charger state: 0 unknown, 1 on battery, 2 charging, 3 charge complete,
+4 low battery (LBO), 5 temperature fault, 6 no battery present — the
+`ChargerState` enum in `main.cpp`, decoded from the pins as in the table under
+"Battery and charger reporting". The reported state only changes after a new
+reading holds for two consecutive 2 s reads.
+
+The low-battery flag is set by the firmware, not the app: LBO **or** below
+`LOW_BATTERY_WARN_MV` (3500 mV, to be re-set from the fitted curve).
+
+Pushes are sent from `loop()`, never from a NimBLE callback: when a client
+subscribes, every 30 s while connected, and immediately when the reported
+charger state changes. The values themselves refresh every 2 s.
+
+The standard Battery Service `0x180F` / Battery Level `0x2A19` (READ | NOTIFY,
+u8 percent) carries the same percent and is pushed together with Package 3, so
+generic tools such as nRF Connect show it without a decoder. Package 3 is the
+app's source of truth.
+
+`pio run -e battery-fake -t upload` flashes a build where Package 3 cycles
+through every charger state and a falling voltage, one step per 5 s, with flag
+bit 2 set — for testing the app's battery UI without real charger events.
 
 ## Firmware architecture
 
@@ -66,18 +107,36 @@ App and firmware agree on a hand-rolled binary protocol over a single writable G
   **12 mA/channel**, not ~20. Each ring has a `colors_*` source array (the user's chosen color, replicated per pixel) and a `led_output_*` array (what patterns actually write, after brightness modulation). Patterns take `ledsIn`/`ledsOut` for exactly this reason.
 - **`inner_needs_update` / `outer_needs_update`** exist because `FIXED` is a static frame — the main loop skips re-rendering it (just `delay(50)`) until something sets the flag: a new packet, a connect transition, or a ring being re-enabled. Any new code path that changes ring colors must set these or the change won't appear.
 - `BLEHandler` runs a `ConnectionState` machine (`DISCONNECTED → CONNECTING → CONNECTED → DISCONNECTING`). Pattern processing only runs while `CONNECTED` (`shouldProcessPatterns()`), so the loop body in `main.cpp` is dead until a phone connects. The `CONNECTING` state exists solely to fire `onConnectPattern` once.
-- Power saving is deliberate and easy to undo by accident: TX power `ESP_PWR_LVL_N0`, slow advertising intervals (800–1600), advertising self-stops after `ADVERTISING_TIMEOUT_MS` (2 min) if nobody connects, and `esp_pm_configure` enables automatic light sleep (10–160 MHz). Note `esp_pm_config_esp32c3_t` is C3-specific — porting to another chip requires changing it.
-- **Each physical coaster needs a unique `coasterID`**, hardcoded at [main.cpp:12](Software/LED_coaster/src/main.cpp#L12). It becomes the advertised name `Coaster-<id>`, and `GameActivity` recovers the ID with `substringAfterLast('-')` to label the circles.
+- Power saving is deliberate and easy to undo by accident: TX power `ESP_PWR_LVL_N0`, advertising at 0.5–1 s (800–1600 units) for `ADVERTISING_TIMEOUT_MS` (2 min) after boot or a disconnect, then at 2.0–2.2 s (3200–3520) until a central connects — it never stops while unconnected, because the app reconnects to known coasters by address, and `esp_pm_configure` enables automatic light sleep (10–160 MHz). Note `esp_pm_config_esp32c3_t` is C3-specific — porting to another chip requires changing it.
+- **Each physical coaster needs a unique `coasterID`**, hardcoded at [main.cpp:12](Software/LED_coaster/src/main.cpp#L12). It becomes the advertised name `Coaster-<id>`, and the app recovers the ID with `substringAfterLast('-')` (`CoasterConnection.coasterId`) to label the game circles.
 
 ## Android app architecture
 
-Two activities, two *different* BLE connection models:
+Details are in `Software/App/Coaster_app/CLAUDE.md`. What matters across the BLE contract:
 
-- **`MainActivity`** — single-coaster control. Classic discovery (`BluetoothAdapter.startDiscovery()` + a `BroadcastReceiver` on `ACTION_FOUND`), one `bluetoothGatt`/`targetCharacteristic` pair held directly on the activity. Known devices are persisted as address→name in the `BluetoothDevices` SharedPreferences and re-offered in a spinner. Selecting a pattern in the mode spinner shows/hides color-picker buttons; picking a color sends Package 2.
-- **`GameActivity`** — multi-coaster. Receives `"name|address"` strings via the `connectedDevices` intent extra, wraps each in a **`CoasterDevice`** (defined at the bottom of `GameActivity.kt`) that owns its own GATT connection and its own `sendPackage1`/`sendPackage2`. Devices are drag-and-dropped from a RecyclerView onto dynamically laid-out circles; `ringDeviceMap` (circle position → device) and `assignedDevices` track placement, and reducing the circle count disconnects the devices that fall off the end.
-- Games (`nattDuellen`, `drinkGame`) are `Handler.postDelayed` chains, with `currentGameRunnable` as the single cancel handle. They turn a coaster "off" by sending `FIXED` with `"0,0,0"` rather than by disabling rings via Package 1.
-- `CoasterDevice.sendPackage*` branch on API 33 for the new vs deprecated `writeCharacteristic` overloads; `MainActivity` only uses the deprecated form.
-- `gradle/libs.versions.toml` contains several IDE-generated aliases with the literal version `"your_version_here"` (`*-vyourversionhere`). They are unreferenced — never point a dependency at one.
+- **One connection per coaster, shared by both screens.** `CoasterRepository`
+  (app-scoped, held by `CoasterApp`) hands out a `CoasterConnection` per MAC
+  address. Each wraps a Nordic Android-BLE-Library `BleManager`, so every GATT
+  operation goes through one request queue. Writes use `WRITE_TYPE_DEFAULT`
+  (with response); there is no bonding.
+- **Packet encoding exists once**, in `protocol/Packets.kt`, and is locked
+  byte-for-byte by `PacketsTest`.
+- **Discovery** is a BLE scan filtered on the service UUID, so the UUID must
+  stay in the primary advertising packet; the name comes from the scan
+  response. Saved coasters are address → name in the `BluetoothDevices`
+  SharedPreferences.
+- **Reconnecting relies on the coaster never stopping advertising.** The app
+  connects saved coasters by address when one is dropped on a game circle.
+  Direct connects time out after 15 s.
+- **Connections outlive screens.** Leaving the games screen keeps coasters
+  connected. They drop when unassigned from a circle, on Disconnect, or when
+  the user leaves the app.
+- **Games** (`games/NattDuellen`, `games/RandomDrink`) are coroutines in
+  `GameViewModel`. They turn a coaster "off" with `FIXED` + `"0,0,0"`, not
+  Package 1, and each colour write waits for the coaster's acknowledgement.
+- Package 3 is decoded into `CoasterConnection.batteryStatus` and shown as a
+  status line on the main screen and a percent on each game circle, with a
+  low-battery Snackbar.
 
 ## PCB analysis tooling — use this before answering questions about the board
 
@@ -168,8 +227,10 @@ IO1, `BAT_SENSE` → IO4, `STAT1`/`STAT2`/`PG` → IO5/IO6/IO10.
 
 Gotchas that cost time during bring-up:
 
-- **Advertising self-stops after 2 minutes** (`ADVERTISING_TIMEOUT_MS`). Miss
-  that window and the coaster is invisible to the app until it is reset.
+- **Advertising slows down after 2 minutes** (`ADVERTISING_TIMEOUT_MS`), from
+  0.5–1 s to 2.0–2.2 s, but never stops while unconnected. BLEHandler owns every
+  restart: NimBLE's own advertise-on-disconnect is turned off, and the
+  advertising data is set once in `begin()`.
 - **The boot log is unreachable in practice.** A chip reset re-enumerates the
   USB CDC device, which invalidates any open port handle, and re-attach takes
   longer than it takes `setup()` to finish. So `Started Advertising (low power
@@ -193,7 +254,7 @@ Gotchas that cost time during bring-up:
   MAC is `f8:5b:1b:eb:1a:14`. Give every further board its own ID before
   flashing.
 
-## Battery and charger reporting (firmware reads it; app cannot see it yet)
+## Battery and charger reporting (firmware reads it; app shows it)
 
 **Hardware — done and verified.** A 470k/470k divider runs from `+BATT` to
 **GPIO4** (`ADC1_CH4`), buffered by C21 100nF, halving the cell so 3.0–4.2 V
@@ -204,7 +265,7 @@ back, because they pulled `STAT1`/`STAT2` to `+5V`, which would destroy a 3.6 V-
 ESP32 pin. So the board has **no visible charge indicator** — charger state is
 only readable through the firmware.
 
-**Firmware — done, serial output only.** `main.cpp` prints a line every 2 s
+**Firmware — done, serial and BLE.** `main.cpp` prints a line every 2 s
 from `loop()`, whether or not a phone is connected:
 `Battery: 3794 mV, 37%, charger: charging (PG=0 STAT1=0 STAT2=1)`.
 
@@ -256,25 +317,22 @@ Still to do:
   but 90 mV is a lot. Possible causes: the multimeter itself, ADC calibration
   error, or the 235 kΩ divider source impedance. Re-measure simultaneously at a
   few points before trusting the numbers; if the firmware is consistently off,
-  add a correction.
+  add a correction. Deferred to the Phase 4 run-down, where pairs over the
+  whole range can be read over BLE.
 - **Percentage curve.** Fit `batteryPercent()` to this cell from a **discharge**
   run-down log (resting or light-load voltage against time on battery, ending
   at `low battery`), not from the charge log above. Logging needs USB, which
   powers the board, so a run-down must be recorded another way — over BLE once
   the status path exists, or as samples buffered in RAM/NVS and dumped
   afterwards.
-- **BLE contract — the blocker for the app.** Every package today is
-  app→coaster; there is no coaster→app path at all. Adding one means a new
-  package type (`0x03`?) on the existing characteristic for the app to read, or
-  a second notify-capable characteristic so the coaster can push. Notify suits
-  status better. Carry battery level *and* charger state in one package so the
-  contract changes once. Whichever is chosen must land in **both** halves at
-  once — see "The BLE contract" above; the firmware silently drops mismatched
-  packets.
-- **App** (`Software/App/Coaster_app/`): surface level and charger state per
-  coaster. `GameActivity` already tracks devices individually via
-  `CoasterDevice`, so the natural home is a field there plus an indicator on
-  each circle.
+- **BLE status path — firmware side done.** The coaster publishes Package 3;
+  see "Coaster → app: battery status" under "The BLE contract".
+- **App — done.** `protocol/` decodes Package 3 into
+  `CoasterConnection.batteryStatus` (a StateFlow, null until the first valid
+  packet). The main screen shows a status line, each game circle a percent,
+  and a low battery raises a Snackbar; see `Software/App/Coaster_app/CLAUDE.md`.
+  Run-down logging for the percentage fit is expected on the firmware side
+  (see "Percentage curve" above); the app has no logger.
 
 Notes that matter for firmware:
 
