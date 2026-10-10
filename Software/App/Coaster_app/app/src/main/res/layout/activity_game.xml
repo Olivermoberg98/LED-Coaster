@@ -110,7 +110,7 @@
                 android:id="@+id/gameStatusText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Game Status: Waiting"
+                android:text="@string/game_status_waiting"
                 android:textSize="18sp"
                 android:textColor="@color/white"
                 android:gravity="center"

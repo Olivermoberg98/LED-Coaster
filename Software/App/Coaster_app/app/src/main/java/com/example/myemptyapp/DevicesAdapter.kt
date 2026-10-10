@@ -10,7 +10,8 @@ import com.example.myemptyapp.ble.CoasterConnection
 
 class DevicesAdapter(
     private val devices: List<CoasterConnection>,
-    private val onItemLongPress: (CoasterConnection) -> Unit
+    /** Called with the pressed coaster and its icon, for the drag shadow. */
+    private val onItemLongPress: (CoasterConnection, View) -> Unit
 ) : RecyclerView.Adapter<DevicesAdapter.DeviceViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DeviceViewHolder {
@@ -30,7 +31,7 @@ class DevicesAdapter(
 
         // Set up long press listener to start drag
         holder.itemView.setOnLongClickListener {
-            onItemLongPress(coasterDevice)
+            onItemLongPress(coasterDevice, holder.deviceIcon)
             true
         }
     }

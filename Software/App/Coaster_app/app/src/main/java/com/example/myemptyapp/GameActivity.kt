@@ -1,8 +1,6 @@
 package com.example.myemptyapp
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.DragEvent
 import android.view.Gravity
@@ -23,12 +21,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myemptyapp.ble.CoasterConnection
-import com.example.myemptyapp.protocol.Pattern
-import com.example.myemptyapp.protocol.Rgb
 import kotlinx.coroutines.launch
 
 class GameActivity : AppCompatActivity() {
-    private val handler = Handler(Looper.getMainLooper()) // For managing delayed tasks or callbacks
     private lateinit var recyclerViewDevices: RecyclerView
 
     private val viewModel: GameViewModel by viewModels()
@@ -41,8 +36,6 @@ class GameActivity : AppCompatActivity() {
 
     private lateinit var spinnerGameMode: Spinner
     private lateinit var buttonStartGame: Button
-
-    private var currentGameRunnable: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,8 +73,8 @@ class GameActivity : AppCompatActivity() {
             val coasterDevices = viewModel.coasters
 
             recyclerViewDevices.layoutManager = LinearLayoutManager(this)
-            val devicesAdapter = DevicesAdapter(coasterDevices) { coasterDevice ->
-                startDrag(coasterDevice)
+            val devicesAdapter = DevicesAdapter(coasterDevices) { coasterDevice, icon ->
+                startDrag(coasterDevice, icon)
             }
             recyclerViewDevices.adapter = devicesAdapter
             coasterDevices.forEachIndexed { index, coaster ->
@@ -99,23 +92,13 @@ class GameActivity : AppCompatActivity() {
             adapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
             spinnerGameMode.adapter = adapter
 
-            // Handle button click
+            // Spinner order matches R.array.game_modes
             buttonStartGame.setOnClickListener {
-                val selectedMode = spinnerGameMode.selectedItem.toString()
-
-                // Check if all circles are connected
-                if (!viewModel.allCirclesReady()) {
-                    Toast.makeText(this, "Please connect devices to all circles before starting!", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-
-                // Handle game mode
-                when (selectedMode) {
-                    gameModes[0] -> nattDuellen(viewModel.assignedCoasters.toMutableSet())
-                    gameModes[1] -> drinkGame(viewModel.assignedCoasters.toMutableSet())
-                    else -> {
-                        Toast.makeText(this, "Invalid game mode selected!", Toast.LENGTH_SHORT).show()
-                    }
+                val mode = GameViewModel.GameMode.entries.getOrNull(spinnerGameMode.selectedItemPosition)
+                if (mode == null) {
+                    Toast.makeText(this, "Invalid game mode selected!", Toast.LENGTH_SHORT).show()
+                } else {
+                    viewModel.startGame(mode)
                 }
             }
         } catch (e: Exception) {
@@ -126,6 +109,7 @@ class GameActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { viewModel.circleCount.collect { updateCircleLayout() } }
                 launch { viewModel.assignments.collect { bindCircles() } }
+                launch { viewModel.gameStatus.collect { showGameStatus(it) } }
                 launch {
                     viewModel.messages.collect {
                         Toast.makeText(this@GameActivity, it, Toast.LENGTH_SHORT).show()
@@ -135,12 +119,10 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    private fun startDrag(coasterDevice: CoasterConnection) {
+    private fun startDrag(coasterDevice: CoasterConnection, icon: View) {
         try {
-            // Create a shadow for the drag action
-            val view = recyclerViewDevices.findViewById<View>(R.id.deviceIcon)
-            if (view.width > 0 && view.height > 0) {
-                val shadow = View.DragShadowBuilder(view)
+            if (icon.width > 0 && icon.height > 0) {
+                val shadow = View.DragShadowBuilder(icon)
 
                 // Pass the device object as local state
                 recyclerViewDevices.startDragAndDrop(null, shadow, coasterDevice, 0)
@@ -148,7 +130,7 @@ class GameActivity : AppCompatActivity() {
             } else {
                 Log.e(
                     "GameActivity",
-                    "View has invalid dimensions for drag: width = ${view.width}, height = ${view.height}"
+                    "View has invalid dimensions for drag: width = ${icon.width}, height = ${icon.height}"
                 )
             }
         } catch (e: Exception) {
@@ -169,7 +151,7 @@ class GameActivity : AppCompatActivity() {
                 }
 
                 DragEvent.ACTION_DRAG_ENDED -> {
-                    if (!event.result) v.setBackgroundResource(R.drawable.circle_background)
+                    bindCircles()
                     true
                 }
 
@@ -283,156 +265,19 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    private fun nattDuellen(coasterDevices: MutableSet<CoasterConnection>) {
-        // Cancel any previous game that might still be running
-        cancelCurrentGame()
-
-        Toast.makeText(this, "Starting Mode 1!", Toast.LENGTH_SHORT).show()
+    private fun showGameStatus(status: GameViewModel.GameStatus) {
         val gameStatusText = findViewById<TextView>(R.id.gameStatusText)
         val gameProgressBar = findViewById<ProgressBar>(R.id.gameProgressBar)
-        buttonStartGame.visibility = View.GONE
-        gameStatusText.text = getString(R.string.game_status_nattduellen_started)
-        gameProgressBar.visibility = View.VISIBLE
-
-        // Light up all connected coasters with white
-        for (coaster in coasterDevices) {
-            coaster.sendPackage2(Pattern.FIXED, Rgb.WHITE)
-        }
-
-        val randomDelay = (5..10).random() * 1000L
-
-        // Store the runnable so we can cancel it if needed
-        currentGameRunnable = Runnable {
-            val randomCoaster = coasterDevices.random()
-            // Turn off by sending black color instead of disabling rings
-            randomCoaster.sendPackage2(Pattern.FIXED, Rgb.OFF) // Black = off
-            Log.d("Nattduellen", "Random coaster turned off: ${randomCoaster.name}")
-
-            // Nested delayed task for cleanup
-            handler.postDelayed({
-                // Turn off ALL coasters with black color
-                for (coaster in coasterDevices) {
-                    coaster.sendPackage2(Pattern.FIXED, Rgb.OFF)
-                }
-
-                gameStatusText.text = getString(R.string.game_status_game_over)
-                buttonStartGame.visibility = View.VISIBLE
-                gameProgressBar.visibility = View.GONE
-
-                Log.d("Nattduellen", "Game ended, all coasters reset")
-            }, 3000)
-        }
-
-        handler.postDelayed(currentGameRunnable!!, randomDelay)
-    }
-
-    private fun drinkGame(coasterDevices: MutableSet<CoasterConnection>) {
-        // Cancel any previous game that might still be running
-        cancelCurrentGame()
-
-        val gameDuration = (20..25).random() * 1000L
-        val startTime = System.currentTimeMillis()
-        val initialBounceInterval = 1600L // Start slow
-        val finalBounceInterval = 200L // End fast
-        var previousCoaster: CoasterConnection? = null // Track the last lit coaster
-
-        buttonStartGame.visibility = View.GONE
-        val gameStatusText = findViewById<TextView>(R.id.gameStatusText)
-        val gameProgressBar = findViewById<ProgressBar>(R.id.gameProgressBar)
-        gameStatusText.text = getString(R.string.game_status_drink_started)
-        gameProgressBar.visibility = View.VISIBLE
-
-        // Turn off all coasters at the start
-        for (coaster in coasterDevices) {
-            coaster.sendPackage2(Pattern.FIXED, Rgb.OFF)
-        }
-
-        fun lightUpAndTurnOff() {
-            val elapsedTime = System.currentTimeMillis() - startTime
-
-            if (elapsedTime > gameDuration) {
-                // Game over - light up final coaster
-                handler.postDelayed({
-                    // Select a final coaster that's different from the previous one
-                    val availableFinalCoasters = if (previousCoaster != null && coasterDevices.size > 1) {
-                        coasterDevices.filter { it != previousCoaster }
-                    } else {
-                        coasterDevices.toList()
-                    }
-
-                    val finalCoaster = availableFinalCoasters.random()
-                    val finalColor = generateRandomColor()
-
-                    // Turn off ALL coasters
-                    for (coaster in coasterDevices) {
-                        coaster.sendPackage2(Pattern.FIXED, Rgb.OFF)
-                    }
-
-                    // Then light up the final one
-                    handler.postDelayed({
-                        finalCoaster.sendPackage2(Pattern.FIXED, finalColor)
-
-                        Toast.makeText(this, "Game Over! ${finalCoaster.name} loses!", Toast.LENGTH_SHORT).show()
-                        gameStatusText.text = getString(R.string.game_status_game_over)
-                        buttonStartGame.visibility = View.VISIBLE
-                        gameProgressBar.visibility = View.GONE
-                    }, 100)
-                }, 100)
-                return
+        val running = status is GameViewModel.GameStatus.Running
+        buttonStartGame.visibility = if (running) View.GONE else View.VISIBLE
+        gameProgressBar.visibility = if (running) View.VISIBLE else View.GONE
+        gameStatusText.text = when (status) {
+            GameViewModel.GameStatus.Waiting -> getString(R.string.game_status_waiting)
+            GameViewModel.GameStatus.Over -> getString(R.string.game_status_game_over)
+            is GameViewModel.GameStatus.Running -> when (status.mode) {
+                GameViewModel.GameMode.NATT_DUELLEN -> getString(R.string.game_status_nattduellen_started)
+                GameViewModel.GameMode.RANDOM_DRINK -> getString(R.string.game_status_drink_started)
             }
-
-            // Calculate current bounce interval based on elapsed time
-            val progress = elapsedTime.toFloat() / gameDuration.toFloat()
-            val currentBounceInterval = (initialBounceInterval - (initialBounceInterval - finalBounceInterval) * progress).toLong()
-
-            // Select a random coaster that's different from the previous one
-            val availableCoasters = if (previousCoaster != null && coasterDevices.size > 1) {
-                coasterDevices.filter { it != previousCoaster }
-            } else {
-                coasterDevices.toList()
-            }
-
-            val randomCoaster = availableCoasters.random()
-            val randomColor = generateRandomColor()
-
-            // Turn off ALL coasters first
-            for (coaster in coasterDevices) {
-                if (coaster != randomCoaster) {
-                    coaster.sendPackage2(Pattern.FIXED, Rgb.OFF)
-                }
-            }
-
-            // Small delay, then light up the selected coaster
-            handler.postDelayed({
-                randomCoaster.sendPackage2(Pattern.FIXED, randomColor)
-                previousCoaster = randomCoaster // Update the previous coaster
-
-                // Schedule next bounce with the calculated interval
-                currentGameRunnable = Runnable { lightUpAndTurnOff() }
-                handler.postDelayed(currentGameRunnable!!, currentBounceInterval)
-            }, 100)
         }
-        // Wait a bit for the initial "off" commands to process
-        handler.postDelayed({
-            lightUpAndTurnOff()
-        }, 100)
-    }
-
-    private fun cancelCurrentGame() {
-        currentGameRunnable?.let {
-            handler.removeCallbacks(it)
-            Log.d("GameActivity", "Current game cancelled")
-        }
-        currentGameRunnable = null
-    }
-
-    private fun generateRandomColor(): Rgb =
-        Rgb((0..255).random(), (0..255).random(), (0..255).random())
-
-    override fun onDestroy() {
-        super.onDestroy()
-        cancelCurrentGame()
-        handler.removeCallbacksAndMessages(null)
-        Log.d("GameActivity", "All resources released")
     }
 }

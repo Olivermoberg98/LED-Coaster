@@ -158,7 +158,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/activity_game.xml"
-            line="6"
+            line="7"
             column="5"/>
     </issue>
 
@@ -352,7 +352,7 @@
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/activity_game.xml"
-            line="10"
+            line="15"
             column="9"/>
     </issue>
 
@@ -392,7 +392,7 @@
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/activity_game.xml"
-            line="31"
+            line="36"
             column="17"/>
     </issue>
 
@@ -403,18 +403,7 @@
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/activity_game.xml"
-            line="99"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;Game Status: Waiting&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;Game Status: Waiting&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_game.xml"
-            line="107"
+            line="105"
             column="17"/>
     </issue>
 
@@ -502,7 +491,7 @@
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/layout/activity_game.xml"
-            line="39"
+            line="44"
             column="17"/>
     </issue>
 

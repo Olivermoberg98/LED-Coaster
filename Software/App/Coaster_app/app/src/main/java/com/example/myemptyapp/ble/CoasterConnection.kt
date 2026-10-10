@@ -5,9 +5,11 @@ import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
+import com.example.myemptyapp.games.CoasterController
 import com.example.myemptyapp.protocol.Packets
 import com.example.myemptyapp.protocol.Pattern
 import com.example.myemptyapp.protocol.Rgb
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,8 +24,8 @@ class CoasterConnection internal constructor(
     private val context: Context,
     private val device: BluetoothDevice,
     /** Advertised name, e.g. `Coaster-05`. */
-    val name: String
-) {
+    override val name: String
+) : CoasterController {
     enum class State { DISCONNECTED, CONNECTING, READY, DISCONNECTING }
 
     val address: String get() = device.address
@@ -92,6 +94,26 @@ class CoasterConnection internal constructor(
     /** Queues Package 2 (pattern and colour). Returns immediately. */
     fun sendPackage2(pattern: Pattern, color: Rgb) =
         send(Packets.encodePackage2(pattern, color))
+
+    override suspend fun showColor(color: Rgb): Boolean =
+        write(Packets.encodePackage2(Pattern.FIXED, color))
+
+    /** Writes [packet] and suspends until the coaster acknowledges it. */
+    private suspend fun write(packet: ByteArray): Boolean {
+        if (!isReady) {
+            Log.w(TAG, "Not ready, dropping packet for $name ($address)")
+            return false
+        }
+        return try {
+            manager.writeCommand(packet).suspend()
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "Write to $name ($address) failed", e)
+            false
+        }
+    }
 
     private fun send(packet: ByteArray) {
         if (!isReady) {
