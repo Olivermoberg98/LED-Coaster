@@ -18,7 +18,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import java.io.OutputStream
-import java.util.UUID
 import java.io.IOException
 
 // More general imports
@@ -47,12 +46,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.flask.colorpicker.ColorPickerView
 //import com.flask.colorpicker.OnColorSelectedListener
 import com.flask.colorpicker.builder.ColorPickerDialogBuilder
+import com.example.myemptyapp.protocol.CoasterUuids
+import com.example.myemptyapp.protocol.Packets
+import com.example.myemptyapp.protocol.Pattern
+import com.example.myemptyapp.protocol.Rgb
 import kotlinx.coroutines.delay
 
 // Define command bytes for each package
-private const val PACKAGE_1_COMMAND: Byte = 0x01
-private const val PACKAGE_2_COMMAND: Byte = 0x02
-
 class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickListener {
 
     // Bluetooth variable initialization
@@ -60,8 +60,6 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
     private val REQUEST_ENABLE_BT = 2
     private lateinit var selectedDevice: BluetoothDevice
     private lateinit var receiver: BroadcastReceiver
-    private val MY_UUID = UUID.fromString("00001801-0000-1000-8000-008051234567")
-    private var MY_CHAR_UUID = UUID.fromString("00001234-0000-1000-8000-001122334455")
     private var bluetoothSocket: BluetoothSocket? = null // Member variable to hold Bluetooth socket
     private lateinit var spinner: Spinner
 
@@ -100,7 +98,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                 return
             }
 
-            val characteristic = gatt?.getService(MY_UUID)?.getCharacteristic(MY_CHAR_UUID)
+            val characteristic = gatt?.getService(CoasterUuids.SERVICE)?.getCharacteristic(CoasterUuids.COMMAND)
             if (characteristic == null) {
                 Log.e(TAG, "Coaster characteristic not found on this device")
                 runOnUiThread { this@MainActivity.showToast("Error: this device is not a coaster") }
@@ -254,9 +252,8 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                     }
 
                     "RAINBOW" -> {
-                        val selectedMode = (findViewById<Spinner>(R.id.dropdown_menu)).selectedItem.toString()
                         showColorPickerButton(0)
-                        sendPackage2(selectedMode, "0,255,0")
+                        sendPackage2(Pattern.RAINBOW, Rgb(0, 255, 0))
                     }
 
                     else -> {
@@ -326,19 +323,11 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
                 // For example, you can update UI elements with the selected color
                 view.setBackgroundColor(color)
 
-                // Extract RGB components
-                //val alpha = (color shr 24) and 0xFF
-                val red = (color shr 16) and 0xFF
-                val green = (color shr 8) and 0xFF
-                val blue = color and 0xFF
-
-                val colorString = "$red,$green,$blue"
-
                 // Get the selected mode from the spinner
                 val selectedMode = (findViewById<Spinner>(R.id.dropdown_menu)).selectedItem.toString()
 
                 // Send data to the BLE module
-                sendPackage2(selectedMode, colorString)
+                sendPackage2(Pattern.fromWireName(selectedMode) ?: Pattern.FIXED, Rgb.fromArgb(color))
             }
             .setPositiveButton("OK") { dialog, selectedColor, allColors ->
                 // Handle OK button click if needed
@@ -357,18 +346,7 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
             return
         }
         try {
-            val commandByte: Byte = PACKAGE_1_COMMAND
-            val dataBytes = byteArrayOf(
-                commandByte,
-                if (isOuterChecked) 0x01 else 0x00,
-                if (isInnerChecked) 0x01 else 0x00
-            )
-
-            // Calculate checksum by summing all bytes modulo 256
-            val checksum: Byte = (dataBytes.sumOf { it.toInt() } % 256).toByte()
-
-            // Append the checksum to the data array
-            val finalDataBytes = dataBytes + checksum
+            val finalDataBytes = Packets.encodePackage1(isOuterChecked, isInnerChecked)
 
             targetCharacteristic?.let { characteristic ->
                 characteristic.value = finalDataBytes
@@ -388,22 +366,13 @@ class MainActivity : AppCompatActivity(), BluetoothDeviceAdapter.OnDeviceClickLi
 
     // Package 2: Send mode and list of colors
     @RequiresApi(Build.VERSION_CODES.S)
-    private fun sendPackage2(mode: String, colors: String) {
+    private fun sendPackage2(pattern: Pattern, color: Rgb) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             requestBluetoothPermissions()
             return
         }
         try {
-            val commandByte: Byte = PACKAGE_2_COMMAND
-            val modeBytes = mode.toByteArray()
-            val colorBytes = colors.toByteArray()
-            val dataBytes = byteArrayOf(commandByte) + modeBytes + byteArrayOf(0x2C) + colorBytes
-
-            // Calculate checksum by summing all bytes modulo 256
-            val checksum: Byte = (dataBytes.sumOf { it.toInt() } % 256).toByte()
-
-            // Append the checksum to the data array
-            val finalDataBytes = dataBytes + checksum.toByte()
+            val finalDataBytes = Packets.encodePackage2(pattern, color)
 
             targetCharacteristic?.let { characteristic ->
                 characteristic.value = finalDataBytes

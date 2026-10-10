@@ -33,11 +33,11 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.myemptyapp.protocol.CoasterUuids
+import com.example.myemptyapp.protocol.Packets
+import com.example.myemptyapp.protocol.Pattern
+import com.example.myemptyapp.protocol.Rgb
 import java.io.IOException
-import java.util.UUID
-
-private const val PACKAGE_1_COMMAND: Byte = 0x01
-private const val PACKAGE_2_COMMAND: Byte = 0x02
 
 class GameActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper()) // For managing delayed tasks or callbacks
@@ -377,10 +377,8 @@ class GameActivity : AppCompatActivity() {
         gameProgressBar.visibility = View.VISIBLE
 
         // Light up all connected coasters with white
-        val whiteColorString = "255,255,255"
-
         for (coaster in coasterDevices) {
-            coaster.sendPackage2("FIXED", whiteColorString)
+            coaster.sendPackage2(Pattern.FIXED, Rgb.WHITE)
         }
 
         val randomDelay = (5..10).random() * 1000L
@@ -389,14 +387,14 @@ class GameActivity : AppCompatActivity() {
         currentGameRunnable = Runnable {
             val randomCoaster = coasterDevices.random()
             // Turn off by sending black color instead of disabling rings
-            randomCoaster.sendPackage2("FIXED", "0,0,0") // Black = off
+            randomCoaster.sendPackage2(Pattern.FIXED, Rgb.OFF) // Black = off
             Log.d("Nattduellen", "Random coaster turned off: ${randomCoaster.getDeviceName()}")
 
             // Nested delayed task for cleanup
             handler.postDelayed({
                 // Turn off ALL coasters with black color
                 for (coaster in coasterDevices) {
-                    coaster.sendPackage2("FIXED", "0,0,0")
+                    coaster.sendPackage2(Pattern.FIXED, Rgb.OFF)
                 }
 
                 gameStatusText.text = getString(R.string.game_status_game_over)
@@ -428,7 +426,7 @@ class GameActivity : AppCompatActivity() {
 
         // Turn off all coasters at the start
         for (coaster in coasterDevices) {
-            coaster.sendPackage2("FIXED", "0,0,0")
+            coaster.sendPackage2(Pattern.FIXED, Rgb.OFF)
         }
 
         fun lightUpAndTurnOff() {
@@ -449,12 +447,12 @@ class GameActivity : AppCompatActivity() {
 
                     // Turn off ALL coasters
                     for (coaster in coasterDevices) {
-                        coaster.sendPackage2("FIXED", "0,0,0")
+                        coaster.sendPackage2(Pattern.FIXED, Rgb.OFF)
                     }
 
                     // Then light up the final one
                     handler.postDelayed({
-                        finalCoaster.sendPackage2("FIXED", finalColor)
+                        finalCoaster.sendPackage2(Pattern.FIXED, finalColor)
 
                         Toast.makeText(this, "Game Over! ${finalCoaster.getDeviceName()} loses!", Toast.LENGTH_SHORT).show()
                         gameStatusText.text = getString(R.string.game_status_game_over)
@@ -482,13 +480,13 @@ class GameActivity : AppCompatActivity() {
             // Turn off ALL coasters first
             for (coaster in coasterDevices) {
                 if (coaster != randomCoaster) {
-                    coaster.sendPackage2("FIXED", "0,0,0")
+                    coaster.sendPackage2(Pattern.FIXED, Rgb.OFF)
                 }
             }
 
             // Small delay, then light up the selected coaster
             handler.postDelayed({
-                randomCoaster.sendPackage2("FIXED", randomColor)
+                randomCoaster.sendPackage2(Pattern.FIXED, randomColor)
                 previousCoaster = randomCoaster // Update the previous coaster
 
                 // Schedule next bounce with the calculated interval
@@ -510,12 +508,8 @@ class GameActivity : AppCompatActivity() {
         currentGameRunnable = null
     }
 
-    private fun generateRandomColor(): String {
-        val red = (0..255).random()
-        val green = (0..255).random()
-        val blue = (0..255).random()
-        return "$red,$green,$blue"
-    }
+    private fun generateRandomColor(): Rgb =
+        Rgb((0..255).random(), (0..255).random(), (0..255).random())
 
     private fun isDeviceConnected(device: BluetoothDevice): Boolean {
         return try {
@@ -558,8 +552,6 @@ class CoasterDevice(
     private var bluetoothGatt: BluetoothGatt? = null
     private var targetCharacteristic: BluetoothGattCharacteristic? = null
     private val REQUEST_BLUETOOTH_PERMISSIONS = 1
-    private val MY_UUID = UUID.fromString("00001801-0000-1000-8000-008051234567")
-    private var MY_CHAR_UUID = UUID.fromString("00001234-0000-1000-8000-001122334455")
 
     fun connect() {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
@@ -591,8 +583,8 @@ class CoasterDevice(
                 super.onServicesDiscovered(gatt, status)
                 if (status == BluetoothGatt.GATT_SUCCESS) {
                     // Assume the service and characteristic UUIDs are known
-                    val service = gatt.getService(MY_UUID)
-                    targetCharacteristic = service?.getCharacteristic(MY_CHAR_UUID)
+                    val service = gatt.getService(CoasterUuids.SERVICE)
+                    targetCharacteristic = service?.getCharacteristic(CoasterUuids.COMMAND)
                     Log.d("CoasterDevice", "Service and characteristic discovered for ${device.address}")
                 }
             }
@@ -605,18 +597,7 @@ class CoasterDevice(
             return
         }
         try {
-            val commandByte: Byte = PACKAGE_1_COMMAND
-            val dataBytes = byteArrayOf(
-                commandByte,
-                if (isOuterChecked) 0x01 else 0x00,
-                if (isInnerChecked) 0x01 else 0x00
-            )
-
-            // Calculate checksum by summing all bytes modulo 256
-            val checksum: Byte = (dataBytes.sumOf { it.toInt() } % 256).toByte()
-
-            // Append the checksum to the data array
-            val finalDataBytes = dataBytes + checksum
+            val finalDataBytes = Packets.encodePackage1(isOuterChecked, isInnerChecked)
 
             targetCharacteristic?.let { characteristic ->
                 val success = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -638,22 +619,13 @@ class CoasterDevice(
         }
     }
 
-    fun sendPackage2(mode: String, colors: String) {
+    fun sendPackage2(pattern: Pattern, color: Rgb) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             requestBluetoothPermissions(context)
             return
         }
         try {
-            val commandByte: Byte = PACKAGE_2_COMMAND
-            val modeBytes = mode.toByteArray()
-            val colorBytes = colors.toByteArray()
-            val dataBytes = byteArrayOf(commandByte) + modeBytes + byteArrayOf(0x2C) + colorBytes
-
-            // Calculate checksum by summing all bytes modulo 256
-            val checksum: Byte = (dataBytes.sumOf { it.toInt() } % 256).toByte()
-
-            // Append the checksum to the data array
-            val finalDataBytes = dataBytes + checksum
+            val finalDataBytes = Packets.encodePackage2(pattern, color)
 
             targetCharacteristic?.let { characteristic ->
                 val success = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
