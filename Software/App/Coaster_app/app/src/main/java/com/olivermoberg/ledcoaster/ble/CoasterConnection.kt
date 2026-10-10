@@ -4,8 +4,11 @@ import android.Manifest
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.SystemClock
 import android.util.Log
 import com.olivermoberg.ledcoaster.games.CoasterController
+import com.olivermoberg.ledcoaster.protocol.BatteryStatus
+import com.olivermoberg.ledcoaster.protocol.BatteryStatusDecoder
 import com.olivermoberg.ledcoaster.protocol.Packets
 import com.olivermoberg.ledcoaster.protocol.Pattern
 import com.olivermoberg.ledcoaster.protocol.Rgb
@@ -24,7 +27,9 @@ class CoasterConnection internal constructor(
     private val context: Context,
     private val device: BluetoothDevice,
     /** Advertised name, e.g. `Coaster-05`. */
-    override val name: String
+    override val name: String,
+    /** Monotonic clock stamped on each battery status. */
+    private val clock: () -> Long = SystemClock::elapsedRealtime
 ) : CoasterController {
     enum class State { DISCONNECTED, CONNECTING, READY, DISCONNECTING }
 
@@ -44,14 +49,46 @@ class CoasterConnection internal constructor(
 
     val isReady: Boolean get() = _state.value == State.READY
 
+    private val _batteryStatus = MutableStateFlow<BatteryStatus?>(null)
+    /**
+     * Latest valid Package 3 from this coaster. Null until the first one
+     * arrives after a connect, after a disconnect, and always for firmware
+     * without the status characteristic.
+     */
+    val batteryStatus: StateFlow<BatteryStatus?> = _batteryStatus.asStateFlow()
+
     private val manager = CoasterBleManager(context).apply {
         connectionObserver = object : ConnectionObserver {
             override fun onDeviceConnecting(device: BluetoothDevice) { _state.value = State.CONNECTING }
             override fun onDeviceConnected(device: BluetoothDevice) { _state.value = State.CONNECTING }
-            override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) { _state.value = State.DISCONNECTED }
+            override fun onDeviceFailedToConnect(device: BluetoothDevice, reason: Int) {
+                _state.value = State.DISCONNECTED
+                _batteryStatus.value = null
+            }
             override fun onDeviceReady(device: BluetoothDevice) { _state.value = State.READY }
             override fun onDeviceDisconnecting(device: BluetoothDevice) { _state.value = State.DISCONNECTING }
-            override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) { _state.value = State.DISCONNECTED }
+            override fun onDeviceDisconnected(device: BluetoothDevice, reason: Int) {
+                _state.value = State.DISCONNECTED
+                _batteryStatus.value = null
+            }
+        }
+        onStatusPacket = ::onStatusPacket
+    }
+
+    private fun onStatusPacket(packet: ByteArray) {
+        when (val result = BatteryStatusDecoder.decode(packet, clock())) {
+            is BatteryStatusDecoder.Result.Ok -> {
+                val status = result.status
+                Log.i(
+                    TAG,
+                    "$name battery: ${status.millivolts} mV, ${status.percent ?: "?"}%, " +
+                        "${status.chargerState}, flags 0x%02X, pins 0x%02X, up ${status.uptimeSeconds} s"
+                            .format(status.flags, status.pins)
+                )
+                _batteryStatus.value = status
+            }
+            is BatteryStatusDecoder.Result.Rejected ->
+                Log.w(TAG, "$name: status packet rejected, ${result.reason}: ${result.detail}")
         }
     }
 
@@ -77,6 +114,8 @@ class CoasterConnection internal constructor(
         return try {
             request.suspend()
             true
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.w(TAG, "Connect to $name ($address) failed", e)
             false

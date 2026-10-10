@@ -1,7 +1,7 @@
 # App refactor plan (Stage A)
 
-Status: **approved 2026-10-10**, see §8 for the decisions. B0–B7 and C1 done;
-next is C2. Line numbers and
+Status: **approved 2026-10-10**, see §8 for the decisions. B0–B7, C1 and C2 done;
+next is C3 (hardware check). Line numbers and
 paths below refer to the code before the refactor. Line references are to `refactor/app` at
 `e6c6b7b`. Paths are relative to `app/src/main/java/com/example/myemptyapp/`
 unless stated. Versions were checked against Maven Central / Google Maven on

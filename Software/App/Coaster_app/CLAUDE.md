@@ -85,7 +85,15 @@ a change on one side without the other is silently dropped by the firmware.
   exactly 13 bytes, checksum. A charger code outside 0–6 decodes as
   `UNKNOWN` and the packet is kept; percent `0xFF` or above 100 is `null`.
   Reserved flag bits are ignored, and `flags`/`pins` stay raw for the
-  run-down logger. Not yet wired to the connection (step C2).
+  run-down logger.
+- **Battery status on the connection.** The status characteristic is
+  optional: firmware without it still connects, and `batteryStatus` stays
+  null. When present, `CoasterBleManager.initialize` enables notifications
+  **then** reads once, and both feed `CoasterConnection.batteryStatus`
+  (`StateFlow<BatteryStatus?>`): null until the first valid packet, back to
+  null on disconnect. Every decoded packet is logged at INFO under tag
+  `CoasterConnection`; rejected ones at WARN with the reason. "Low battery"
+  in the app means only `flags` bit 0, which the firmware sets.
 
 ## Connection lifetime
 

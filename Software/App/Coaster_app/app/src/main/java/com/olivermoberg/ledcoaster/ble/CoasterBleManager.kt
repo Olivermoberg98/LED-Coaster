@@ -16,13 +16,37 @@ internal class CoasterBleManager(context: Context) : BleManager(context) {
 
     private var command: BluetoothGattCharacteristic? = null
 
+    /** Battery status (Package 3). Optional: firmware before Package 3 lacks it. */
+    private var status: BluetoothGattCharacteristic? = null
+
+    /** Receives every raw status packet, from both the initial read and notifications. */
+    var onStatusPacket: ((ByteArray) -> Unit)? = null
+
     override fun isRequiredServiceSupported(gatt: BluetoothGatt): Boolean {
-        command = gatt.getService(CoasterUuids.SERVICE)?.getCharacteristic(CoasterUuids.COMMAND)
+        val service = gatt.getService(CoasterUuids.SERVICE)
+        command = service?.getCharacteristic(CoasterUuids.COMMAND)
+        status = service?.getCharacteristic(CoasterUuids.STATUS)
+            ?.takeIf { it.properties and BluetoothGattCharacteristic.PROPERTY_NOTIFY != 0 }
+        if (command != null && status == null) Log.i(TAG, "No battery status characteristic; older firmware")
         return command != null
+    }
+
+    override fun initialize() {
+        val status = status ?: return
+        setNotificationCallback(status).with { _, data -> data.value?.let { onStatusPacket?.invoke(it) } }
+        // Subscribe first, then read, so no packet pushed in between is missed
+        enableNotifications(status)
+            .fail { _, code -> Log.w(TAG, "Enabling status notifications failed, status $code") }
+            .enqueue()
+        readCharacteristic(status)
+            .with { _, data -> data.value?.let { onStatusPacket?.invoke(it) } }
+            .fail { _, code -> Log.w(TAG, "Reading status failed, status $code") }
+            .enqueue()
     }
 
     override fun onServicesInvalidated() {
         command = null
+        status = null
     }
 
     /** Queues a write-with-response to the command characteristic. */
