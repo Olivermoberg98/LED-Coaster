@@ -196,7 +196,7 @@ private fun MainContent(
 }
 
 @Composable
-private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) {
+internal fun Section(title: String, content: @Composable ColumnScope.() -> Unit) {
     Card(
         colors = CardDefaults.cardColors(containerColor = CardBackground),
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -228,7 +228,7 @@ private fun RingCheckbox(label: String, checked: Boolean, enabled: Boolean, onCh
 
 /** A text field look-alike that opens a menu of [items]. */
 @Composable
-private fun Dropdown(label: String, items: List<String>, enabled: Boolean, onSelected: (Int) -> Unit) {
+internal fun Dropdown(label: String, items: List<String>, enabled: Boolean, onSelected: (Int) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box {
         OutlinedButton(

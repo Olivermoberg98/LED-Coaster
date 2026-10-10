@@ -8,7 +8,7 @@
         errorLine2="        ~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="14"
+            line="15"
             column="9"/>
     </issue>
 
@@ -112,17 +112,6 @@
     </issue>
 
     <issue
-        id="ObsoleteLayoutParam"
-        message="Invalid layout param &apos;`layout_below`&apos; (included from within a `LinearLayout` in `layout/activity_main.xml`)"
-        errorLine1="    android:layout_below=&quot;@id/layout_bluetooth&quot;"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/layout_checkboxes.xml"
-            line="7"
-            column="5"/>
-    </issue>
-
-    <issue
         id="ObsoleteSdkInt"
         message="Unnecessary; `SDK_INT` is always >= 31"
         errorLine1="        tools:targetApi=&quot;s&quot; />"
@@ -138,39 +127,6 @@
         message="This folder configuration (`v26`) is unnecessary; `minSdkVersion` is 31. Merge all the resources in this folder into `mipmap-anydpi`.">
         <location
             file="src/main/res/mipmap-anydpi-v26"/>
-    </issue>
-
-    <issue
-        id="UseCompoundDrawables"
-        message="This tag and its children can be replaced by one `&lt;TextView/>` and a compound drawable"
-        errorLine1="&lt;LinearLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;"
-        errorLine2=" ~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/item_device.xml"
-            line="2"
-            column="2"/>
-    </issue>
-
-    <issue
-        id="Overdraw"
-        message="Possible overdraw: Root element paints background `@color/background_color` with a theme that also paints a background (inferred theme is `@style/Theme.LedCoaster`)"
-        errorLine1="    android:background=&quot;@color/background_color&quot;>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_game.xml"
-            line="7"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="Overdraw"
-        message="Possible overdraw: Root element paints background `@color/background_color` with a theme that also paints a background (inferred theme is `@style/Theme.LedCoaster`)"
-        errorLine1="    android:background=&quot;@color/background_color&quot;>"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_main.xml"
-            line="7"
-            column="5"/>
     </issue>
 
     <issue
@@ -209,7 +165,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/colors.xml"
-            line="14"
+            line="12"
             column="12"/>
     </issue>
 
@@ -220,7 +176,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/colors.xml"
-            line="15"
+            line="13"
             column="12"/>
     </issue>
 
@@ -231,7 +187,7 @@
         errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/colors.xml"
-            line="17"
+            line="14"
             column="12"/>
     </issue>
 
@@ -335,28 +291,6 @@
     </issue>
 
     <issue
-        id="UselessParent"
-        message="This `ScrollView` layout or its `RelativeLayout` parent is unnecessary; transfer the `background` attribute to the other view"
-        errorLine1="    &lt;ScrollView"
-        errorLine2="     ~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_main.xml"
-            line="9"
-            column="6"/>
-    </issue>
-
-    <issue
-        id="RedundantNamespace"
-        message="This namespace declaration is redundant"
-        errorLine1="        xmlns:app=&quot;http://schemas.android.com/apk/res-auto&quot;"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_game.xml"
-            line="15"
-            column="9"/>
-    </issue>
-
-    <issue
         id="MonochromeLauncherIcon"
         message="The application adaptive icon is missing a monochrome tag"
         errorLine1="&lt;adaptive-icon xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;>"
@@ -383,116 +317,6 @@
         message="Found bitmap drawable `res/drawable/coaster_image.jpg` in densityless folder">
         <location
             file="src/main/res/drawable/coaster_image.jpg"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;Games&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;Games&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_game.xml"
-            line="36"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;Start Game&quot;, should use `@string` resource"
-        errorLine1="                android:text=&quot;Start Game&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_game.xml"
-            line="105"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;Go to Games&quot;, should use `@string` resource"
-        errorLine1="                        android:text=&quot;Go to Games&quot;"
-        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_main.xml"
-            line="115"
-            column="25"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;Choose Color&quot;, should use `@string` resource"
-        errorLine1="    android:text=&quot;Choose Color&quot; />"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/color_picker_button.xml"
-            line="7"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;Androchunk&quot;, should use `@string` resource"
-        errorLine1="    android:text=&quot;Androchunk&quot;"
-        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/color_spinner_layout.xml"
-            line="6"
-            column="5"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;Device Icon&quot;, should use `@string` resource"
-        errorLine1="        android:contentDescription=&quot;Device Icon&quot;"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/item_device.xml"
-            line="15"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;Device Name&quot;, should use `@string` resource"
-        errorLine1="        android:text=&quot;Device Name&quot; />"
-        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/item_device.xml"
-            line="25"
-            column="9"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;New device&quot;, should use `@string` resource"
-        errorLine1="            android:text=&quot;New device&quot; />"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/layout_bluetooth.xml"
-            line="47"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        message="Hardcoded string &quot;Disconnect&quot;, should use `@string` resource"
-        errorLine1="            android:text=&quot;Disconnect&quot; />"
-        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/layout_bluetooth.xml"
-            line="58"
-            column="13"/>
-    </issue>
-
-    <issue
-        id="RtlHardcoded"
-        message="Consider replacing `android:layout_toRightOf` with `android:layout_toEndOf=&quot;@id/text_games&quot;` to better support right-to-left layouts"
-        errorLine1="                android:layout_toRightOf=&quot;@id/text_games&quot;"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/res/layout/activity_game.xml"
-            line="44"
-            column="17"/>
     </issue>
 
 </issues>

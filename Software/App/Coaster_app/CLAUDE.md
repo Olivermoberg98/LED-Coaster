@@ -44,12 +44,12 @@ is `Theme.LedCoaster`. Paths below are relative to
 | `data/` | `SavedDevicesStore`: saved coasters, address → name in the `BluetoothDevices` SharedPreferences. |
 | `games/` | `Game`, `CoasterController`, `NattDuellen`, `RandomDrink`. Pure Kotlin over `CoasterController`, so they run in JVM tests with fakes. |
 | `ui/main/` | `MainActivity`, `MainViewModel`, `MainScreen` (Compose). |
-| `ui/game/` | `GameActivity`, `GameViewModel`, `DevicesAdapter` (saved coasters to drag). |
+| `ui/game/` | `GameActivity`, `GameViewModel`, `GameScreen` (Compose). |
 | `ui/CoasterTheme.kt` | Compose theme (dark, app green) and the shared screen colours. |
 | `CoasterApp.kt` | `Application`; holds `repository`, `scanner`, `savedDevices` (manual DI). |
 
-MainActivity is Jetpack Compose (Material 3); GameActivity is still Views +
-XML layouts until its own migration step. Both activities stay
+Both screens are Jetpack Compose (Material 3); there are no XML layouts.
+`MainScreen` exposes `Section` and `Dropdown` to `GameScreen`. Both activities stay
 `AppCompatActivity` under the XML theme `Theme.LedCoaster`, which still
 provides the action bar. Dependencies: appcompat, material, cardview,
 recyclerview, core-ktx, activity-ktx, lifecycle (viewmodel, runtime,
@@ -130,9 +130,10 @@ Leaving the games screen does **not** disconnect anything.
   `MainViewModel`, so they survive rotation. The colour wheel is the
   QuadFlask dialog, opened from the activity. Toasts report the current
   coaster's connect and disconnect.
-- **GameActivity.** Lists every saved coaster with its live state. A spinner
-  picks 1–10 circles, laid out in rows by `updateCircleLayout`. Long-press a
-  coaster and drag it onto a circle to place and connect it; the circle shows
+- **GameActivity.** Lists every saved coaster with its live state. A dropdown
+  picks 1–10 circles, laid out in rows of at most four by `circleRows`. Long-press a
+  coaster and drag it onto a circle (Compose `dragAndDropSource`/`Target`; the
+  clip data is the coaster's address) to place and connect it; the circle shows
   the ID after the last `-` (`CoasterConnection.coasterId`). Dropping on an
   occupied circle replaces that coaster. Long-press a circle to unassign it. A
   failed connect frees the circle. "Start Game" needs every circle filled and
