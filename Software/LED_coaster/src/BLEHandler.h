@@ -40,10 +40,18 @@ public:
     void handlePackage2(const std::vector<byte>& data);
     bool deviceConnected;
 
+    // Battery status: setStatus updates the readable values, notifyStatus pushes them
+    void setStatus(const uint8_t* package3, size_t length, uint8_t percent);
+    void notifyStatus();
+    // Set from the NimBLE host task when a client subscribes, consumed by the main loop
+    volatile bool statusSubscribePending;
+
 private:
     std::string coasterID;
     NimBLEServer* pServer;
     NimBLECharacteristic* pCharacteristic;
+    NimBLECharacteristic* pStatusCharacteristic;
+    NimBLECharacteristic* pBatteryLevelCharacteristic;
     ConnectionState connectionState;
 
     unsigned long advertisingStartTime;
@@ -68,6 +76,15 @@ private:
     public:
         CharacteristicCallbacks(BLEHandler* handler) : handler(handler) {}
         void onWrite(NimBLECharacteristic* pCharacteristic) override;
+    private:
+        BLEHandler* handler;
+    };
+
+    // Callback for notification subscriptions on the status characteristics
+    class StatusCallbacks : public NimBLECharacteristicCallbacks {
+    public:
+        StatusCallbacks(BLEHandler* handler) : handler(handler) {}
+        void onSubscribe(NimBLECharacteristic* pCharacteristic, ble_gap_conn_desc* desc, uint16_t subValue) override;
     private:
         BLEHandler* handler;
     };

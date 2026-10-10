@@ -43,13 +43,54 @@ Only the stub `Example*Test` files exist; there is no real test suite. minSdk 31
 
 ## The BLE contract (the thing that spans both halves)
 
-App and firmware agree on a hand-rolled binary protocol over a single writable GATT characteristic. Changing either side without the other silently breaks things — the firmware just logs "Checksum mismatch" and drops the packet.
+App and firmware agree on a hand-rolled binary protocol: app → coaster over a writable GATT characteristic, coaster → app over a notify characteristic (Package 3, below). Changing either side without the other silently breaks things — the firmware just logs "Checksum mismatch" and drops the packet.
 
 - Service UUID `00001801-0000-1000-8000-008051234567`, characteristic `00001234-0000-1000-8000-001122334455`. Hardcoded in **three** places: [BLEHandler.cpp](Software/LED_coaster/src/BLEHandler.cpp#L24-L28), [MainActivity.kt](Software/App/Coaster_app/app/src/main/java/com/example/myemptyapp/MainActivity.kt#L63-L64), and `CoasterDevice` in [GameActivity.kt](Software/App/Coaster_app/app/src/main/java/com/example/myemptyapp/GameActivity.kt#L559-L560).
 - **Package 1** (ring enable): `[0x01, outerChecked, innerChecked, checksum]`, checksum = sum of the *first three* bytes % 256.
 - **Package 2** (pattern + color): `[0x02] + "PATTERN" + 0x2C(',') + "R,G,B" + checksum`, checksum = sum of *all preceding* bytes % 256. Pattern and color arrive as ASCII, parsed with `find(',')`/`stoi`.
 - `CharacteristicCallbacks::onWrite` calls both `handlePackage1` and `handlePackage2` on every write; each returns early if the command byte doesn't match. Neither validates length before indexing.
 - Pattern name strings must match on both sides: `stringToPatternType` in [patterns.cpp](Software/LED_coaster/src/patterns.cpp#L12-L24) vs the `dropdown_items` array in [arrays.xml](Software/App/Coaster_app/app/src/main/res/values/arrays.xml). Unknown names fall back to `FIXED` rather than erroring.
+
+### Coaster → app: battery status (Package 3)
+
+The coaster pushes battery status on a second characteristic of the same
+service, `00001235-0000-1000-8000-001122334455`, READ | NOTIFY. READ always
+returns the latest packet. The packet is 13 bytes, multi-byte fields
+little-endian, built in `updateBatteryStatus()` in [main.cpp](Software/LED_coaster/src/main.cpp):
+
+| Byte | Field | Type | Values |
+|---|---|---|---|
+| 0 | Type | u8 | `0x03` |
+| 1 | Version | u8 | `0x01`; the app ignores unknown versions |
+| 2–3 | Battery voltage | u16 | mV |
+| 4 | Percent | u8 | 0–100; `0xFF` = unknown |
+| 5 | Charger state | u8 | enum below |
+| 6 | Flags | u8 | bit 0 low battery, bit 1 USB power present, bit 2 fake data, bits 3–7 = 0 |
+| 7 | Raw status pins | u8 | bit 0 `PG`, bit 1 `STAT1`, bit 2 `STAT2` (pin levels) |
+| 8–11 | Uptime | u32 | seconds since boot; a drop means the coaster reset |
+| 12 | Checksum | u8 | sum of bytes 0–11 % 256 |
+
+Charger state: 0 unknown, 1 on battery, 2 charging, 3 charge complete,
+4 low battery (LBO), 5 temperature fault, 6 no battery present — the
+`ChargerState` enum in `main.cpp`, decoded from the pins as in the table under
+"Battery and charger reporting". The reported state only changes after a new
+reading holds for two consecutive 2 s reads.
+
+The low-battery flag is set by the firmware, not the app: LBO **or** below
+`LOW_BATTERY_WARN_MV` (3500 mV, to be re-set from the fitted curve).
+
+Pushes are sent from `loop()`, never from a NimBLE callback: when a client
+subscribes, every 30 s while connected, and immediately when the reported
+charger state changes. The values themselves refresh every 2 s.
+
+The standard Battery Service `0x180F` / Battery Level `0x2A19` (READ | NOTIFY,
+u8 percent) carries the same percent and is pushed together with Package 3, so
+generic tools such as nRF Connect show it without a decoder. Package 3 is the
+app's source of truth.
+
+`pio run -e battery-fake -t upload` flashes a build where Package 3 cycles
+through every charger state and a falling voltage, one step per 5 s, with flag
+bit 2 set — for testing the app's battery UI without real charger events.
 
 ## Firmware architecture
 
@@ -204,7 +245,7 @@ back, because they pulled `STAT1`/`STAT2` to `+5V`, which would destroy a 3.6 V-
 ESP32 pin. So the board has **no visible charge indicator** — charger state is
 only readable through the firmware.
 
-**Firmware — done, serial output only.** `main.cpp` prints a line every 2 s
+**Firmware — done, serial and BLE.** `main.cpp` prints a line every 2 s
 from `loop()`, whether or not a phone is connected:
 `Battery: 3794 mV, 37%, charger: charging (PG=0 STAT1=0 STAT2=1)`.
 
@@ -256,21 +297,16 @@ Still to do:
   but 90 mV is a lot. Possible causes: the multimeter itself, ADC calibration
   error, or the 235 kΩ divider source impedance. Re-measure simultaneously at a
   few points before trusting the numbers; if the firmware is consistently off,
-  add a correction.
+  add a correction. Deferred to the Phase 4 run-down, where pairs over the
+  whole range can be read over BLE.
 - **Percentage curve.** Fit `batteryPercent()` to this cell from a **discharge**
   run-down log (resting or light-load voltage against time on battery, ending
   at `low battery`), not from the charge log above. Logging needs USB, which
   powers the board, so a run-down must be recorded another way — over BLE once
   the status path exists, or as samples buffered in RAM/NVS and dumped
   afterwards.
-- **BLE contract — the blocker for the app.** Every package today is
-  app→coaster; there is no coaster→app path at all. Adding one means a new
-  package type (`0x03`?) on the existing characteristic for the app to read, or
-  a second notify-capable characteristic so the coaster can push. Notify suits
-  status better. Carry battery level *and* charger state in one package so the
-  contract changes once. Whichever is chosen must land in **both** halves at
-  once — see "The BLE contract" above; the firmware silently drops mismatched
-  packets.
+- **BLE status path — firmware side done.** The coaster publishes Package 3;
+  see "Coaster → app: battery status" under "The BLE contract".
 - **App** (`Software/App/Coaster_app/`): surface level and charger state per
   coaster. `GameActivity` already tracks devices individually via
   `CoasterDevice`, so the natural home is a field there plus an indicator on
