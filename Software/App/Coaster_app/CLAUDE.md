@@ -1,9 +1,8 @@
 # CLAUDE.md — Android app
 
 App-only guide. The repository-wide `CLAUDE.md` two levels up is the authority
-for the BLE protocol and the firmware; this file covers the app as it is today.
-A refactor is planned in [REFACTOR_PLAN.md](REFACTOR_PLAN.md) — update this file
-as each step lands.
+for the BLE protocol and the firmware; this file covers the app. Design
+decisions and remaining work are in [REFACTOR_PLAN.md](REFACTOR_PLAN.md).
 
 ## Build, run, test
 
@@ -13,6 +12,7 @@ Run from this directory (`Software/App/Coaster_app`). On Windows use `gradlew.ba
 ./gradlew assembleDebug        # build
 ./gradlew installDebug         # install on a connected phone
 ./gradlew test                 # JVM unit tests
+./gradlew test --tests "com.olivermoberg.ledcoaster.games.GamesTest"   # one class
 ./gradlew lint                 # passes against app/lint-baseline.xml
 ./gradlew connectedAndroidTest # instrumented, needs a device
 ```
@@ -25,30 +25,32 @@ Run from this directory (`Software/App/Coaster_app`). On Windows use `gradlew.ba
   (`C:\Program Files\Android\Android Studio1`). Gradle 8.x cannot run on
   JDK 25, which is that Studio's JBR. Command-line builds use JDK 17:
   `JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"`.
-- Tests: only the stub `ExampleUnitTest` / `ExampleInstrumentedTest` exist.
 - `app/lint-baseline.xml` holds the remaining pre-refactor warnings (no
   errors), so `lint` reports only new issues. Regenerate it with
   `./gradlew updateLintBaseline` only after fixing issues, never to hide new ones.
-- BLE needs a real phone; the emulator has no Bluetooth. A coaster stops
-  advertising 2 minutes after reset (see root `CLAUDE.md`, bring-up gotchas).
+- BLE needs a real phone; the emulator has no Bluetooth.
 
 ## Layout
 
-Single `:app` module, single package `com.example.myemptyapp` (the
-`applicationId` too). `rootProject.name` is `MyEmptyApp`; the theme is
-`Theme.MyEmptyApp`.
+Single `:app` module. `applicationId` and namespace are
+`com.olivermoberg.ledcoaster`; `rootProject.name` is `LedCoaster`; the theme
+is `Theme.LedCoaster`. Paths below are relative to
+`app/src/main/java/com/olivermoberg/ledcoaster/`.
 
-| File | What it holds |
+| Package | What it holds |
 |---|---|
-| `MainActivity.kt` | Single-coaster control: discovery, saved devices, ring checkboxes, pattern spinner, colour picker. Owns one `BluetoothGatt`. |
-| `GameActivity.kt` | Multi-coaster games screen, plus the `CoasterDevice` class at the bottom (one GATT connection per coaster). |
-| `BluetoothDeviceAdapter.kt` | RecyclerView adapter for discovered devices. **Has no `package` line** — it lives in the default package and is imported as `import BluetoothDeviceAdapter`. |
-| `DevicesAdapter.kt` | RecyclerView adapter for `CoasterDevice`s in `GameActivity`; long-press starts a drag. |
-| `res/values/arrays.xml` | `dropdown_items`: the pattern names sent in Package 2. |
-| `res/values/strings.xml` | UI strings and `game_modes` (`NATTDUELLEN`, `RANDOM DRINK`). |
+| `protocol/` | Pure Kotlin, no `android.*`. `CoasterUuids` (the app's only copy of the UUIDs), `Pattern` (wire names), `Rgb`, `Packets.encodePackage1/2`. |
+| `ble/` | `CoasterBleManager` (Nordic `BleManager`, one per coaster), `CoasterConnection` (state flow, sends, `connect()`), `CoasterRepository` (one connection per MAC address), `CoasterScanner` (BLE scan filtered on the service UUID). |
+| `data/` | `SavedDevicesStore`: saved coasters, address → name in the `BluetoothDevices` SharedPreferences. |
+| `games/` | `Game`, `CoasterController`, `NattDuellen`, `RandomDrink`. Pure Kotlin over `CoasterController`, so they run in JVM tests with fakes. |
+| `ui/main/` | `MainActivity`, `MainViewModel`, `BluetoothDeviceAdapter` (scan results). |
+| `ui/game/` | `GameActivity`, `GameViewModel`, `DevicesAdapter` (saved coasters to drag). |
+| `CoasterApp.kt` | `Application`; holds `repository`, `scanner`, `savedDevices` (manual DI). |
 
-UI is classic Views + XML layouts, no Compose, no ViewModels, no coroutines.
-Dependencies: appcompat, material, cardview, recyclerview, core-ktx, and
+UI is classic Views + XML layouts. A Compose migration is approved for after
+Stage B (see REFACTOR_PLAN.md §8). Dependencies: appcompat, material,
+cardview, recyclerview, core-ktx, activity-ktx, lifecycle (viewmodel,
+runtime), kotlinx-coroutines, Nordic `ble` + `ble-ktx` 2.11.0, and
 `com.github.QuadFlask:colorpicker:0.0.15` from JitPack (the colour wheel dialog).
 
 ## How the app talks to the coaster
@@ -58,64 +60,88 @@ battery status), the UUIDs and the pattern-name contract are specified in the
 root `CLAUDE.md` under "The BLE contract". Do not restate or change them here;
 a change on one side without the other is silently dropped by the firmware.
 
-In the app today:
+- **Encoding** is only in `protocol/Packets.kt`. `PacketsTest` freezes the
+  exact bytes; if it fails, deployed coasters would stop understanding the app.
+  `Pattern` must match the `dropdown_items` array in `res/values/arrays.xml`
+  (a test checks this) and `stringToPatternType` in the firmware.
+- **Every GATT operation goes through the Nordic request queue** in
+  `CoasterBleManager`. Never call `BluetoothGatt` directly. Writes use
+  `WRITE_TYPE_DEFAULT` (with response).
+- `CoasterConnection.sendPackage1/2` queue a write and return; `showColor`
+  (used by games) suspends until the coaster acknowledges it.
+- `connect()` completes once services are discovered. Without `autoReconnect`
+  it retries GATT 133 three times and times out after 15 s; with it, it uses
+  Android auto-connect and reconnects after a link loss. It returns false
+  rather than throwing, including when `BLUETOOTH_CONNECT` is missing.
+- No bonding: the firmware requires no security.
+- Scanning filters on the service UUID, which the firmware puts in the primary
+  advertising packet; the name `Coaster-<id>` comes from the scan response.
+  The firmware never stops advertising while unconnected (slow, ~2 s, after
+  2 minutes), so a saved coaster is always reachable, if slowly.
+- Package 3 is not decoded yet (step C1/C2).
 
-- UUIDs are hardcoded twice: `MainActivity.kt:63-64` and `GameActivity.kt:561-562`.
-- Package 1/2 are built twice, identically: `MainActivity.sendPackage1/2`
-  (`:354`, `:391`) and `CoasterDevice.sendPackage1/2` (`GameActivity.kt:602`, `:641`).
-- Writes use `WRITE_TYPE_DEFAULT` (with response). There is no write queue: a
-  second write while one is in flight on the same `BluetoothGatt` fails and is
-  only logged.
-- The app never reads or subscribes to anything. Package 3 is not implemented yet.
-- The firmware requires no pairing or encryption, yet `MainActivity.connectToDevice`
-  calls `createBond()` on first connect.
+## Connection lifetime
 
-## Screen behaviour that must be preserved
+`CoasterRepository` is app-scoped, so both screens share **one
+`CoasterConnection` per coaster**. A connection stays open until something
+calls `disconnect()`:
 
-- **MainActivity.** "New device" runs classic discovery (`startDiscovery`) and
-  lists named devices not already saved. Tapping one connects (GATT), saves
-  `address → name` in the `BluetoothDevices` SharedPreferences and adds it to
-  the "previously connected" spinner. Choosing a spinner entry connects by name.
-  The Outer/Inner checkboxes send Package 1 on every change. The mode spinner
-  shows one "Choose Color" button for FIXED/PULSE/CHASER; picking a colour sends
-  Package 2. Choosing RAINBOW immediately sends `RAINBOW` with `0,255,0`.
-  "Disconnect" closes the GATT. "Go to Games" passes every saved device as
-  `"name|address"` in the `connectedDevices` extra.
-- **GameActivity.** Lists only those saved devices that the system reports as
-  GATT-connected right now (`isDeviceConnected`, `GameActivity.kt:520`). A
-  spinner picks 1–10 circles, laid out in rows by `updateCircleLayout`.
-  Long-press a device and drag it onto a circle: the circle shows the ID after
-  the last `-` in the name and a separate `CoasterDevice` GATT connection opens.
-  Long-press a circle to unassign and disconnect. Lowering the count
-  disconnects devices that fall off the end. "Start Game" requires every circle
-  filled.
-- **Games** are `Handler.postDelayed` chains; "off" is `FIXED` + `0,0,0`.
+- MainActivity's Disconnect button, for the coaster it controls.
+- GameActivity, when a coaster is unassigned from a circle, replaced on its
+  circle, or dropped by lowering the circle count.
+- `MainViewModel.onCleared` (the user leaves the app), which disconnects all.
+
+Leaving the games screen does **not** disconnect anything.
+
+## Screen behaviour
+
+- **MainActivity.** "New device" asks for `BLUETOOTH_SCAN`/`BLUETOOTH_CONNECT`
+  once, then scans for 10 s and lists coasters not already saved. Tapping one
+  saves it and connects; the spinner lists saved coasters by name and connects
+  by address. The Outer/Inner checkboxes and the effect controls are locked
+  until the current coaster is ready ("Go to Games" stays usable). Checkboxes
+  send Package 1 on every change; FIXED/PULSE/CHASER show one colour button
+  and picking a colour sends Package 2; RAINBOW immediately sends `RAINBOW`
+  with `0,255,0`. Toasts report the current coaster's connect and disconnect.
+- **GameActivity.** Lists every saved coaster with its live state. A spinner
+  picks 1–10 circles, laid out in rows by `updateCircleLayout`. Long-press a
+  coaster and drag it onto a circle to place and connect it; the circle shows
+  the ID after the last `-` (`CoasterConnection.coasterId`). Dropping on an
+  occupied circle replaces that coaster. Long-press a circle to unassign it. A
+  failed connect frees the circle. "Start Game" needs every circle filled and
+  every coaster ready.
+- **Games** run in `GameViewModel.viewModelScope` on a snapshot of the placed
+  coasters, survive rotation, and are cancelled as a whole when a coaster is
+  removed or replaced (the coasters keep their last colour). "Off" is
+  `FIXED` + `0,0,0`.
   - *Nattduellen*: all white, after 5–10 s one random coaster goes dark, 3 s
     later all go dark.
   - *Random drink*: for 20–25 s a random colour bounces between coasters
     (never the same one twice in a row), speeding up from 1600 ms to 200 ms per
     hop. Then one final coaster lights and a toast names it as the loser.
 
+## Tests
+
+- `protocol/PacketsTest`: golden bytes for Package 1/2, legacy-encoder
+  equivalence over many colours, pattern names vs `arrays.xml`.
+- `games/GamesTest`: virtual-time tests (`runTest`, `testScheduler.timeSource`)
+  with fake coasters: timing, no-repeat, write ordering, cancellation.
+- Only the stub `ExampleInstrumentedTest` exists for device tests.
+
 ## Gotchas
 
-- `isFirstSelection` (`MainActivity.kt:75,164`) swallows the spinner's initial
-  callback; the touch listener at `:206` resets the selection so the same entry
+- `isFirstSelection` in `MainActivity` swallows the saved-device spinner's
+  initial callback; the touch listener resets the selection so the same entry
   can be chosen again.
-- The discovery receiver is registered in `onCreate` but unregistered in
-  `onStop`, so after the screen has been in the background once, "New device"
-  finds nothing until the activity is recreated.
-- Both activities set `configChanges` for orientation, so rotation does not
-  recreate them (and nothing is saved across recreation).
-- `ContentValues.TAG` is used as a log tag in places; it is the string
-  `"ContentValues"`, not something app-specific.
-- `gradle/libs.versions.toml` contains unreferenced `*-vyourversionhere`
-  aliases with the literal version `"your_version_here"`, plus an unused
-  `android-colorpickerpreference`. Never point a dependency at them.
-- Package checksums are computed with `Byte.toInt()`, which is signed. That is
-  harmless for the ASCII-only Packages 1/2, but any decoder must use `and 0xFF`.
+- ViewModel messages are a `Channel` collected while STARTED, so a toast
+  raised in the background shows when the screen returns.
+- `ScannedCoaster.name` falls back to the MAC address when the scan response
+  carries no name.
 - Package 2 with `CHASER` and `255,255,255` is exactly 20 bytes, the default ATT
   payload. The app never requests a larger MTU, so a longer pattern name would
   need a long write.
+- Phones commonly cap concurrent BLE links at about 7; the games screen offers
+  up to 10 circles.
 
 ## Working rules for this app
 
@@ -126,4 +152,4 @@ In the app today:
 - New dependencies, architecture, UI toolkit, protocol and package-layout
   changes need Oliver's written approval.
 - Comments describe the code as it is, never the change being made.
-- Before calling a step done: `assembleDebug` and `test` must pass.
+- Before calling a step done: `assembleDebug`, `test` and `lint` must pass.
