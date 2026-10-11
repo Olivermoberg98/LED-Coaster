@@ -23,8 +23,9 @@ Run from this directory (`Software/App/Coaster_app`). On Windows use `gradlew.ba
 - Toolchain: AGP 8.13.2, Kotlin 2.4.21, Gradle 8.14.4, compileSdk 36,
   targetSdk 34, minSdk 31, Java 1.8 bytecode. Use Android Studio 2026.2
   (`C:\Program Files\Android\Android Studio1`). Gradle 8.x cannot run on
-  JDK 25, which is that Studio's JBR. Command-line builds use JDK 17:
-  `JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"`.
+  JDK 25, which is that Studio's JBR. `gradle/gradle-daemon-jvm.properties` pins the
+  daemon to JDK 17; command-line builds use
+  `JAVA_HOME="C:\Program Files\Android\Android Studio\jbr"`, which is JDK 17.
 - `app/lint-baseline.xml` holds 13 accepted warnings (no errors): versions
   held back by staying on AGP 8, targetSdk 34, launcher-icon hints and
   `DataExtractionRules`. `lint` reports only new issues, plus four expected
@@ -61,7 +62,7 @@ Both screens are Jetpack Compose (Material 3); there are no XML layouts.
 `MainScreen` exposes `Section` and `Dropdown` to `GameScreen`. Both activities stay
 `AppCompatActivity` under the XML theme `Theme.LedCoaster`, which still
 provides the action bar. Dependencies: appcompat, material, core-ktx,
-activity-ktx, lifecycle (viewmodel, runtime, runtime-compose), kotlinx-coroutines, Nordic `ble` + `ble-ktx` 2.11.0, the
+activity-ktx, lifecycle (viewmodel, runtime, runtime-compose), kotlinx-coroutines, Nordic `ble` + `ble-ktx` 2.11.0,
 and the Compose BOM (ui, material3, tooling-preview, activity-compose). Every
 dependency comes from Google Maven or Maven Central; there is no JitPack.
 

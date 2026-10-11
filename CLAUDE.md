@@ -43,12 +43,12 @@ JVM tests: `PacketsTest` freezes the exact Package 1/2 bytes and `GamesTest` run
 
 ## The BLE contract (the thing that spans both halves)
 
-App and firmware agree on a hand-rolled binary protocol: app → coaster over a writable GATT characteristic, coaster → app over a notify characteristic (Package 3, below). Changing either side without the other silently breaks things — the firmware just logs "Checksum mismatch" and drops the packet.
+App and firmware agree on a hand-rolled binary protocol: app → coaster over a writable GATT characteristic, coaster → app over a notify characteristic (Package 3, below). Changing either side without the other silently breaks things — the firmware just logs "Package N: checksum mismatch" and drops the packet.
 
-- Service UUID `00001801-0000-1000-8000-008051234567`, characteristic `00001234-0000-1000-8000-001122334455`. Hardcoded in **two** places: [BLEHandler.cpp](Software/LED_coaster/src/BLEHandler.cpp#L24-L28) and [CoasterUuids.kt](Software/App/Coaster_app/app/src/main/java/com/olivermoberg/ledcoaster/protocol/CoasterUuids.kt), the app's only copy, which also holds the Package 3 status UUID.
+- Service UUID `00001801-0000-1000-8000-008051234567`, characteristic `00001234-0000-1000-8000-001122334455`. Hardcoded in **two** places: [BLEHandler.cpp](Software/LED_coaster/src/BLEHandler.cpp#L25-L33) and [CoasterUuids.kt](Software/App/Coaster_app/app/src/main/java/com/olivermoberg/ledcoaster/protocol/CoasterUuids.kt), the app's only copy, which also holds the Package 3 status UUID.
 - **Package 1** (ring enable): `[0x01, outerChecked, innerChecked, checksum]`, checksum = sum of the *first three* bytes % 256.
-- **Package 2** (pattern + color): `[0x02] + "PATTERN" + 0x2C(',') + "R,G,B" + checksum`, checksum = sum of *all preceding* bytes % 256. Pattern and color arrive as ASCII, parsed with `find(',')`/`stoi`.
-- `CharacteristicCallbacks::onWrite` calls both `handlePackage1` and `handlePackage2` on every write; each returns early if the command byte doesn't match. Neither validates length before indexing.
+- **Package 2** (pattern + color): `[0x02] + "PATTERN" + 0x2C(',') + "R,G,B" + checksum`, checksum = sum of *all preceding* bytes % 256. Pattern and color arrive as ASCII, split with `find(',')` and parsed with `strtol`; each component is clamped to 0–255.
+- `CharacteristicCallbacks::onWrite` calls both `handlePackage1` and `handlePackage2` on every write; each returns early if the command byte doesn't match. Package 1 must be exactly 4 bytes; Package 2 at least 4, with exactly three numeric colour components. A malformed packet is logged and dropped whole, so the previous pattern and colour stay.
 - Pattern name strings must match on both sides: `stringToPatternType` in [patterns.cpp](Software/LED_coaster/src/patterns.cpp#L12-L24) vs the `dropdown_items` array in [arrays.xml](Software/App/Coaster_app/app/src/main/res/values/arrays.xml) and the app's `Pattern` enum (a unit test checks that the two agree). Unknown names fall back to `FIXED` rather than erroring.
 
 ### Coaster → app: battery status (Package 3)
@@ -110,7 +110,7 @@ bit 2 set — for testing the app's battery UI without real charger events.
 - **`inner_needs_update` / `outer_needs_update`** exist because `FIXED` is a static frame — the main loop skips re-rendering it (just `delay(50)`) until something sets the flag: a new packet, a connect transition, or a ring being re-enabled. Any new code path that changes ring colors must set these or the change won't appear.
 - `BLEHandler` runs a `ConnectionState` machine (`DISCONNECTED → CONNECTING → CONNECTED → DISCONNECTING`). Pattern processing only runs while `CONNECTED` (`shouldProcessPatterns()`), so the loop body in `main.cpp` is dead until a phone connects. The `CONNECTING` state exists solely to fire `onConnectPattern` once.
 - Power saving is deliberate and easy to undo by accident: TX power `ESP_PWR_LVL_N0`, advertising at 0.5–1 s (800–1600 units) for `ADVERTISING_TIMEOUT_MS` (2 min) after boot or a disconnect, then at 2.0–2.2 s (3200–3520) until a central connects — it never stops while unconnected, because the app reconnects to known coasters by address, and `esp_pm_configure` enables automatic light sleep (10–160 MHz). Note `esp_pm_config_esp32c3_t` is C3-specific — porting to another chip requires changing it.
-- **Each physical coaster needs a unique `coasterID`**, hardcoded at [main.cpp:12](Software/LED_coaster/src/main.cpp#L12). It becomes the advertised name `Coaster-<id>`, and the app recovers the ID with `substringAfterLast('-')` (`CoasterConnection.coasterId`) to label the game circles.
+- **Each physical coaster needs a unique `coasterID`**, hardcoded at [main.cpp:15](Software/LED_coaster/src/main.cpp#L15). It becomes the advertised name `Coaster-<id>`, and the app recovers the ID with `substringAfterLast('-')` (`CoasterConnection.coasterId`) to label the game circles.
 
 ## Android app architecture
 
@@ -235,8 +235,8 @@ Gotchas that cost time during bring-up:
   advertising data is set once in `begin()`.
 - **The boot log is unreachable in practice.** A chip reset re-enumerates the
   USB CDC device, which invalidates any open port handle, and re-attach takes
-  longer than it takes `setup()` to finish. So `Started Advertising (low power
-  mode)` is already gone by the time a monitor can attach. Diagnose with later
+  longer than it takes `setup()` to finish. So `Advertising: fast` is already
+  gone by the time a monitor can attach. Diagnose with later
   prints instead.
 - **Patterns only run while connected** (`shouldProcessPatterns()`), so the
   rings stay dark on USB power alone. An LED check needs the app connected;
@@ -254,7 +254,7 @@ Gotchas that cost time during bring-up:
   (re-applied only after a 50 mV move, and it re-renders FIXED frames). All
   cap figures are FastLED's own current estimate, which assumes WS2812B-like
   draw rather than the TZ part's 12 mA/channel, not a measured current.
-- **`coasterID` is hardcoded** at [main.cpp:12](Software/LED_coaster/src/main.cpp#L12).
+- **`coasterID` is hardcoded** at [main.cpp:15](Software/LED_coaster/src/main.cpp#L15).
   The first board was flashed as `05`, so it advertises `Coaster-05`; its base
   MAC is `f8:5b:1b:eb:1a:14`. Give every further board its own ID before
   flashing.
