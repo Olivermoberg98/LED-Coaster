@@ -21,6 +21,8 @@ const int BAT_SENSE_PIN = 4;
 const int STAT1_PIN = 5;
 const int STAT2_PIN = 6;
 const int PG_PIN = 10;
+// D34, through R12 (1k) to GND: the board's only charge indicator.
+const int CHARGE_LED_PIN = 7;
 const unsigned long BATTERY_REPORT_INTERVAL_MS = 2000;
 unsigned long lastBatteryReport = 0;
 const unsigned long STATUS_PUSH_INTERVAL_MS = 30000;
@@ -209,6 +211,20 @@ void updateLedCap(uint32_t mv) {
   Serial.printf("LED current cap: %u mA\n", cap);
 }
 
+// Shows the reported charger state on D34: on while charging, slow blink when
+// complete, fast blink on a fault, off on battery so it costs nothing there.
+void updateChargeLed() {
+  bool on;
+  switch (reportedChargerState) {
+    case CHARGER_CHARGING:   on = true; break;
+    case CHARGER_COMPLETE:   on = (millis() / 1000) % 2 == 0; break;
+    case CHARGER_TEMP_FAULT:
+    case CHARGER_NO_BATTERY: on = (millis() / 100) % 2 == 0; break;
+    default:                 on = false; break;
+  }
+  digitalWrite(CHARGE_LED_PIN, on ? HIGH : LOW);
+}
+
 // Ends use on an empty cell: a last status to the app, LEDs off, deep sleep.
 void checkCutoff(uint32_t mv, bool usbPower) {
   cutoffLowReadings = (!usbPower && mv < CUTOFF_MV) ? cutoffLowReadings + 1 : 0;
@@ -301,6 +317,8 @@ void setup() {
   pinMode(STAT1_PIN, INPUT_PULLUP);
   pinMode(STAT2_PIN, INPUT_PULLUP);
   pinMode(PG_PIN, INPUT_PULLUP);
+  pinMode(CHARGE_LED_PIN, OUTPUT);
+  digitalWrite(CHARGE_LED_PIN, LOW);
 
   // Setup Bluetooth
   blehandler.begin();
@@ -330,6 +348,7 @@ void loop() {
     lastBatteryReport = millis();
     pushStatus = updateBatteryStatus();
   }
+  updateChargeLed();
   if (blehandler.statusSubscribePending) {
     blehandler.statusSubscribePending = false;
     pushStatus = true;

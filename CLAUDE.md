@@ -225,7 +225,7 @@ before soldering the back side.
 
 Net/pin agreement between the fabricated board and the firmware was checked
 against `LED_Coaster.kicad_sch` and matches: `small_ring` → IO0, `large_ring` →
-IO1, `BAT_SENSE` → IO4, `STAT1`/`STAT2`/`PG` → IO5/IO6/IO10.
+IO1, `BAT_SENSE` → IO4, `STAT1`/`STAT2`/`PG` → IO5/IO6/IO10, `D34` → IO7.
 
 Gotchas that cost time during bring-up:
 
@@ -267,8 +267,11 @@ arrives as 1.5–2.1 V. `U3`'s three open-drain status outputs go to the ESP32 �
 `STAT1`/`LBO` → **GPIO5**, `STAT2` → **GPIO6**, `PG` → **GPIO10**. The status
 LEDs `D33`/`D35` and `R5`/`R16` are gone from the board; they must never come
 back, because they pulled `STAT1`/`STAT2` to `+5V`, which would destroy a 3.6 V-max
-ESP32 pin. So the board has **no visible charge indicator** — charger state is
-only readable through the firmware.
+ESP32 pin. The charge indicator is instead **`D34`** on the front, driven by the
+firmware from **GPIO7** (U1 pin 6, through `R12` 1k to GND, ~1.3 mA):
+`updateChargeLed()` shows the debounced charger state — on while charging,
+1 s blink at charge complete, 5 Hz blink on temperature fault or no battery,
+off on battery so it costs nothing there.
 
 **Firmware — done, serial and BLE.** `main.cpp` prints a line every 2 s
 from `loop()`, whether or not a phone is connected:
