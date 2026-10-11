@@ -81,7 +81,9 @@ The low-battery flag is set by the firmware, not the app: LBO **or** below
 
 Pushes are sent from `loop()`, never from a NimBLE callback: when a client
 subscribes, every 30 s while connected, and immediately when the reported
-charger state changes. The values themselves refresh every 2 s.
+charger state changes. The values themselves refresh every 2 s. At the
+firmware cut-off (3300 mV) the coaster pushes one last packet and goes silent in
+deep sleep, so the app sees an ordinary disconnect.
 
 The standard Battery Service `0x180F` / Battery Level `0x2A19` (READ | NOTIFY,
 u8 percent) carries the same percent and is pushed together with Package 3, so
@@ -247,8 +249,11 @@ Gotchas that cost time during bring-up:
   a 3.6 V cell `+SYS` falls to 3.37 V and **`U4` drops out — the ESP32 resets
   mid-use**. The 900 mA cap holds `+SYS` at 3.40 V down to a 3.6 V cell and
   costs ~17% of peak white, which is barely visible. It is untested under load:
-  with only the 10-LED inner ring fitted (0.36 A) it never engages. The better
-  long-term fix is scaling brightness from the `BAT_SENSE` reading.
+  with only the 10-LED inner ring fitted (0.36 A) it never engages. Below a
+  3.60 V cell `updateLedCap()` lowers the cap linearly to 300 mA at 3.40 V
+  (re-applied only after a 50 mV move, and it re-renders FIXED frames). All
+  cap figures are FastLED's own current estimate, which assumes WS2812B-like
+  draw rather than the TZ part's 12 mA/channel, not a measured current.
 - **`coasterID` is hardcoded** at [main.cpp:12](Software/LED_coaster/src/main.cpp#L12).
   The first board was flashed as `05`, so it advertises `Coaster-05`; its base
   MAC is `f8:5b:1b:eb:1a:14`. Give every further board its own ID before
@@ -366,10 +371,12 @@ Notes that matter for firmware:
 - SW1 no longer cuts power on its own — it gates a P-FET that switches the LED
   rail, and the LDO's enable pin follows that rail, so the ESP32 does lose power
   when the switch is off. There is no graceful-shutdown hook; power just goes.
-- The board has no low-battery cut-off. `LBO` only reports; nothing switches
-  off at 3.1 V, so with SW1 on the cell discharges until its own protection
-  circuit trips. Always use a protected cell. A firmware cut-off (LEDs off plus
-  deep sleep below ~3.3 V) is still to do.
+- The board has no hardware low-battery cut-off; `LBO` only reports. The
+  firmware stops instead: below `CUTOFF_MV` (3300 mV, 0% on the fitted curve)
+  for three readings on battery, `checkCutoff()` pushes a last Package 3, turns
+  the LEDs off and deep-sleeps with no wake source; SW1 off/on restarts it.
+  Deep sleep still draws a little (ESP32, LDO, charger ~30 µA, divider), so the
+  cell keeps draining slowly until switched off. Always use a protected cell.
 - The divider draws ~4.5 µA continuously from the cell even when switched off,
   because it sits on `+BATT` upstream of the switch. That is small next to the
   charger IC's own ~30 µA quiescent draw, but it means the battery does slowly

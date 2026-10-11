@@ -28,6 +28,20 @@ unsigned long lastStatusPush = 0;
 // Below this the low-battery flag is set even before the charger raises LBO (3.1 V).
 // About 15% on the fitted curve, roughly 55 minutes left at a ~150 mA load.
 const uint32_t LOW_BATTERY_WARN_MV = 3580;
+// Below this on battery for three readings in a row, the coaster turns its LEDs off
+// and deep-sleeps (0% on the fitted curve). SW1 off/on wakes it.
+const uint32_t CUTOFF_MV = 3300;
+int cutoffLowReadings = 0;
+// LED current cap: the full cap down to 3.60 V, where it still holds +SYS at 3.40 V,
+// then falling linearly to the minimum at 3.40 V as the cell's sag grows.
+const uint32_t LED_CAP_FULL_MV = 3600;
+const uint32_t LED_CAP_MIN_MV = 3400;
+const uint32_t LED_CAP_FULL_MA = 900;
+const uint32_t LED_CAP_MIN_MA = 300;
+// The cap changes only after the reading moves this far, so brightness doesn't step visibly.
+const uint32_t LED_CAP_HYSTERESIS_MV = 50;
+uint32_t ledCapMilliamps = LED_CAP_FULL_MA;
+uint32_t ledCapMillivolts = 0;
 
 // Charger state as carried in Package 3; values are part of the BLE contract.
 enum ChargerState : uint8_t {
@@ -172,6 +186,40 @@ void handleRundownCommand() {
 }
 #endif
 
+uint32_t ledCapForMillivolts(uint32_t mv) {
+  if (mv >= LED_CAP_FULL_MV) return LED_CAP_FULL_MA;
+  if (mv <= LED_CAP_MIN_MV) return LED_CAP_MIN_MA;
+  return LED_CAP_MIN_MA + (mv - LED_CAP_MIN_MV) * (LED_CAP_FULL_MA - LED_CAP_MIN_MA) /
+                          (LED_CAP_FULL_MV - LED_CAP_MIN_MV);
+}
+
+// Scales the LED current cap with the cell voltage. Rings are re-rendered so a
+// static FIXED frame picks up the new cap.
+void updateLedCap(uint32_t mv) {
+  uint32_t cap = ledCapForMillivolts(mv);
+  if (cap == ledCapMilliamps) return;
+  bool moved = mv + LED_CAP_HYSTERESIS_MV <= ledCapMillivolts ||
+               mv >= ledCapMillivolts + LED_CAP_HYSTERESIS_MV;
+  if (!moved && cap != LED_CAP_FULL_MA && cap != LED_CAP_MIN_MA) return;
+  ledCapMilliamps = cap;
+  ledCapMillivolts = mv;
+  FastLED.setMaxPowerInVoltsAndMilliamps(5, cap);
+  inner_needs_update = true;
+  outer_needs_update = true;
+  Serial.printf("LED current cap: %u mA\n", cap);
+}
+
+// Ends use on an empty cell: a last status to the app, LEDs off, deep sleep.
+void checkCutoff(uint32_t mv, bool usbPower) {
+  cutoffLowReadings = (!usbPower && mv < CUTOFF_MV) ? cutoffLowReadings + 1 : 0;
+  if (cutoffLowReadings < 3) return;
+  blehandler.notifyStatus();
+  delay(100);
+  FastLED.clear(true);
+  Serial.println("Battery empty: LEDs off, entering deep sleep");
+  esp_deep_sleep_start();
+}
+
 // Reads the battery and charger, logs them, and loads Package 3 into the status
 // characteristics. Returns true when the reported charger state changed.
 bool updateBatteryStatus() {
@@ -220,7 +268,13 @@ bool updateBatteryStatus() {
                 mv, percent, chargerStateName(state),
                 pins & 0x01, (pins >> 1) & 0x01, (pins >> 2) & 0x01);
 #ifdef RUNDOWN_LOG
+  // The run-down build has its own lower stop, so it records past 0%.
   rundownReading(mv, reportedChargerState, flags, usbPower);
+#elif !defined(BATTERY_STATUS_FAKE)
+  checkCutoff(mv, usbPower);
+#endif
+#ifndef BATTERY_STATUS_FAKE
+  updateLedCap(mv);
 #endif
   return changed;
 }
@@ -233,8 +287,9 @@ void setup() {
   // All 30 TZ-5050S2RGB at full white draw 1.08 A (12 mA per channel), and the
   // ~265 mOhm from the cell through the charger's BAT->SYS path and Q1 would
   // then sag +SYS below the LDO's dropout on a half-empty battery, resetting the
-  // ESP32. 900 mA holds +SYS at 3.40 V down to a 3.6 V cell.
-  FastLED.setMaxPowerInVoltsAndMilliamps(5, 900);
+  // ESP32. 900 mA holds +SYS at 3.40 V down to a 3.6 V cell; updateLedCap()
+  // lowers the cap below that.
+  FastLED.setMaxPowerInVoltsAndMilliamps(5, LED_CAP_FULL_MA);
 
   // Setup for the LED colors
   updateLEDColors(0, NUM_LEDS_INNER);
