@@ -203,11 +203,19 @@ with Oliver's approval:
   separate decision.
 - **Manual DI** through `CoasterApp`; no Hilt/Koin, Room or DataStore.
 - **Battery run-down logging** (data for fitting the firmware's
-  `batteryPercent()` curve) is expected on the firmware side, buffered in NVS
-  and dumped over USB, so the app would need nothing for it. An in-app CSV logger
-  would need a foreground service (`connectedDevice` type) and was not built.
+  `batteryPercent()` curve) lives on the firmware side: the `rundown` build logs
+  to LittleFS and `Software/LED_coaster/tools/rundown/` dumps and fits it, so
+  the app needs nothing. An in-app CSV logger would need a foreground service
+  (`connectedDevice` type) and was not built.
 
-Open: device tests beyond the stub; nothing else is pending in the app.
+Open:
+
+- **Selecting FIXED, PULSE or CHASER does nothing until a colour is picked.**
+  `MainViewModel.selectPattern()` only sends Package 2 for RAINBOW; the other
+  patterns are sent only from `pickColor()`. Intended: switching pattern takes
+  effect at once, re-sending it with the last picked colour (`_pickedColor`),
+  or a default before any colour has been picked.
+- Device tests beyond the stub.
 
 ## Working rules for this app
 
