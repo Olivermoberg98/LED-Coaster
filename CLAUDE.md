@@ -334,6 +334,13 @@ below 3.2 V for three readings writes a final sample with flag `0x80`, clears
 the LEDs and deep-sleeps (wake it with SW1 off/on). Over USB serial, `dump`
 prints the log as CSV and `clear` wipes it; clear before starting a run.
 
+Tools and data live in `Software/LED_coaster/tools/rundown/`:
+`rundown_dump.py [COM6]` saves the log to `runs/<date>.csv` (needs pyserial;
+PlatformIO's Python has it), and `rundown_fit.py runs/<date>.csv --compare
+runs/2026-10-10.csv` prints the run summary and a drop-in `batteryPercent()`
+table and saves a plot next to the CSV, with earlier runs overlaid. Keep every
+run's CSV and plot in `runs/` so a weakening cell shows up over time.
+
 Still to do:
 
 - **Voltage accuracy — accepted without a correction.** At `charge complete`
