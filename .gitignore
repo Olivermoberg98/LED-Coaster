@@ -7,3 +7,6 @@ __pycache__/
 
 # KiCad regenerable footprint cache
 fp-info-cache
+
+# IntelliJ project created by opening the repo root; the app keeps its own
+/.idea/
