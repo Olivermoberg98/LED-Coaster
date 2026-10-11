@@ -77,7 +77,7 @@ Charger state: 0 unknown, 1 on battery, 2 charging, 3 charge complete,
 reading holds for two consecutive 2 s reads.
 
 The low-battery flag is set by the firmware, not the app: LBO **or** below
-`LOW_BATTERY_WARN_MV` (3500 mV, to be re-set from the fitted curve).
+`LOW_BATTERY_WARN_MV` (3580 mV, about 15% on the fitted curve).
 
 Pushes are sent from `loop()`, never from a NimBLE callback: when a client
 subscribes, every 30 s while connected, and immediately when the reported
@@ -273,9 +273,10 @@ from `loop()`, whether or not a phone is connected:
   doubles them. In this Arduino core (2.0.17) that call already applies the
   `esp_adc_cal` calibration; attenuation is set to `ADC_11db` in `setup()`.
   Readings are stable to ±2 mV.
-- `batteryPercent()` interpolates a generic Li-Po resting-voltage table. It
-  reads high while charging (the charge current raises the terminal voltage)
-  and has not been fitted to this cell.
+- `batteryPercent()` interpolates a table fitted to this cell from the
+  2026-10-10 run-down below, with 0% at 3.30 V. It was measured under a steady
+  ~150 mA load, so it reads somewhat optimistic at idle (no LEDs, higher
+  terminal voltage) and high while charging.
 - `chargerState()` reads the three pins as `INPUT_PULLUP` (High-Z reads HIGH)
   and decodes per the MCP73871 datasheet Table 5-1:
 
@@ -309,22 +310,41 @@ under ~0.5 A — so it cannot be used directly as a state-of-charge table:
 The cell started at 3.49 V resting. It was ~3.6 V once USB was in, before the
 firmware was flashed; the first logged reading is 3798 mV.
 
+**First run-down, 2026-10-10** (`rundown` build, full charge, phone not
+connected, inner ring at a constant dim white). 378 one-minute samples, no
+resets, ended by the build's own 3.2 V stop after 6.3 h:
+
+| h | mV | h | mV |
+|---|---|---|---|
+| 0 | 4152 | 4 | 3790 |
+| 1 | 4008 | 5 | 3636 |
+| 2 | 3944 | 5.83 | 3498, first below 3500 |
+| 3 | 3858 | 6.24 | 3300 (0%) |
+
+Percent was taken as remaining time to 3.30 V, which holds at constant load.
+The knee is at ~3.5 V: below it only ~25 minutes remain. Capacity to 3.30 V is
+**~935 mAh assuming a ~150 mA load** (ring ~120 mA + ESP32 ~30 mA, estimated,
+not measured), so the 1500 mAh cell is at roughly 60% of its rating. `LBO`
+was never reached.
+
+To repeat it: `pio run -e rundown -t upload`. That build lights the inner ring
+at `CRGB(85, 85, 85)` from boot, appends `uptime_s, mv, charger_state, flags`
+(8 bytes) to `/rundown.bin` on LittleFS once a minute while not on USB, and
+below 3.2 V for three readings writes a final sample with flag `0x80`, clears
+the LEDs and deep-sleeps (wake it with SW1 off/on). Over USB serial, `dump`
+prints the log as CSV and `clear` wipes it; clear before starting a run.
+
 Still to do:
 
-- **Voltage accuracy — unresolved.** At `charge complete` the firmware read
-  4180 mV but a multimeter at `C7` pad 1 read **4.09 V**. The two readings may
-  not have been taken at the same moment. The cell relaxes after termination,
-  but 90 mV is a lot. Possible causes: the multimeter itself, ADC calibration
-  error, or the 235 kΩ divider source impedance. Re-measure simultaneously at a
-  few points before trusting the numbers; if the firmware is consistently off,
-  add a correction. Deferred to the Phase 4 run-down, where pairs over the
-  whole range can be read over BLE.
-- **Percentage curve.** Fit `batteryPercent()` to this cell from a **discharge**
-  run-down log (resting or light-load voltage against time on battery, ending
-  at `low battery`), not from the charge log above. Logging needs USB, which
-  powers the board, so a run-down must be recorded another way — over BLE once
-  the status path exists, or as samples buffered in RAM/NVS and dumped
-  afterwards.
+- **Voltage accuracy — accepted without a correction.** At `charge complete`
+  the firmware read 4180 mV against 4.09 V on a multimeter at `C7` pad 1,
+  probably not taken at the same moment. No simultaneous pairs were taken.
+  The fitted table and thresholds are all in firmware millivolts, so they stay
+  self-consistent; only absolute voltages are uncertain, by up to ~90 mV. If a
+  correction is ever added in `readBatteryMillivolts()`, shift the table,
+  `LOW_BATTERY_WARN_MV` and the planned cut-off by the same amount.
+- **Percentage curve — done** from the 2026-10-10 run-down above. Refit on a
+  new cell or a second board with the `rundown` build.
 - **BLE status path — firmware side done.** The coaster publishes Package 3;
   see "Coaster → app: battery status" under "The BLE contract".
 - **App — done.** `protocol/` decodes Package 3 into

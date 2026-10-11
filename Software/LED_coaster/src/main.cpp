@@ -2,6 +2,9 @@
 #include <FastLED.h>
 #include <patterns.h>
 #include <BLEHandler.h>
+#ifdef RUNDOWN_LOG
+#include <LittleFS.h>
+#endif
 
 CRGB led_output_inner[NUM_LEDS_INNER]; 
 CRGB led_output_outer[NUM_LEDS_OUTER]; 
@@ -23,7 +26,8 @@ unsigned long lastBatteryReport = 0;
 const unsigned long STATUS_PUSH_INTERVAL_MS = 30000;
 unsigned long lastStatusPush = 0;
 // Below this the low-battery flag is set even before the charger raises LBO (3.1 V).
-const uint32_t LOW_BATTERY_WARN_MV = 3500;
+// About 15% on the fitted curve, roughly 55 minutes left at a ~150 mA load.
+const uint32_t LOW_BATTERY_WARN_MV = 3580;
 
 // Charger state as carried in Package 3; values are part of the BLE contract.
 enum ChargerState : uint8_t {
@@ -49,13 +53,14 @@ uint32_t readBatteryMillivolts() {
   return (sum / samples) * 2;
 }
 
-// Li-Po resting-voltage curve, linearly interpolated between points.
+// Discharge curve of the 1500 mAh cell, fitted from the 2026-10-10 run-down at a
+// constant ~150 mA load, linearly interpolated between points. 0% sits at 3.30 V.
 int batteryPercent(uint32_t mv) {
   static const uint16_t curve[][2] = {
-    {4200, 100}, {4150, 95}, {4110, 90}, {4080, 85}, {4020, 80}, {3980, 75},
-    {3950, 70},  {3910, 65}, {3870, 60}, {3850, 55}, {3840, 50}, {3820, 45},
-    {3800, 40},  {3790, 35}, {3770, 30}, {3750, 25}, {3730, 20}, {3710, 15},
-    {3690, 10},  {3610, 5},  {3270, 0}
+    {4132, 100}, {4060, 95}, {4021, 90}, {4012, 85}, {3999, 80}, {3976, 75},
+    {3954, 70},  {3920, 65}, {3884, 60}, {3862, 55}, {3853, 50}, {3836, 45},
+    {3814, 40},  {3790, 35}, {3757, 30}, {3707, 25}, {3647, 20}, {3582, 15},
+    {3521, 10},  {3512, 8},  {3495, 6},  {3465, 4},  {3390, 2},  {3300, 0}
   };
   const int points = sizeof(curve) / sizeof(curve[0]);
   if (mv >= curve[0][0]) return 100;
@@ -95,6 +100,77 @@ const char* chargerStateName(ChargerState state) {
     default:                  return "unknown";
   }
 }
+
+#ifdef RUNDOWN_LOG
+// Run-down log: one sample per minute while on battery, appended to flash so it
+// survives the end of the run. Read back over USB serial with "dump", wiped with "clear".
+const char* RUNDOWN_FILE = "/rundown.bin";
+const unsigned long RUNDOWN_SAMPLE_INTERVAL_MS = 60000;
+// The run ends below this, before the cell's own protection trips.
+const uint32_t RUNDOWN_CUTOFF_MV = 3200;
+const uint8_t RUNDOWN_CUTOFF_FLAG = 0x80;
+// Constant inner-ring load of about 120 mA, so a 1500 mAh cell runs down overnight.
+const CRGB RUNDOWN_LOAD_COLOR = CRGB(85, 85, 85);
+unsigned long lastRundownSample = 0;
+bool rundownSampled = false;
+int rundownLowReadings = 0;
+
+struct __attribute__((packed)) RundownSample {
+  uint32_t uptime;
+  uint16_t mv;
+  uint8_t chargerState;
+  uint8_t flags;
+};
+
+void appendRundownSample(uint32_t mv, uint8_t state, uint8_t flags) {
+  RundownSample sample = {millis() / 1000, (uint16_t)mv, state, flags};
+  File file = LittleFS.open(RUNDOWN_FILE, FILE_APPEND);
+  if (file) {
+    file.write((const uint8_t*)&sample, sizeof(sample));
+    file.close();
+  }
+}
+
+// Called on every battery reading. Samples once a minute while on battery, and at
+// the cut-off writes a final flagged sample, turns the LEDs off and deep-sleeps.
+void rundownReading(uint32_t mv, uint8_t state, uint8_t flags, bool usbPower) {
+  if (usbPower) {
+    rundownLowReadings = 0;
+    return;
+  }
+  rundownLowReadings = (mv < RUNDOWN_CUTOFF_MV) ? rundownLowReadings + 1 : 0;
+  if (rundownLowReadings >= 3) {
+    appendRundownSample(mv, state, flags | RUNDOWN_CUTOFF_FLAG);
+    FastLED.clear(true);
+    Serial.println("Run-down: cut-off reached, entering deep sleep");
+    esp_deep_sleep_start();
+  }
+  if (!rundownSampled || millis() - lastRundownSample >= RUNDOWN_SAMPLE_INTERVAL_MS) {
+    rundownSampled = true;
+    lastRundownSample = millis();
+    appendRundownSample(mv, state, flags);
+  }
+}
+
+void handleRundownCommand() {
+  if (!Serial.available()) return;
+  String command = Serial.readStringUntil('\n');
+  command.trim();
+  if (command == "dump") {
+    Serial.println("uptime_s,mv,charger_state,flags");
+    File file = LittleFS.open(RUNDOWN_FILE, FILE_READ);
+    RundownSample sample;
+    while (file && file.read((uint8_t*)&sample, sizeof(sample)) == sizeof(sample)) {
+      Serial.printf("%u,%u,%u,%u\n", sample.uptime, sample.mv, sample.chargerState, sample.flags);
+    }
+    if (file) file.close();
+    Serial.println("end");
+  } else if (command == "clear") {
+    LittleFS.remove(RUNDOWN_FILE);
+    Serial.println("Run-down log cleared");
+  }
+}
+#endif
 
 // Reads the battery and charger, logs them, and loads Package 3 into the status
 // characteristics. Returns true when the reported charger state changed.
@@ -143,6 +219,9 @@ bool updateBatteryStatus() {
   Serial.printf("Battery: %u mV, %d%%, charger: %s (PG=%d STAT1=%d STAT2=%d)\n",
                 mv, percent, chargerStateName(state),
                 pins & 0x01, (pins >> 1) & 0x01, (pins >> 2) & 0x01);
+#ifdef RUNDOWN_LOG
+  rundownReading(mv, reportedChargerState, flags, usbPower);
+#endif
   return changed;
 }
 
@@ -171,6 +250,12 @@ void setup() {
   // Setup Bluetooth
   blehandler.begin();
 
+#ifdef RUNDOWN_LOG
+  LittleFS.begin(true);
+  fill_solid(led_output_inner, NUM_LEDS_INNER, RUNDOWN_LOAD_COLOR);
+  FastLED.show();
+#endif
+
   // Starts the charger state settled, so the first push is not "unknown"
   reportedChargerState = pendingChargerState = chargerState();
   updateBatteryStatus();
@@ -181,6 +266,9 @@ void loop() {
   // Update connection state machine
   blehandler.updateConnectionState();
   blehandler.updateAdvertising();
+#ifdef RUNDOWN_LOG
+  handleRundownCommand();
+#endif
 
   bool pushStatus = false;
   if (millis() - lastBatteryReport >= BATTERY_REPORT_INTERVAL_MS) {
