@@ -179,12 +179,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         current.value?.sendPackage1(_outerEnabled.value, _innerEnabled.value)
     }
 
-    /** RAINBOW is sent at once; the other patterns wait for a colour to be picked. */
+    /**
+     * Sends [pattern] at once: RAINBOW with its fixed colour, the others with the last
+     * picked colour, or white before any colour has been picked.
+     */
     fun selectPattern(pattern: Pattern) {
         _pattern.value = pattern
-        if (pattern == Pattern.RAINBOW) {
-            current.value?.sendPackage2(Pattern.RAINBOW, RAINBOW_COLOR)
+        val color = if (pattern == Pattern.RAINBOW) {
+            RAINBOW_COLOR
+        } else {
+            _pickedColor.value?.let(Rgb::fromArgb) ?: Rgb.WHITE
         }
+        current.value?.sendPackage2(pattern, color)
     }
 
     /** Sends the selected pattern with [argb], a colour from the colour wheel. */
