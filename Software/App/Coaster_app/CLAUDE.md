@@ -141,8 +141,9 @@ Leaving the games screen does **not** disconnect anything.
   Outer/Inner checkboxes and the effect controls are locked until the
   current coaster is ready ("Go to Games" stays usable). Checkboxes
   send Package 1 on every change; FIXED/PULSE/CHASER show one colour button
-  and picking a colour sends Package 2; RAINBOW immediately sends `RAINBOW`
-  with `0,255,0`. Ring, pattern and colour selections live in
+  and picking a colour sends Package 2. Selecting a pattern sends Package 2 at
+  once: RAINBOW with `0,255,0`, the others with the last picked colour, or
+  white before any pick. Ring, pattern and colour selections live in
   `MainViewModel`, so they survive rotation. `ColorPickerDialog` is a
   hue/saturation wheel plus a brightness slider; it sends the colour each time
   a finger lifts off the wheel or slider (one packet per drag, not per move),
@@ -210,11 +211,6 @@ with Oliver's approval:
 
 Open:
 
-- **Selecting FIXED, PULSE or CHASER does nothing until a colour is picked.**
-  `MainViewModel.selectPattern()` only sends Package 2 for RAINBOW; the other
-  patterns are sent only from `pickColor()`. Intended: switching pattern takes
-  effect at once, re-sending it with the last picked colour (`_pickedColor`),
-  or a default before any colour has been picked.
 - Device tests beyond the stub.
 
 ## Working rules for this app
