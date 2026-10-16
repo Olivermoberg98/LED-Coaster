@@ -4,11 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository layout
 
-Three loosely-coupled parts, no shared build:
+Four loosely-coupled parts, no shared build:
 
 - `Software/LED_coaster/` — ESP32-C3 firmware (PlatformIO + Arduino framework, FastLED, NimBLE-Arduino). The coaster itself.
 - `Software/App/Coaster_app/` — Android app (Kotlin, Jetpack Compose) that drives coasters over BLE GATT. Its own guide is `Software/App/Coaster_app/CLAUDE.md`.
 - `Hardware/PCB/` — KiCad project for the coaster board. `Hardware/PCB/ORDERING.md` is the live checklist for taking the board through layout to a JLCPCB order — check it for current progress before doing PCB work.
+- `Hardware/3d_printing/` — the printed enclosure (top shell + bottom piece); see "Enclosure" below.
 
 `Software/LED_coaster/.pio/` is gitignored build output containing full copies of FastLED and NimBLE-Arduino. Exclude it when searching — it dwarfs the actual source (5 files).
 
@@ -394,6 +395,42 @@ Notes that matter for firmware:
   ~1.17 A with the ESP32 — still over, and it sags `+SYS` enough to drop `U4`
   out below a ~3.7 V cell. Global brightness limiting in firmware is the
   practical mitigation; see the bring-up note above for the numbers.
+
+## Enclosure (3D printed)
+
+Designed by a friend in Fusion 360; the `.f3d` is not kept, because it needs a
+Fusion licence. `Hardware/3d_printing/LED_Coaster.step` is the source of truth:
+two solids, in KiCad's board coordinates (origin at the board centre, PCB from
+z 0 to 1.6 mm). The STLs and 3MFs next to it are generated from it, centred and
+placed print-ready on z = 0.
+
+- **Top shell** — Ø92.6 × 6.5 mm, 1 mm wall and 1 mm top, inner Ø90.6 against
+  the Ø90 board (a snug fit that works; do not add clearance). A ring of 35
+  radial slits, 0.5 mm wide, sits over the inner LED ring. One rim opening
+  spans 83.4°–114.6° (z 0.6–4.79) and serves both USB-C `J3` (90°) and
+  `SW1` (108°). Printed with the top face on the bed.
+- **Bottom piece** — Ø74.6 × 9 mm, under the board (top 0.1 mm below it),
+  around the battery.
+- Measured clearances to the inside of the top (from box models; KiCad 10 has no 3D model
+  for either part): USB-C about 0 mm at the top and 0.17 mm at the side. `SW1` measures
+  about 0.5 mm into the lid if its body is really 3.5 mm tall — unconfirmed,
+  the printed parts close.
+- Material: black PLA, because the coaster is only for cold or room-temperature drinks.
+  Use PETG instead if it ever has to take hot mugs (PLA softens at about 55–60 °C).
+- Print settings for the slits (Creality K1, 0.4 mm nozzle): 0.12 mm layers, Arachne,
+  2 walls, elephant-foot compensation 0.15 mm, X-Y hole compensation **0**
+  (it would loosen the board fit).
+
+**Condensation:** the slits are open and sit under the glass, so water can drip
+onto the inner LEDs and the board. For now this is handled with **clear tape on the inside
+of the top shell** over the slit ring; there is ~1.5 mm between the lid and
+the LEDs. If tape turns out not to be enough, the next step is filling the
+slits with clear UV resin (tape the outside, fill from the inside, cure), and
+optionally conformal coating on the PCB, keeping USB-C, `SW1` and `J1` clear.
+
+To check fit or edit geometry: build123d (`pip install build123d`) reads the
+STEP; `kicad-cli pcb export step --user-origin 150x80mm` exports the board
+in the same frame (kicad-cli is in `D:\Programvaror\bin`).
 
 ## My working preferences
 
