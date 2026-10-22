@@ -1,12 +1,15 @@
-
-# KiCad editor lock files and local history
+# KiCad lock files, local history, backups and per-user view settings
 ~*.lck
 .history/
+*-backups/
+*.kicad_prl
+# KiCad's footprint cache and DRC/ERC reports; both regenerate on demand
+fp-info-cache
+*.rpt
+
+# Python
 __pycache__/
 *.pyc
 
-# KiCad regenerable footprint cache
-fp-info-cache
-
-# IntelliJ project created by opening the repo root; the app keeps its own
-/.idea/
+# IDE project files; Android Studio and IntelliJ regenerate them on sync
+.idea/
