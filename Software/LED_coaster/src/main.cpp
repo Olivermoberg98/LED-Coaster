@@ -12,7 +12,7 @@ CRGB led_output_outer[NUM_LEDS_OUTER];
 PatternType inner_pattern = FIXED;
 PatternType outer_pattern = FIXED;
 
-std::string coasterID = "05";
+std::string coasterID = "05"; // Unique per coaster: advertised as "Coaster-<id>"
 BLEHandler blehandler(coasterID);
 
 // Battery sense: +BATT through a 470k/470k divider, so the pin sees half the cell.
@@ -394,7 +394,7 @@ void loop() {
       inner_pattern = stringToPatternType(blehandler.received_pattern);
       outer_pattern = stringToPatternType(blehandler.received_pattern);
 
-      if (inner_pattern != 3 || outer_pattern != 3) {
+      if (inner_pattern != RAINBOW || outer_pattern != RAINBOW) {
         updateLEDColors(0, NUM_LEDS_INNER, blehandler.received_colors);
         updateLEDColors(1, NUM_LEDS_OUTER, blehandler.received_colors);
       }
@@ -403,7 +403,6 @@ void loop() {
       outer_needs_update = true;
       
       blehandler.package2Received = false;
-      Serial.println(inner_pattern);
     }
   }
 

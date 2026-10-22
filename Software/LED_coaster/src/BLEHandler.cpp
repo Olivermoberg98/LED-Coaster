@@ -1,5 +1,4 @@
 #include "BLEHandler.h"
-#include <iostream>
 #include <cstdlib>
 #include "patterns.h"
 #include <esp_pm.h>
@@ -21,7 +20,7 @@ void BLEHandler::begin() {
     pServer = NimBLEDevice::createServer();
     pServer->setCallbacks(new ServerCallbacks(this));  
 
-    // Create a service and characteristic (example UUIDs used here)
+    // Command service and characteristic; the app's CoasterUuids.kt holds the same UUIDs
     NimBLEService* pService = pServer->createService("00001801-0000-1000-8000-008051234567");
     pCharacteristic = pService->createCharacteristic(
         "00001234-0000-1000-8000-001122334455",
@@ -80,14 +79,6 @@ void BLEHandler::startAdvertising() {
         slowAdvertising = false;
         advertisingStartTime = millis();
         Serial.println("Advertising: fast");
-    }
-}
-
-void BLEHandler::stopAdvertising() {
-    if (isAdvertising) {
-        NimBLEDevice::getAdvertising()->stop();
-        isAdvertising = false;
-        Serial.println("Stopped Advertising - entering low power mode");
     }
 }
 
@@ -154,7 +145,6 @@ bool BLEHandler::shouldProcessPatterns() {
 
 void BLEHandler::resetConnectionState() {
     // Reset all flags to prepare for a clean reconnection
-    package1Received = false;
     package2Received = false;
     inner_needs_update = true;
     outer_needs_update = true;
@@ -223,7 +213,6 @@ void BLEHandler::handlePackage1(const std::vector<byte>& data) {
     // Set flags based on the package data
     outerChecked = (isOuterChecked == 0x01);
     innerChecked = (isInnerChecked == 0x01);
-    package1Received = true;
 }
 
 void BLEHandler::handlePackage2(const std::vector<byte>& data) {
@@ -282,5 +271,6 @@ void BLEHandler::handlePackage2(const std::vector<byte>& data) {
     received_colors[2] = parsedColors[2];
     package2Received = true;
 
-    std::cout << "Pattern type: " << received_pattern << std::endl;
+    Serial.printf("Package 2: %s %d,%d,%d\n", received_pattern.c_str(),
+                  received_colors[0], received_colors[1], received_colors[2]);
 }

@@ -9,6 +9,10 @@ CRGB colors_outer[NUM_LEDS_OUTER];
 bool inner_needs_update = true;
 bool outer_needs_update = true;
 
+// Rainbow hue, shared by both rings so they stay in step
+static uint8_t sharedHue = 0;
+static uint16_t sharedCounter = 0;
+
 PatternType stringToPatternType(const std::string& pattern) {
     if (pattern == "FIXED") {
         return FIXED;
@@ -63,21 +67,18 @@ void runPattern(PatternType pattern, CRGB* ledsIn, CRGB* ledsOut, int numberOfLe
 
 void fixed(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds) {
     for (int i = 0; i < numberOfLeds; i++) {
-        // Scale the original colors to the new brightness
-        ledsOut[i].r = constrain(ledsIn[i].r, 0, 255);
-        ledsOut[i].g = constrain(ledsIn[i].g, 0, 255);
-        ledsOut[i].b = constrain(ledsIn[i].b, 0, 255);
+        ledsOut[i] = ledsIn[i];
     }
     FastLED.show();
 }
 
-void pulse(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, float pulseFrequency, float maxBrigthness, float minBrigthness) {
+void pulse(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, float pulseFrequency, float maxBrightness, float minBrightness) {
     // Calculate the pulse value (between 0 and 1)
     float pulse = (sin((2 * PI * millis() * pulseFrequency) / 1000.0f) + 1.0) / 2.0;
 
     // Scale brightness between 0 and 1
-    float scaledMaxBrightness = maxBrigthness / 255.0f;
-    float scaledMinBrightness = minBrigthness / 255.0f;
+    float scaledMaxBrightness = maxBrightness / 255.0f;
+    float scaledMinBrightness = minBrightness / 255.0f;
     float scaledBrightness = pulse * (scaledMaxBrightness - scaledMinBrightness) + scaledMinBrightness;
 
     for (int i = 0; i < numberOfLeds; i++) {
@@ -144,23 +145,11 @@ void clearRing(CRGB* leds, int numLeds) {
 }
 
 void onDisconnectPattern(CRGB* ledsInner, int numLedsInner, CRGB* ledsOuter, int numLedsOuter) {
-    // Set both rings to red first
-    for (int i = 0; i < numLedsInner; i++) {
-        ledsInner[i] = CRGB::Red;
-    }
-    for (int i = 0; i < numLedsOuter; i++) {
-        ledsOuter[i] = CRGB::Red;
-    }
-    FastLED.show();
-    
-    // Gradual fade-out effect for both rings simultaneously
+    // Both rings fade from full red to off; the last step is black, so the rings
+    // stay dark while disconnected
     for (int brightness = 255; brightness >= 0; brightness -= 5) {
-        for (int i = 0; i < numLedsInner; i++) {
-            ledsInner[i].fadeToBlackBy(5);
-        }
-        for (int i = 0; i < numLedsOuter; i++) {
-            ledsOuter[i].fadeToBlackBy(5);
-        }
+        fill_solid(ledsInner, numLedsInner, CRGB(brightness, 0, 0));
+        fill_solid(ledsOuter, numLedsOuter, CRGB(brightness, 0, 0));
         FastLED.show();
         delay(30); // Adjust for fade-out speed
     }

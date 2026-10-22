@@ -20,15 +20,13 @@ public:
     BLEHandler(const std::string& coasterID); // Constructor with a unique ID
     void begin();
     void startAdvertising();
-    void stopAdvertising();
     void updateAdvertising();
     bool isConnected();
     void updateConnectionState(); // Update state machine
     bool shouldProcessPatterns(); // Check if patterns should be processed
     void resetConnectionState(); // Reset state on disconnect
 
-    // Flags for the package status
-    bool package1Received = false;
+    // Set when a valid Package 2 arrives, consumed by the main loop
     bool package2Received = false;
     bool outerChecked = false;
     bool innerChecked = false;

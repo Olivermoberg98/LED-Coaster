@@ -13,9 +13,6 @@ extern CRGB colors_outer[NUM_LEDS_OUTER];
 extern bool inner_needs_update;
 extern bool outer_needs_update;
 
-static uint8_t sharedHue = 0;     
-static uint16_t sharedCounter = 0; 
-
 enum PatternType {
     FIXED,
     CHASER,
@@ -26,8 +23,8 @@ enum PatternType {
 PatternType stringToPatternType(const std::string& pattern);
 
 void fixed(CRGB* ledsIn,CRGB* ledsOut, int numberOfLeds);
-void pulse(CRGB* ledsIn,CRGB* ledsOut, int numberOfLeds, float pulseFrequency, float maxBrigthness, float minBrigthness);
-void chaser(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, int brightSpots,float roationalFrequency, float maxBrigthness, float minBrigthness);
+void pulse(CRGB* ledsIn,CRGB* ledsOut, int numberOfLeds, float pulseFrequency, float maxBrightness, float minBrightness);
+void chaser(CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds, int brightSpots,float rotationalFrequency, float maxBrightness, float minBrightness);
 void rainbow(CRGB* ledsOut, int numberOfLeds);
 void clearRing(CRGB* leds, int numLeds);
 void runPattern(PatternType pattern, CRGB* ledsIn, CRGB* ledsOut, int numberOfLeds);
