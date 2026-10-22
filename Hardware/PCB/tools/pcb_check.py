@@ -22,6 +22,8 @@ Subcommands:
   rings      LED ring checks: chain continuity, orientation uniformity, pad radii
   strays     copper DRC misses: board-edge clearance, dangling stubs, zero-length
   all        nets + shorts + zones + strays
+
+Exits 1 when nets, shorts, strays or all find a problem, so CI can gate on it.
 """
 
 import math
@@ -500,12 +502,13 @@ def cmd_nets(bd, args):
             split.append((net, len(pads), gr))
     if not split:
         print("every net with more than one pad is fully connected")
-        return
+        return 0
     print("%-30s %5s %7s  %s" % ("NET", "PADS", "GROUPS", "STRANDED PADS"))
     for net, np_, gr in sorted(split, key=lambda z: -len(z[2])):
         iso = [g[0] for g in gr if len(g) == 1]
         print("%-30s %5d %7d  %s" % (net, np_, len(gr),
                                      ", ".join(iso)[:70] if iso else "(no singletons)"))
+    return len(split)
 
 
 def cmd_net(bd, args):
@@ -552,7 +555,7 @@ def cmd_shorts(bd, args):
                     hits.append((ref, p["num"], p["net"], t["net"], -d, pts))
     if not hits:
         print("no foreign copper within %.2f mm of any pad" % CLEARANCE)
-        return
+        return 0
     print("%d pad clearance violation(s), rule %.2f mm:" % (len(hits), CLEARANCE))
     for ref, num, pnet, tnet, ov, pts in sorted(hits, key=lambda z: -z[4]):
         gap = -ov
@@ -560,6 +563,7 @@ def cmd_shorts(bd, args):
               % (ref, num, pnet, tnet or "NO-NET",
                  ("OVERLAP %.3f mm" % ov) if ov > 0 else ("gap %.3f mm" % gap),
                  " -> ".join("(%.2f,%.2f)" % q for q in pts)))
+    return len(hits)
 
 
 def cmd_widths(bd, args):
@@ -792,16 +796,18 @@ def cmd_strays(bd, args):
     bad += total
 
     print("\n%s" % ("clean" if not bad else "%d item(s) to deal with" % bad))
+    return bad
 
 
 def cmd_all(bd, args):
-    cmd_nets(bd, args)
+    bad = cmd_nets(bd, args)
     print()
     cmd_zones(bd, args)
     print()
-    cmd_shorts(bd, args)
+    bad += cmd_shorts(bd, args)
     print()
-    cmd_strays(bd, args)
+    bad += cmd_strays(bd, args)
+    return bad
 
 
 CMDS = dict(nets=cmd_nets, net=cmd_net, shorts=cmd_shorts, widths=cmd_widths,
@@ -827,8 +833,8 @@ def main():
         print("board not found: %s" % board)
         return 2
     bd = Board(board)
-    CMDS[cmd](bd, rest)
-    return 0
+    # nets, shorts, strays and all return a problem count; the rest only report
+    return 1 if CMDS[cmd](bd, rest) else 0
 
 
 if __name__ == "__main__":
