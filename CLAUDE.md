@@ -8,7 +8,7 @@ Four loosely-coupled parts, no shared build:
 
 - `Software/LED_coaster/` — ESP32-C3 firmware (PlatformIO + Arduino framework, FastLED, NimBLE-Arduino). The coaster itself.
 - `Software/App/Coaster_app/` — Android app (Kotlin, Jetpack Compose) that drives coasters over BLE GATT. Its own guide is `Software/App/Coaster_app/CLAUDE.md`.
-- `Hardware/PCB/` — KiCad project for the coaster board. `Hardware/PCB/ORDERING.md` is the live checklist for taking the board through layout to a JLCPCB order — check it for current progress before doing PCB work.
+- `Hardware/PCB/` — KiCad project for the coaster board. Its `README.md` holds the design rules, part-choice pitfalls, manufacturing and hand-soldering notes — read it before doing PCB work.
 - `Hardware/3d_printing/` — the printed enclosure (top shell + bottom piece); see "Enclosure" below.
 
 `Software/LED_coaster/.pio/` is gitignored build output containing full copies of FastLED and NimBLE-Arduino. Exclude it when searching — it dwarfs the actual source (5 files).
@@ -37,20 +37,21 @@ Android app (from `Software/App/Coaster_app/`, use `gradlew.bat` on Windows):
 ./gradlew installDebug
 ./gradlew test                                             # JVM unit tests
 ./gradlew test --tests "com.olivermoberg.ledcoaster.games.GamesTest"   # single test class
-./gradlew connectedAndroidTest                             # instrumented, needs a device
 ./gradlew lint
 ```
-JVM tests: `PacketsTest` freezes the exact Package 1/2 bytes and `GamesTest` runs the games in virtual time. `lint` passes against `app/lint-baseline.xml`. minSdk 31 / targetSdk 34, applicationId `com.olivermoberg.ledcoaster`.
+JVM tests: `PacketsTest` freezes the exact Package 1/2 bytes, `BatteryStatusDecoderTest` the Package 3 decoding, and `GamesTest` runs the games in virtual time. There are no instrumented tests. `lint` passes against `app/lint-baseline.xml`.
+
+CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) builds all three firmware environments, runs the app's `assembleDebug test lint`, and runs `pcb_check.py all`, on every push to `main` and every pull request. `platformio.ini` pins the platform (`espressif32@6.12.0`, Arduino core 2.0.17) as well as FastLED and NimBLE, so CI builds what was verified on the board. minSdk 31 / targetSdk 34, applicationId `com.olivermoberg.ledcoaster`.
 
 ## The BLE contract (the thing that spans both halves)
 
 App and firmware agree on a hand-rolled binary protocol: app → coaster over a writable GATT characteristic, coaster → app over a notify characteristic (Package 3, below). Changing either side without the other silently breaks things — the firmware just logs "Package N: checksum mismatch" and drops the packet.
 
-- Service UUID `00001801-0000-1000-8000-008051234567`, characteristic `00001234-0000-1000-8000-001122334455`. Hardcoded in **two** places: [BLEHandler.cpp](Software/LED_coaster/src/BLEHandler.cpp#L25-L33) and [CoasterUuids.kt](Software/App/Coaster_app/app/src/main/java/com/olivermoberg/ledcoaster/protocol/CoasterUuids.kt), the app's only copy, which also holds the Package 3 status UUID.
+- Service UUID `00001801-0000-1000-8000-008051234567`, characteristic `00001234-0000-1000-8000-001122334455`. Hardcoded in **two** places: [BLEHandler.cpp](Software/LED_coaster/src/BLEHandler.cpp#L24-L32) and [CoasterUuids.kt](Software/App/Coaster_app/app/src/main/java/com/olivermoberg/ledcoaster/protocol/CoasterUuids.kt), the app's only copy, which also holds the Package 3 status UUID.
 - **Package 1** (ring enable): `[0x01, outerChecked, innerChecked, checksum]`, checksum = sum of the *first three* bytes % 256.
 - **Package 2** (pattern + color): `[0x02] + "PATTERN" + 0x2C(',') + "R,G,B" + checksum`, checksum = sum of *all preceding* bytes % 256. Pattern and color arrive as ASCII, split with `find(',')` and parsed with `strtol`; each component is clamped to 0–255.
 - `CharacteristicCallbacks::onWrite` calls both `handlePackage1` and `handlePackage2` on every write; each returns early if the command byte doesn't match. Package 1 must be exactly 4 bytes; Package 2 at least 4, with exactly three numeric colour components. A malformed packet is logged and dropped whole, so the previous pattern and colour stay.
-- Pattern name strings must match on both sides: `stringToPatternType` in [patterns.cpp](Software/LED_coaster/src/patterns.cpp#L12-L24) vs the `dropdown_items` array in [arrays.xml](Software/App/Coaster_app/app/src/main/res/values/arrays.xml) and the app's `Pattern` enum (a unit test checks that the two agree). Unknown names fall back to `FIXED` rather than erroring.
+- Pattern name strings must match on both sides: `stringToPatternType` in [patterns.cpp](Software/LED_coaster/src/patterns.cpp#L16-L28) vs the `dropdown_items` array in [arrays.xml](Software/App/Coaster_app/app/src/main/res/values/arrays.xml) and the app's `Pattern` enum (a unit test checks that the two agree). Unknown names fall back to `FIXED` rather than erroring.
 
 ### Coaster → app: battery status (Package 3)
 
@@ -157,14 +158,19 @@ python pcb_check.py rings                 # LED chain continuity, ring uniformit
 python pcb_check.py zones                 # zone net/layer/priority/fill state
 python pcb_check.py widths                # track widths actually used per net
 python pcb_check.py placement             # positions, angles, sides, off-board
-python pcb_check.py all
+python pcb_check.py strays                # copper near the edge, dangling stubs
+python pcb_check.py all                   # nets + zones + shorts + strays
 ```
+
+`nets`, `shorts`, `strays` and `all` exit 1 when they find a problem; CI runs
+`all` on every push.
 
 KiCad's DRC remains the authority on manufacturability. This answers the
 questions DRC doesn't — *is this net actually one island, and which pad is
 stranded* — and answers them without opening the GUI.
 
-**Traps it encodes** (the header comment in the file lists all six):
+**Traps it encodes** (the header comment in the file lists all ten; these
+are the ones that have cost the most):
 
 - **Back-side pads are not X-mirrored.** `B.Cu` footprints use the same
   local→board transform as `F.Cu`. Mirroring swaps pad 3 for pad 4 and invents
@@ -214,15 +220,14 @@ With a protected 1S LiPo:
   it dissipates (5 V − V_bat) × 0.5 A ≈ 0.75 W at a low cell — but it never
   thermally faulted or dropped out of `charging`.
 - The full `charging` → `charge complete` sequence was observed on
-  `STAT1`/`STAT2`/`PG`, decoded by the firmware (see the TODO section).
+  `STAT1`/`STAT2`/`PG`, decoded by the firmware (see "Battery and charger reporting").
 - Pulling USB while connected with the ring lit: the coaster carried on, on
   battery, with no reset.
 
 **Untested — parts not fitted.** The rest of the back side, including the
 **outer ring (`large_ring`, GPIO1, 20 LEDs)** and its decoupling caps. The
-`low battery` (LBO) and `temperature fault` states have not been seen, and no
-run-down on battery has been done. The plan is to finish battery reporting
-before soldering the back side.
+`low battery` (LBO) and `temperature fault` states have not been seen. A
+battery run-down was completed on 2026-10-10; see "First run-down" below.
 
 Net/pin agreement between the fabricated board and the firmware was checked
 against `LED_Coaster.kicad_sch` and matches: `small_ring` → IO0, `large_ring` →
@@ -247,14 +252,17 @@ Gotchas that cost time during bring-up:
   build would have been 1.8 A), ~1.17 A with the ESP32 on BLE. That still
   exceeds the <1 A system load the MCP73871 datasheet recommends, and the sag
   is what bites: 200 mΩ BAT→SYS plus ~65 mΩ through `Q1` drops ~306 mV, so at
-  a 3.6 V cell `+SYS` falls to 3.37 V and **`U4` drops out — the ESP32 resets
-  mid-use**. The 900 mA cap holds `+SYS` at 3.40 V down to a 3.6 V cell and
-  costs ~17% of peak white, which is barely visible. It is untested under load:
-  with only the 10-LED inner ring fitted (0.36 A) it never engages. Below a
-  3.60 V cell `updateLedCap()` lowers the cap linearly to 300 mA at 3.40 V
-  (re-applied only after a 50 mV move, and it re-renders FIXED frames). All
-  cap figures are FastLED's own current estimate, which assumes WS2812B-like
-  draw rather than the TZ part's 12 mA/channel, not a measured current.
+  a 3.6 V cell `+SYS` falls to ~3.29 V and **`U4` drops out — the ESP32 resets
+  mid-use**. All cap figures are FastLED's own current estimate, not a measured
+  current, and FastLED budgets WS2812B draw: 16 + 11 + 15 mA per full-white
+  pixel plus 1 mA dark, so 30 pixels estimate at ~1.28 A against the TZ part's
+  real 1.08 A. A 900 mA cap therefore scales full white to ~70% brightness,
+  ~0.75 A real (~0.84 A with the ESP32), which holds `+SYS` at ~3.38 V down to
+  a 3.6 V cell and costs ~30% of peak white. It is untested under load: with
+  only the 10-LED inner ring fitted (estimated 0.43 A, 0.36 A real) it never
+  engages. Below a 3.60 V cell `updateLedCap()` lowers the cap linearly to
+  300 mA at 3.40 V (re-applied only after a 50 mV move, and it re-renders
+  FIXED frames).
 - **`coasterID` is hardcoded** at [main.cpp:15](Software/LED_coaster/src/main.cpp#L15).
   The first board was flashed as `05`, so it advertises `Coaster-05`; its base
   MAC is `f8:5b:1b:eb:1a:14`. Give every further board its own ID before
@@ -302,7 +310,7 @@ from `loop()`, whether or not a phone is connected:
   `STAT1`/`STAT2` pair and differ only in `PG`. Note `PG` is *pseudo*
   open-drain with a diode path back to `IN`, so the internal pull-up
   back-feeds ~58 µA into `+5V` when USB is unplugged; harmless, see
-  ORDERING.md §10.
+  `Hardware/PCB/README.md`.
 
 **First full charge, 2026-10-08** (firmware readings, SW1 on, phone not
 connected, ESP32 idle on `+SYS`). This is a *charging* curve — terminal voltage
@@ -350,7 +358,7 @@ runs/2026-10-10.csv` prints the run summary and a drop-in `batteryPercent()`
 table and saves a plot next to the CSV, with earlier runs overlaid. Keep every
 run's CSV and plot in `runs/` so a weakening cell shows up over time.
 
-Still to do:
+Battery curve and follow-up:
 
 - **Voltage accuracy — accepted without a correction.** At `charge complete`
   the firmware read 4180 mV against 4.09 V on a multimeter at `C7` pad 1,
@@ -430,7 +438,7 @@ optionally conformal coating on the PCB, keeping USB-C, `SW1` and `J1` clear.
 
 To check fit or edit geometry: build123d (`pip install build123d`) reads the
 STEP; `kicad-cli pcb export step --user-origin 150x80mm` exports the board
-in the same frame (kicad-cli is in `D:\Programvaror\bin`).
+in the same frame (install KiCad and make `kicad-cli` available on `PATH`).
 
 ## My working preferences
 
