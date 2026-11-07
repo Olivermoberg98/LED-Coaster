@@ -43,8 +43,9 @@ still works with `SW1` off, because `U3` sits upstream of the switch.
 **How `U3` is strapped.** USB-port mode (`SEL` low), 500 mA input limit
 (`PROG2` high), 500 mA charge current (`R2` 2k), 50 mA termination (`R15`
 20k), thermistor disabled (`R14` 10k to GND), and safety timer disabled
-(`TE` high). With the timer off, both status outputs low can only mean a
-temperature fault. The firmware decodes the states per datasheet Table 5-1;
+(`TE` high). The input limit (450 mA typical) is what governs, so the cell
+charges at about 420 mA once the ESP32 has its share. With the timer off, both
+status outputs low can only mean a temperature fault. The firmware decodes the states per datasheet Table 5-1;
 the root [CLAUDE.md](../../CLAUDE.md) has the table.
 
 ## Rules for changing the design
@@ -65,7 +66,8 @@ the root [CLAUDE.md](../../CLAUDE.md) has the table.
   `+SYS` below the LDO's dropout on a part-discharged cell, so the firmware
   caps LED current.
 - **Keep the thermal vias under `U3`, and keep the pour reaching them.** At
-  500 mA from a low cell the charger dissipates about 0.75 W and gets hot.
+  about 420 mA into a low cell the charger dissipates up to about 0.8 W and
+  gets hot.
 - **Leave the netless zone on `B.Cu` at x 185–197, y 68–89.** It is the ESP32
   antenna keep-out.
 - The battery-sense divider sits next to the ESP32, so the long trace is the

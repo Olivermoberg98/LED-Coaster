@@ -34,6 +34,9 @@ const uint32_t LOW_BATTERY_WARN_MV = 3580;
 // and deep-sleeps (0% on the fitted curve). SW1 off/on wakes it.
 const uint32_t CUTOFF_MV = 3300;
 int cutoffLowReadings = 0;
+// While charging, the ~420 mA charge current through the ~0.24 Ohm path to the cell
+// lifts the reading about this far above the discharge curve.
+const uint32_t CHARGING_OFFSET_MV = 100;
 // LED current cap: the full cap down to 3.60 V, where it still holds +SYS at 3.40 V,
 // then falling linearly to the minimum at 3.40 V as the cell's sag grows.
 const uint32_t LED_CAP_FULL_MV = 3600;
@@ -260,7 +263,17 @@ bool updateBatteryStatus() {
   }
   pendingChargerState = state;
 
-  uint8_t percent = batteryPercent(mv);
+  // While charging, the discharge curve read CHARGING_OFFSET_MV lower tracks the charge
+  // actually delivered to within a few points; 100% waits for the charger to terminate.
+  uint8_t percent;
+  if (reportedChargerState == CHARGER_COMPLETE) {
+    percent = 100;
+  } else if (reportedChargerState == CHARGER_CHARGING) {
+    int charging = batteryPercent(mv > CHARGING_OFFSET_MV ? mv - CHARGING_OFFSET_MV : 0);
+    percent = charging > 99 ? 99 : charging;
+  } else {
+    percent = batteryPercent(mv);
+  }
   uint8_t flags = 0;
   if (reportedChargerState == CHARGER_LOW_BATTERY || mv < LOW_BATTERY_WARN_MV) flags |= 0x01;
   if (usbPower) flags |= 0x02;

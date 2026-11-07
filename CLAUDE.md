@@ -217,10 +217,14 @@ With a protected 1S LiPo:
   lights.
 - USB in: the cell voltage jumps ~110 mV and charging starts with SW1 on or off
   (`U3` sits upstream of the switch). `U3` gets very hot to the touch — expected,
-  it dissipates (5 V − V_bat) × 0.5 A ≈ 0.75 W at a low cell — but it never
+  it dissipates (5 V − V_bat) × ~0.42 A, up to ~0.8 W at a low cell — but it never
   thermally faulted or dropped out of `charging`.
 - The full `charging` → `charge complete` sequence was observed on
   `STAT1`/`STAT2`/`PG`, decoded by the firmware (see "Battery and charger reporting").
+- An over-discharged cell recovers (2026-11-07): a cell left flat read 0 V at the
+  plug because its protection had tripped. With USB in, the protection released,
+  `U3` preconditioned it at 50 mA and then charged it to `charge complete`; see
+  "Full charge from empty" below.
 - Pulling USB while connected with the ring lit: the coaster carried on, on
   battery, with no reset.
 
@@ -293,7 +297,12 @@ from `loop()`, whether or not a phone is connected:
 - `batteryPercent()` interpolates a table fitted to this cell from the
   2026-10-10 run-down below, with 0% at 3.30 V. It was measured under a steady
   ~150 mA load, so it reads somewhat optimistic at idle (no LEDs, higher
-  terminal voltage) and high while charging.
+  terminal voltage). While the reported state is `charging`,
+  `updateBatteryStatus()` looks the table up `CHARGING_OFFSET_MV` (100 mV) lower
+  and caps it at 99%; `charge complete` reports 100%. Against the 2026-11-07
+  charge this tracks the charge actually delivered within −4 to +6 points,
+  where the plain table read up to 28 points high and showed 100% about
+  35 minutes early.
 - `chargerState()` reads the three pins as `INPUT_PULLUP` (High-Z reads HIGH)
   and decodes per the MCP73871 datasheet Table 5-1:
 
@@ -314,7 +323,7 @@ from `loop()`, whether or not a phone is connected:
 
 **First full charge, 2026-10-08** (firmware readings, SW1 on, phone not
 connected, ESP32 idle on `+SYS`). This is a *charging* curve — terminal voltage
-under ~0.5 A — so it cannot be used directly as a state-of-charge table:
+under ~0.42 A — so it cannot be used directly as a state-of-charge table:
 
 | min | mV | min | mV | min | mV |
 |---|---|---|---|---|---|
@@ -326,6 +335,34 @@ under ~0.5 A — so it cannot be used directly as a state-of-charge table:
 
 The cell started at 3.49 V resting. It was ~3.6 V once USB was in, before the
 firmware was flashed; the first logged reading is 3798 mV.
+
+**Full charge from empty, 2026-11-07** (Coaster-03, a reading every 2 s, SW1 on,
+phone not connected). The cell had been left flat and read 0 V at the plug, its
+protection tripped:
+
+| min | mV | min | mV |
+|---|---|---|---|
+| 0 | 2996, preconditioning | 120 | 4048 |
+| 30 | 3686 | 150 | 4114 |
+| 60 | 3884 | 168 | ~4178, constant voltage from here |
+| 90 | 3956 | 194 | 4176, `charge complete` |
+
+- `U3` preconditioned at 50 mA (10% of the `PROG1` current) and switched to
+  fast charge at 3010 mV; the datasheet gives 72% of VREG, 3.02 V typical. The
+  reading stepped 3010 → 3106 mV, which puts ~0.23–0.30 Ω between the board
+  and the cell (cell, protection board, lead and `J1`).
+- 168 min of fast charge, then 26 min at constant voltage: 3 h 14 min from
+  3.0 V to full. From 3.8 V up, the curve follows the 2026-10-08 one a few
+  minutes behind.
+- The charge current is set by the USB input limit (`PROG2` high: 450 mA
+  typical, 400–500 mA), not by `PROG1`'s 500 mA, less the ESP32's share, so
+  about 420 mA. Counting charge at that current gives **~1.25 Ah** (1.1–1.4 Ah
+  over the limit's tolerance). That is more than the run-down's 935 mAh, which
+  rests on an estimated load; the two methods have not been compared on one
+  cell.
+- At constant voltage `U3` holds its BAT pin, the node the divider measures, at
+  VREG = 4.200 V ±21 mV. The firmware read 4180–4182 mV there, as on 2026-10-08:
+  see "Voltage accuracy" below.
 
 **First run-down, 2026-10-10** (`rundown` build, full charge, phone not
 connected, inner ring at a constant dim white). 378 one-minute samples, no
@@ -360,13 +397,15 @@ run's CSV and plot in `runs/` so a weakening cell shows up over time.
 
 Battery curve and follow-up:
 
-- **Voltage accuracy — accepted without a correction.** At `charge complete`
-  the firmware read 4180 mV against 4.09 V on a multimeter at `C7` pad 1,
-  probably not taken at the same moment. No simultaneous pairs were taken.
-  The fitted table and thresholds are all in firmware millivolts, so they stay
-  self-consistent; only absolute voltages are uncertain, by up to ~90 mV. If a
-  correction is ever added in `readBatteryMillivolts()`, shift the table,
-  `LOW_BATTERY_WARN_MV` and the planned cut-off by the same amount.
+- **Voltage accuracy — checked, no correction needed.** In the constant-voltage
+  phase of a charge, `U3` holds the measured node at 4.200 V ±21 mV, and the
+  firmware reads 4180–4182 mV there (2026-10-08 and 2026-11-07). So it reads
+  ~18 mV low, within the charger's own tolerance, and the table,
+  `LOW_BATTERY_WARN_MV` and `CUTOFF_MV` are real voltages. A multimeter once
+  read 4.09 V at `C7` pad 1, not at the same moment; it does not hold up. Any
+  board can be checked the same way from its serial log during a charge, with
+  no meter. If a correction is ever added in `readBatteryMillivolts()`, shift
+  the table and both thresholds by the same amount.
 - **Percentage curve — done** from the 2026-10-10 run-down above. Refit on a
   new cell or a second board with the `rundown` build.
 - **BLE status path — firmware side done.** The coaster publishes Package 3;
@@ -389,6 +428,10 @@ Notes that matter for firmware:
   the LEDs off and deep-sleeps with no wake source; SW1 off/on restarts it.
   Deep sleep still draws a little (ESP32, LDO, charger ~30 µA, divider), so the
   cell keeps draining slowly until switched off. Always use a protected cell.
+  Even switched off, ~35 µA remains (next bullet), so a coaster left at the
+  cut-off can drain into the cell's own protection within weeks. It then reads
+  0 V at the plug, and plugging in USB recovers it (see "Full charge from
+  empty").
 - The divider draws ~4.5 µA continuously from the cell even when switched off,
   because it sits on `+BATT` upstream of the switch. That is small next to the
   charger IC's own ~30 µA quiescent draw, but it means the battery does slowly
@@ -397,7 +440,13 @@ Notes that matter for firmware:
   (`PROG2` high), 500 mA charge current (`R2` 2k on `PROG1`), 50 mA termination
   (`R15` 20k on `PROG3`), no thermistor (`R14` 10k on `THERM`), and the safety
   timer **disabled** (`TE` high) — so a timer fault never occurs and both
-  status outputs low means a temperature fault.
+  status outputs low means a temperature fault. The input limit (450 mA
+  typical) is what governs, so the cell charges at ~420 mA. `CE` is tied to
+  `+SYS`, so the firmware cannot stop or limit charging.
+- After `charge complete`, `U3` stops charging entirely; there is no float or
+  trickle charge. With USB still in, the system runs from USB, and a new cycle
+  starts only when the cell falls below VREG − 0.15 V (~4.05 V; datasheet
+  range 3.99–4.11 V). Leaving a coaster plugged in is fine.
 - The MCP73871's internal BAT→SYS path is ~200 mΩ and the datasheet recommends
   keeping system load under 1 A. All 30 TZ-5050S2RGB at full white is ~1.08 A,
   ~1.17 A with the ESP32 — still over, and it sags `+SYS` enough to drop `U4`

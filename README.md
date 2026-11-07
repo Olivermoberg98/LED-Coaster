@@ -99,14 +99,23 @@ Clear tape inside the top shell keeps condensation out of the slits.
    then start *Nattduellen* or *Random drink*.
 
 Plug in USB-C to charge. The small LED on the front is on while charging, blinks
-slowly when the battery is full, and blinks fast on a fault.
+slowly when the battery is full, and blinks fast on a fault. A charge from empty
+takes a little over 3 hours. Leaving it plugged in is fine: the charger stops
+when the battery is full and only starts again once it has dropped to about 90%.
+
+Charge a flat coaster soon. Even switched off, the charger chip draws a little
+from the battery, so one left flat drains far enough within weeks for the
+battery's own protection to cut it off, and it then reads 0 V. Plugging in USB
+usually brings it back. Replace the battery if it is swollen or gets warm while
+charging. For storage longer than a few weeks, leave it about half charged.
 
 ## Status
 
 Five boards have been made, and the front side is verified on hardware: the
 ESP32-C3, USB flashing and logging, BLE control from the app, the inner LED
-ring, charging, and battery and charger reporting. A full discharge of the
-battery has been logged to calibrate the percentage. Still to do:
+ring, charging, and battery and charger reporting. A full discharge and a full
+charge from empty have been logged to calibrate the percentage and check the
+voltage reading. Still to do:
 
 - Solder and verify the outer ring (`D1`–`D20`) and its capacitors.
 - Test the full 30-LED load with the firmware's current cap on a part-empty
@@ -119,8 +128,8 @@ battery has been logged to calibrate the percentage. Still to do:
   of a new battery lead (pin 1 GND, pin 2 +) before plugging it in.
 - Use a **protected** single-cell Li-Po. The firmware's low-voltage cut-off
   does not replace the cell's own protection.
-- The charger IC gets hot to the touch while charging (about 0.75 W at a low
-  cell). That is normal.
+- The charger IC gets hot to the touch while charging (up to about 0.8 W at a
+  low cell). That is normal.
 
 ## License
 
