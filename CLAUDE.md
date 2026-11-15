@@ -465,9 +465,25 @@ placed print-ready on z = 0.
   the Ø90 board (a snug fit that works; do not add clearance). A ring of 35
   radial slits, 0.5 mm wide, sits over the inner LED ring. One rim opening
   spans 83.4°–114.6° (z 0.6–4.79) and serves both USB-C `J3` (90°) and
-  `SW1` (108°). Printed with the top face on the bed.
+  `SW1` (108°). Printed with the top face on the bed. Four Ø7.68 bosses
+  press on the board at the four mounting-hole corners (r ≈ 24.7 mm). NW
+  (H1) and SE (H4) hold M3 × 3.5 × 4.5 (L × OD) heat-set inserts in Ø4.0 ×
+  3.6 mm pockets, leaving a 0.6 mm skin under the top face. SW (H3) and NE
+  are solid. NE sits 0.1 mm further out than a mirror of SW, because at the
+  mirror position its edge is tangent to the slit recess (r 20.895) and OCCT
+  booleans break.
 - **Bottom piece** — Ø74.6 × 9 mm, under the board (top 0.1 mm below it),
-  around the battery.
+  around the battery. Two M3 × 8 socket-head screws go up through NW and SE
+  into the inserts. Each sits in a Ø6.5 counterbore with its head face at
+  z −3.3, then passes through a Ø3.4 hole, so the tip stops at z 4.7 inside
+  the insert (insert z 1.6–5.1). A seat any deeper lets an 8 mm screw bottom
+  out before it clamps.
+- `LED_Coaster_assembly.step` contains the board (KiCad export, which has no
+  models for `SW1`/`J3`/the LEDs), both printed parts, the inserts and the
+  screws. The only overlaps are the inserts' intended interference with the
+  top, the DNP `J4` header model against the top, and the `J1` model against
+  the bottom piece (5.9 mm³). The last two were already in the original
+  design.
 - Measured clearances to the inside of the top (from box models; KiCad 10 has no 3D model
   for either part): USB-C about 0 mm at the top and 0.17 mm at the side. `SW1` measures
   about 0.5 mm into the lid if its body is really 3.5 mm tall — unconfirmed,
